@@ -1,0 +1,316 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  password   String?
+  name       String
+  role       UserRole @default(CUSTOMER)
+  phone      String?
+  avatar     String?
+  isVerified Boolean  @default(false)
+  isActive   Boolean  @default(true)
+
+  provider   AuthProvider @default(LOCAL)
+  providerId String? // ID from OAuth provider
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  lastLoginAt DateTime?
+
+  // Relations
+  refreshTokens RefreshToken[]
+  customerRides Ride[]         @relation("CustomerRides")
+  driverRides   Ride[]         @relation("DriverRides")
+  driverProfile DriverProfile?
+  payments      Payment[]
+  addresses     Address[]
+
+  vehicles       Vehicle[] // ← add this
+  availabilities DriverAvailability[] // ← add this
+  notifications  Notification[] // ← add this
+
+  @@map("users")
+}
+
+model DriverAvailability {
+  id       Int  @id @default(autoincrement())
+  driverId Int
+  driver   User @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  startTime   DateTime
+  endTime     DateTime
+  isAvailable Boolean  @default(true)
+  reason      String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("driver_availabilities")
+}
+
+model Ride {
+  id         Int   @id @default(autoincrement())
+  customerId Int
+  customer   User  @relation("CustomerRides", fields: [customerId], references: [id])
+  driverId   Int?
+  driver     User? @relation("DriverRides", fields: [driverId], references: [id])
+
+  // Ride details
+  pickupAddress    String
+  pickupLatitude   Float?
+  pickupLongitude  Float?
+  dropoffAddress   String
+  dropoffLatitude  Float?
+  dropoffLongitude Float?
+
+  // Service information
+  serviceType ServiceType
+  status      RideStatus  @default(PENDING)
+
+  // Scheduling
+  scheduledAt     DateTime
+  actualPickupAt  DateTime?
+  actualDropoffAt DateTime?
+
+  // Passenger information
+  passengerName   String?
+  passengerPhone  String?
+  specialNeeds    String? // Wheelchair, oxygen, etc.
+  additionalNotes String?
+
+  // Pricing
+  basePrice  Float
+  distance   Float? // in miles
+  duration   Int? // in minutes
+  finalPrice Float?
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  payment Payment?
+
+  @@map("rides")
+}
+
+model Payment {
+  id         Int  @id @default(autoincrement())
+  rideId     Int  @unique
+  ride       Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  customerId Int
+  customer   User @relation(fields: [customerId], references: [id])
+
+  // Payment details
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  method        PaymentMethod
+  transactionId String?
+
+  // Billing information
+  billingName    String?
+  billingEmail   String?
+  billingPhone   String?
+  billingAddress String?
+
+  // Timestamps
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  paidAt    DateTime?
+
+  @@map("payments")
+}
+
+model Address {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Address details
+  label     String // Home, Work, Hospital, etc.
+  address   String
+  city      String
+  state     String
+  zipCode   String
+  latitude  Float?
+  longitude Float?
+  isDefault Boolean @default(false)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, label])
+  @@map("addresses")
+}
+
+model RefreshToken {
+  id        Int      @id @default(autoincrement())
+  token     String   @unique
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("refresh_tokens")
+}
+
+model Vehicle {
+  id       Int  @id @default(autoincrement())
+  driverId Int
+  driver   User @relation(fields: [driverId], references: [id], onDelete: Cascade)
+
+  // Vehicle details
+  make         String
+  model        String
+  year         Int
+  color        String
+  licensePlate String
+  vin          String?
+
+  // Vehicle specifications
+  type                VehicleType
+  capacity            Int // Number of passengers
+  hasWheelchairAccess Boolean     @default(false)
+  hasOxygenSupport    Boolean     @default(false)
+
+  // Insurance and registration
+  insuranceExpiry    DateTime
+  registrationExpiry DateTime
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("vehicles")
+}
+
+model DriverProfile {
+  id            Int      @id @default(autoincrement())
+  userId        Int      @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  licenseNumber String
+  licenseState  String
+  licenseExpiry DateTime
+  vehicleInfo   String?
+  insuranceInfo String?
+  isAvailable   Boolean  @default(true)
+  rating        Float?   @default(5.0)
+  totalTrips    Int      @default(0)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("driver_profiles")
+}
+
+model ServiceArea {
+  id          Int     @id @default(autoincrement())
+  name        String
+  description String?
+
+  // Geographic boundaries
+  polygon Json? // GeoJSON polygon for service area
+
+  // Pricing
+  basePrice    Float
+  pricePerMile Float
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("service_areas")
+}
+
+model Notification {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type     NotificationType
+  title    String
+  message  String
+  isRead   Boolean          @default(false)
+  metadata Json?
+
+  createdAt DateTime  @default(now())
+  readAt    DateTime?
+
+  @@map("notifications")
+}
+
+// Enums
+export enum UserRole {
+  CUSTOMER
+  DRIVER
+  ADMIN
+  DISPATCHER
+}
+
+enum AuthProvider {
+  LOCAL
+  GOOGLE
+}
+
+enum ServiceType {
+  MEDICAL
+  GENERAL
+}
+
+enum RideStatus {
+  PENDING
+  ASSIGNED
+  CONFIRMED
+  DRIVER_EN_ROUTE
+  PICKUP_ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  DEBIT_CARD
+  INSURANCE
+  CASH
+  VOUCHER
+  CORPORATE_BILLING
+}
+
+enum VehicleType {
+  SEDAN
+  SUV
+  VAN
+  WHEELCHAIR_VAN
+  STRETCHER_VAN
+}
+
+enum NotificationType {
+  RIDE_BOOKED
+  RIDE_ASSIGNED
+  RIDE_UPDATED
+  RIDE_COMPLETED
+  PAYMENT_RECEIVED
+  SYSTEM_ALERT
+  PROMOTIONAL
+}
