@@ -22,7 +22,7 @@ const VerifyEmailPage = () => {
 
   const verifyEmail = async (verificationToken: string) => {
     try {
-      const response = await fetch(`/api/auth/verify-email?token=${verificationToken}`);
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/verify-email?token=${verificationToken}`);
       const data = await response.json();
 
       if (response.ok) {

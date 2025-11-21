@@ -14,7 +14,8 @@ import {
   Ticket,
   Calendar,
   Library,
-  MapPin
+  MapPin,
+  Map
 } from 'lucide-react';
 import ServiceCard from './service-card';
 
@@ -30,8 +31,9 @@ const ServicesGrid = () => {
   ];
 
   const nonMedicalServices = [
-    { icon: MapPin, title: "Long Distance Trips" },
+    { icon: MapPin, title: "Any distance in and from the valley." },
     { icon: Plane, title: "Airports" },
+    { icon: Map, title: "Long Distance Trips" },
     { icon: Bus, title: "Train or Bus Stations" },
     { icon: Ticket, title: "Sporting Events" },
     { icon: Calendar, title: "Special & Family Events" },

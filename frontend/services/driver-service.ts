@@ -35,11 +35,19 @@ export const driverService = {
     return response.data;
   },
 
-  // Create driver
-  async createDriver(data: CreateDriverData) {
+// In your driver-service.ts, update the createDriver method:
+async createDriver(data: CreateDriverData) {
+  console.log('Sending create driver request with data:', data);
+  
+  try {
     const response = await api.post('/admin/drivers', data);
+    console.log('Create driver response:', response.data);
     return response.data;
-  },
+  } catch (error) {
+    console.error('Error creating driver:', error);
+    throw error;
+  }
+},
 
   // Update driver
   async updateDriver(id: number, data: UpdateDriverData) {

@@ -11,6 +11,7 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { VehiclesModule } from './vehicles/vehicles.module';
 import { DriversModule } from './driver/drivers.module';
 import { DriverDashboardModule } from './driver/driver-dashboard.module';
+import { AdminModule } from './admin/admin.module';
 
 @Module({
   imports: [
@@ -23,7 +24,8 @@ import { DriverDashboardModule } from './driver/driver-dashboard.module';
     CloudinaryModule,
     VehiclesModule,
     DriversModule,
-    DriverDashboardModule
+    DriverDashboardModule,
+    AdminModule
   ],
   providers: [
     PrismaService,

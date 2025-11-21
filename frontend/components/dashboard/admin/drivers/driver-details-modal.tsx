@@ -62,7 +62,7 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({ driver, onClose
           {/* Profile Header */}
           <div className="flex items-start space-x-4 bg-gray-50 p-4 rounded-lg">
             <img
-              className="h-16 w-16 rounded-full"
+              className="h-16 w-16 rounded-full object-cover"
               src={driver.avatar || '/default-avatar.png'}
               alt={driver.name}
             />
@@ -196,7 +196,7 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({ driver, onClose
                               : 'bg-yellow-100 text-yellow-800'
                           }`}
                         >
-                          {getVehicleStatusLabel(vehicle.status)}
+                          {getVehicleStatusLabel(vehicle.status as VehicleStatus)}
                         </span>
                       </div>
                       <dl className="text-sm space-y-1">
@@ -206,7 +206,7 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({ driver, onClose
                         </div>
                         <div className="flex justify-between">
                           <dt className="text-gray-500">Type:</dt>
-                          <dd className="text-gray-900">{getVehicleTypeLabel(vehicle.type)}</dd>
+                          <dd className="text-gray-900">{getVehicleTypeLabel(vehicle.type as VehicleType)}</dd>
                         </div>
                         <div className="flex justify-between">
                           <dt className="text-gray-500">Capacity:</dt>

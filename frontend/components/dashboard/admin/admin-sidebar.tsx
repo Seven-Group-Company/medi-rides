@@ -51,7 +51,7 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
       <div className={`
         fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'} 
-        md:translate-x-0 md:static md:inset-0
+        md:translate-x-0 md:static md:inset-0 h-screen justify-between flex flex-col
       `}>
         {/* Sidebar Header */}
         <div className="flex items-center justify-between h-16 px-4 border-b border-gray-200">
@@ -99,7 +99,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
           })}
         </nav>
 
-        {/* User Info & Logout */}
+        <div className="flx">
+                  {/* User Info & Logout */}
         <div className="border-t border-gray-200 p-4">
           <div className="flex items-center mb-4">
             <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
@@ -122,6 +123,8 @@ export default function AdminSidebar({ isOpen, onClose }: AdminSidebarProps) {
             Sign out
           </button>
         </div>
+        </div>
+
       </div>
     </>
   );

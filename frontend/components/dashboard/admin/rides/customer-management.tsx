@@ -1,17 +1,14 @@
-'use client';
-
-import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Filter, User, Mail, Phone, Calendar, Car, MoreVertical, Edit, Ban, CheckCircle } from 'lucide-react';
-import { CustomerProfile } from '@/types/admin.types';
+import { Search, Filter, User, Mail, Phone, Calendar, Car, ToggleLeft, ToggleRight } from 'lucide-react';
+import { Customer } from '@/types/admin.types';
 
 interface CustomerManagementProps {
-  customers: CustomerProfile[];
+  customers: Customer[];
   search: string;
-  onSearchChange: (search: string) => void;
+  onSearchChange: (value: string) => void;
   statusFilter: string;
-  onStatusFilterChange: (status: string) => void;
-  onUpdateCustomerStatus: (customerId: number, status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED') => void;
+  onStatusFilterChange: (value: string) => void;
+  onUpdateCustomerStatus: (customerId: number, isActive: boolean) => Promise<{ success: boolean; error?: string }>;
 }
 
 export default function CustomerManagement({
@@ -20,50 +17,30 @@ export default function CustomerManagement({
   onSearchChange,
   statusFilter,
   onStatusFilterChange,
-  onUpdateCustomerStatus
+  onUpdateCustomerStatus,
 }: CustomerManagementProps) {
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null);
+  const filteredCustomers = customers.filter(customer => {
+    const matchesSearch = 
+      customer.name.toLowerCase().includes(search.toLowerCase()) ||
+      customer.email.toLowerCase().includes(search.toLowerCase()) ||
+      customer.phone?.toLowerCase().includes(search.toLowerCase());
+    
+    const matchesStatus = statusFilter === 'all' || 
+      (statusFilter === 'active' && customer.isActive) ||
+      (statusFilter === 'inactive' && !customer.isActive);
+    
+    return matchesSearch && matchesStatus;
+  });
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'INACTIVE':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'SUSPENDED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
+  const handleStatusToggle = async (customerId: number, currentStatus: boolean) => {
+    await onUpdateCustomerStatus(customerId, !currentStatus);
   };
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Customer Management</h2>
-          <p className="text-gray-600">Manage customer accounts and profiles</p>
-        </div>
-        <div className="mt-4 sm:mt-0">
-          <span className="text-sm text-gray-600">
-            {customers.length} customer{customers.length !== 1 ? 's' : ''} found
-          </span>
-        </div>
-      </div>
-
       {/* Filters */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Search */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <input
@@ -71,182 +48,134 @@ export default function CustomerManagement({
               placeholder="Search customers by name, email, or phone..."
               value={search}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
             />
           </div>
-
-          {/* Status Filter */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              <Filter className="w-4 h-4 inline mr-1" />
-              Status Filter
-            </label>
+        </div>
+        <div className="sm:w-48">
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
             <select
               value={statusFilter}
               onChange={(e) => onStatusFilterChange(e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
             >
-              <option value="all">All Statuses</option>
-              <option value="ACTIVE">Active</option>
-              <option value="INACTIVE">Inactive</option>
-              <option value="SUSPENDED">Suspended</option>
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
             </select>
           </div>
         </div>
       </div>
 
-      {/* Customers Table */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        {customers.length === 0 ? (
+      {/* Customers List */}
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {filteredCustomers.length === 0 ? (
           <div className="text-center py-12">
-            <User className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No customers found</h3>
-            <p className="text-gray-600">Try adjusting your search or filters</p>
+            <User className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-4 text-lg font-medium text-gray-900">No customers found</h3>
+            <p className="mt-2 text-gray-500">
+              {customers.length === 0 ? 'No customers yet.' : 'No customers match your filters.'}
+            </p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Rides
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Activity
-                  </th>
-                  <th className="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {customers.map((customer, index) => (
-                  <motion.tr
-                    key={customer.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="hover:bg-gray-50 transition-colors duration-150"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                          <User className="w-5 h-5 text-blue-600" />
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">
-                            {customer.name}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            ID: #{customer.id.toString().padStart(6, '0')}
-                          </div>
-                        </div>
+          <div className="divide-y divide-gray-200">
+            {filteredCustomers.map((customer) => (
+              <motion.div
+                key={customer.id}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="p-6 hover:bg-gray-50 transition-colors duration-200"
+              >
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  {/* Customer Info */}
+                  <div className="flex items-start gap-4 flex-1">
+                    {customer.avatar ? (
+                      <img
+                        src={customer.avatar}
+                        alt={customer.name}
+                        className="w-12 h-12 rounded-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
+                        <User className="w-6 h-6 text-gray-400" />
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        <div className="flex items-center">
-                          <Mail className="w-4 h-4 mr-2 text-gray-400" />
-                          {customer.email}
-                        </div>
-                        <div className="flex items-center mt-1">
-                          <Phone className="w-4 h-4 mr-2 text-gray-400" />
-                          {customer.phone}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <Car className="w-4 h-4 mr-2 text-gray-400" />
-                        <span className="text-sm text-gray-900 font-medium">
-                          {customer.totalRides}
+                    )}
+                    
+                    <div className="flex-1 space-y-2">
+                      <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-semibold text-gray-900">
+                          {customer.name}
+                        </h3>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          customer.isActive 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {customer.isActive ? 'Active' : 'Inactive'}
                         </span>
-                        <span className="text-sm text-gray-500 ml-1">rides</span>
+                        {!customer.isVerified && (
+                          <span className="px-2 py-1 text-xs font-medium bg-yellow-100 text-yellow-800 rounded-full">
+                            Unverified
+                          </span>
+                        )}
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(customer.status)}`}>
-                        {customer.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 mr-2 text-gray-400" />
-                        {customer.lastRide ? formatDate(customer.lastRide) : 'Never'}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-2">
-                        <div className="relative">
-                          <button
-                            onClick={() => setActiveDropdown(activeDropdown === customer.id ? null : customer.id)}
-                            className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
-                          >
-                            <MoreVertical className="w-4 h-4 text-gray-600" />
-                          </button>
-
-                          {activeDropdown === customer.id && (
-                            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                              <div className="py-1">
-                                {customer.status !== 'ACTIVE' && (
-                                  <button
-                                    onClick={() => {
-                                      onUpdateCustomerStatus(customer.id, 'ACTIVE');
-                                      setActiveDropdown(null);
-                                    }}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-green-700 hover:bg-green-50"
-                                  >
-                                    <CheckCircle className="w-4 h-4 mr-2" />
-                                    Activate
-                                  </button>
-                                )}
-                                {customer.status !== 'INACTIVE' && (
-                                  <button
-                                    onClick={() => {
-                                      onUpdateCustomerStatus(customer.id, 'INACTIVE');
-                                      setActiveDropdown(null);
-                                    }}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-yellow-700 hover:bg-yellow-50"
-                                  >
-                                    <Ban className="w-4 h-4 mr-2" />
-                                    Mark Inactive
-                                  </button>
-                                )}
-                                {customer.status !== 'SUSPENDED' && (
-                                  <button
-                                    onClick={() => {
-                                      onUpdateCustomerStatus(customer.id, 'SUSPENDED');
-                                      setActiveDropdown(null);
-                                    }}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 hover:bg-red-50"
-                                  >
-                                    <Ban className="w-4 h-4 mr-2" />
-                                    Suspend
-                                  </button>
-                                )}
-                                <button className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
-                                  <Edit className="w-4 h-4 mr-2" />
-                                  Edit Profile
-                                </button>
-                              </div>
-                            </div>
-                          )}
+                      
+                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <Mail className="w-4 h-4" />
+                          <span>{customer.email}</span>
+                        </div>
+                        {customer.phone && (
+                          <div className="flex items-center gap-1">
+                            <Phone className="w-4 h-4" />
+                            <span>{customer.phone}</span>
+                          </div>
+                        )}
+                        <div className="flex items-center gap-1">
+                          <Calendar className="w-4 h-4" />
+                          <span>Joined {new Date(customer.createdAt).toLocaleDateString()}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Car className="w-4 h-4" />
+                          <span>{customer.totalRides} rides ({customer.completedRides} completed)</span>
                         </div>
                       </div>
-                    </td>
-                  </motion.tr>
-                ))}
-              </tbody>
-            </table>
+                      
+                      {customer.lastLoginAt && (
+                        <p className="text-xs text-gray-500">
+                          Last login: {new Date(customer.lastLoginAt).toLocaleString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={() => handleStatusToggle(customer.id, customer.isActive)}
+                      className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        customer.isActive
+                          ? 'bg-red-100 text-red-700 hover:bg-red-200'
+                          : 'bg-green-100 text-green-700 hover:bg-green-200'
+                      }`}
+                    >
+                      {customer.isActive ? (
+                        <>
+                          <ToggleLeft className="w-4 h-4" />
+                          Deactivate
+                        </>
+                      ) : (
+                        <>
+                          <ToggleRight className="w-4 h-4" />
+                          Activate
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>

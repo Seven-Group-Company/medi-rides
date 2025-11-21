@@ -9,11 +9,16 @@ import {
   Activity, 
   Brain, 
   Heart,
-  Calendar
+  Calendar,
+  MapPin
 } from 'lucide-react';
 
 const MedicalTransportOverview = () => {
   const medicalServices = [
+        { icon: MapPin, 
+      title: "Any distance in and from the valley.",
+      description: "Flexible rides for local trips within the valley area"
+    },
     {
       icon: Stethoscope,
       title: "Doctor's Appointments",

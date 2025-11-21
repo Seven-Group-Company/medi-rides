@@ -1,61 +1,78 @@
-export interface CustomerProfile {
+// types/admin.types.ts
+export interface Customer {
   id: number;
-  name: string;
   email: string;
+  name: string;
   phone: string;
-  totalRides: number;
-  status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
+  avatar?: string;
+  isVerified: boolean;
+  isActive: boolean;
+  role: 'CUSTOMER';
   createdAt: string;
-  lastRide: string | null;
+  lastLoginAt?: string;
+  totalRides: number;
+  completedRides: number;
 }
 
-export interface AdminRideRequest {
+export interface RideRequest {
   id: number;
-  customer: {
-    id: number;
-    name: string;
-    email: string;
-    phone: string;
-  };
-  pickup: string;
-  dropoff: string;
-  scheduledAt: string;
-  status: 'PENDING' | 'ASSIGNED' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  customerId: number;
+  customer: Customer;
+  driverId?: number;
+  driver?: Driver;
+  
+  // Ride details
+  pickupAddress: string;
+  dropoffAddress: string;
   serviceType: 'MEDICAL' | 'GENERAL';
-  distance: number | null;
-  duration: number | null;
+  status: 'PENDING' | 'ASSIGNED' | 'CONFIRMED' | 'DRIVER_EN_ROUTE' | 'PICKUP_ARRIVED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
+  
+  // Scheduling
+  scheduledAt: string;
+  actualPickupAt?: string;
+  actualDropoffAt?: string;
+  
+  // Passenger information
+  passengerName: string;
+  passengerPhone: string;
+  specialNeeds?: string;
+  additionalNotes?: string;
+  
+  // Pricing
   basePrice: number;
-  finalPrice: number | null;
-  driver: {
-    id: number;
-    name: string;
-    phone: string;
-  } | null;
-  vehicle: {
-    id: number;
-    make: string;
-    model: string;
-    licensePlate: string;
-  } | null;
+  distance?: number;
+  duration?: number;
+  finalPrice?: number;
+  
+  // Timestamps
   createdAt: string;
+  updatedAt: string;
+  
+  // Admin
+  adminNotes?: string;
 }
 
 export interface Driver {
   id: number;
-  name: string;
   email: string;
+  name: string;
   phone: string;
-  status: 'AVAILABLE' | 'BUSY' | 'OFFLINE';
-  rating: number;
-  totalRides: number;
-  vehicle: {
+  avatar?: string;
+  isVerified: boolean;
+  isActive: boolean;
+  role: 'DRIVER';
+  createdAt: string;
+  lastLoginAt?: string;
+  driverProfile: {
     id: number;
-    make: string;
-    model: string;
-    licensePlate: string;
-    type: string;
-    capacity: number;
-  } | null;
+    licenseNumber: string;
+    licenseState: string;
+    licenseExpiry: string;
+    isAvailable: boolean;
+    rating?: number;
+    totalTrips: number;
+    vehicles: Vehicle[];
+  };
 }
 
 export interface Vehicle {
@@ -63,12 +80,12 @@ export interface Vehicle {
   make: string;
   model: string;
   year: number;
+  color: string;
   licensePlate: string;
-  type: string;
+  type: 'SEDAN' | 'SUV' | 'VAN' | 'WHEELCHAIR_VAN' | 'STRETCHER_VAN';
   capacity: number;
+  hasWheelchairAccess: boolean;
+  hasOxygenSupport: boolean;
   status: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE';
-  driver: {
-    id: number;
-    name: string;
-  } | null;
+  images: string[];
 }

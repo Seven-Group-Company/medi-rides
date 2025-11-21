@@ -5,18 +5,22 @@ import {
   MapPin, 
   Plane, 
   Train, 
-  Bus, 
   Ticket, 
   Calendar, 
   Car,
   ShoppingCart,
-  BookOpen
+  BookOpen,
+  Map
 } from 'lucide-react';
 
 const NonMedicalTransportOverview = () => {
   const nonMedicalServices = [
+    { icon: MapPin, 
+      title: "Any distance in and from the valley.",
+      description: "Flexible rides for local trips within the valley area"
+    },
     {
-      icon: MapPin,
+      icon: Map,
       title: "Long-Distance Trips",
       description: "Comfortable travel for out-of-town visits and extended journeys"
     },
