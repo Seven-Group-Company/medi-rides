@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Car, Calendar, Clock, Type, Navigation } from 'lucide-react';
+import { MapPin, Car, Calendar, Clock, Type, Navigation, DollarSign } from 'lucide-react';
 import { BookingStepProps } from '@/types/booking.types';
+import { useMemo } from 'react';
 
 export default function ReviewStep({ 
   formData, 
@@ -10,8 +11,9 @@ export default function ReviewStep({
   errors, 
   onBack, 
   isSubmitting,
-  onSubmit
-}: BookingStepProps & { onSubmit: () => void }) {
+  onSubmit,
+  serviceCategories = []
+}: BookingStepProps & { onSubmit: () => void; serviceCategories?: any[] }) {
   
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -21,6 +23,105 @@ export default function ReviewStep({
       day: 'numeric'
     });
   };
+
+  // Calculate estimated price based on the pricing table
+  const estimatedPrice = useMemo(() => {
+    if (!formData.distanceKm || !formData.date || !formData.time || !formData.serviceCategoryId) {
+      return null;
+    }
+
+    try {
+      // Convert distance to miles
+      const distanceMiles = formData.distanceKm * 0.621371;
+      
+      // Get scheduled time
+      const scheduledDateTime = new Date(`${formData.date}T${formData.time}`);
+      const hour = scheduledDateTime.getHours();
+      
+      // Determine time period
+      const isDayTime = hour >= 6 && hour < 18; // 6AM to 6PM
+      const isEvening = hour >= 18 && hour <= 23; // 6PM to 11PM
+      const isLateNight = hour >= 0 && hour < 6; // 12AM to 6AM
+      
+      // Get service category to determine service type
+      const serviceCategory = serviceCategories.find(cat => cat.id === formData.serviceCategoryId);
+      const isWheelchair = serviceCategory?.name?.toLowerCase().includes('wheelchair') || 
+                          serviceCategory?.serviceType === 'WHEELCHAIR';
+      const isAmbulatory = !isWheelchair;
+
+      let price: number;
+
+      // Daytime pricing (6AM to 6PM)
+      if (isDayTime) {
+        if (distanceMiles <= 5) {
+          price = isWheelchair ? 30 : 20;
+        } else if (distanceMiles <= 10) {
+          price = isWheelchair ? 40 : 30;
+        } else if (distanceMiles <= 20) {
+          price = isWheelchair ? 50 : 40;
+        } else if (distanceMiles <= 50) {
+          price = isWheelchair ? 85 : 75;
+        } else {
+          // For distances over 50 miles
+          const baseRate = isWheelchair ? 85 : 75;
+          const additionalMiles = distanceMiles - 50;
+          const perMileRate = isWheelchair ? 2.5 : 2.0;
+          price = baseRate + (additionalMiles * perMileRate);
+        }
+      }
+      // Evening pricing (6PM to 12AM)
+      else if (isEvening) {
+        if (distanceMiles <= 5) {
+          price = isWheelchair ? 40 : 30;
+        } else if (distanceMiles <= 10) {
+          price = isWheelchair ? 50 : 40;
+        } else if (distanceMiles <= 20) {
+          price = isWheelchair ? 60 : 50;
+        } else if (distanceMiles <= 50) {
+          price = isWheelchair ? 105 : 85;
+        } else {
+          // For distances over 50 miles
+          const baseRate = isWheelchair ? 105 : 85;
+          const additionalMiles = distanceMiles - 50;
+          const perMileRate = isWheelchair ? 3.0 : 2.5;
+          price = baseRate + (additionalMiles * perMileRate);
+        }
+      }
+      // Late night pricing (12AM to 6AM) - using evening rates
+      else if (isLateNight) {
+        if (distanceMiles <= 5) {
+          price = isWheelchair ? 40 : 30;
+        } else if (distanceMiles <= 10) {
+          price = isWheelchair ? 50 : 40;
+        } else if (distanceMiles <= 20) {
+          price = isWheelchair ? 60 : 50;
+        } else if (distanceMiles <= 50) {
+          price = isWheelchair ? 105 : 85;
+        } else {
+          const baseRate = isWheelchair ? 105 : 85;
+          const additionalMiles = distanceMiles - 50;
+          const perMileRate = isWheelchair ? 3.0 : 2.5;
+          price = baseRate + (additionalMiles * perMileRate);
+        }
+      } else {
+        // Fallback calculation
+        const basePrice = serviceCategory?.basePrice || 20;
+        const pricePerMile = serviceCategory?.pricePerMile || 2;
+        price = basePrice + (distanceMiles * pricePerMile);
+      }
+
+      return parseFloat(price.toFixed(2));
+    } catch (error) {
+      console.error('Error calculating price:', error);
+      return null;
+    }
+  }, [formData, serviceCategories]);
+
+  // Get service category name
+  const serviceCategoryName = useMemo(() => {
+    const category = serviceCategories.find(cat => cat.id === formData.serviceCategoryId);
+    return category?.name || formData.serviceType;
+  }, [formData.serviceCategoryId, formData.serviceType, serviceCategories]);
 
   return (
     <motion.div
@@ -63,7 +164,7 @@ export default function ReviewStep({
             <Car className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
             <div>
               <p className="text-sm font-medium text-gray-900">Service Type</p>
-              <p className="text-sm text-gray-600">{formData.serviceType}</p>
+              <p className="text-sm text-gray-600">{serviceCategoryName}</p>
             </div>
           </div>
 
@@ -85,7 +186,21 @@ export default function ReviewStep({
               <div>
                 <p className="text-sm font-medium text-gray-900">Trip Details</p>
                 <p className="text-sm text-gray-600">
-                  {formData.distanceKm} km • ~{formData.estimatedTime} minutes
+                  {formData.distanceKm} km ({Math.round(formData.distanceKm * 0.621371)} miles) • ~{formData.estimatedTime} minutes
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Estimated Price */}
+          {estimatedPrice && (
+            <div className="flex items-start space-x-3 pt-4 border-t border-gray-200">
+              <DollarSign className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-gray-900">Estimated Price</p>
+                <p className="text-lg font-bold text-green-700">${estimatedPrice}</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  *Final price may vary based on actual route and wait times
                 </p>
               </div>
             </div>

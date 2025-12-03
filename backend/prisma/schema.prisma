@@ -4,21 +4,21 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL")
 }
 
 model User {
-  id         Int      @id @default(autoincrement())
-  email      String   @unique
-  password   String?  // Make sure this is optional
-  name       String
-  emailVerificationToken String?
+  id                       Int       @id @default(autoincrement())
+  email                    String    @unique
+  password                 String? // Make sure this is optional
+  name                     String
+  emailVerificationToken   String?
   emailVerificationExpires DateTime?
-  role       UserRole @default(CUSTOMER)
-  phone      String?
-  avatar     String?
-  isVerified Boolean  @default(false)
-  isActive   Boolean  @default(true)
+  role                     UserRole  @default(CUSTOMER)
+  phone                    String?
+  avatar                   String?
+  isVerified               Boolean   @default(false)
+  isActive                 Boolean   @default(true)
 
   provider   AuthProvider @default(LOCAL)
   providerId String? // ID from OAuth provider
@@ -28,13 +28,13 @@ model User {
   lastLoginAt DateTime?
 
   // Relations
-  refreshTokens RefreshToken[]
-  customerRides Ride[]         @relation("CustomerRides")
-  driverRides   Ride[]         @relation("DriverRides")
-  driverProfile DriverProfile?
+  refreshTokens  RefreshToken[]
+  customerRides  Ride[]          @relation("CustomerRides")
+  driverRides    Ride[]          @relation("DriverRides")
+  driverProfile  DriverProfile?
   patientProfile PatientProfile?
-  payments      Payment[]
-  addresses     Address[]
+  payments       Payment[]
+  addresses      Address[]
 
   availabilities DriverAvailability[]
   notifications  Notification[]
@@ -58,10 +58,57 @@ model DriverAvailability {
   @@map("driver_availabilities")
 }
 
+model Invoice {
+  id            Int           @id @default(autoincrement())
+  rideId        Int           @unique
+  ride          Ride          @relation(fields: [rideId], references: [id])
+  invoiceNumber String        @unique @default(cuid())
+  amount        Decimal       @db.Decimal(10, 2)
+  tax           Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount   Decimal       @db.Decimal(10, 2)
+  dueDate       DateTime
+  issuedDate    DateTime      @default(now())
+  status        InvoiceStatus @default(PENDING)
+  pdfUrl        String?
+  notes         String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("invoices")
+}
+
+enum InvoiceStatus {
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model ServiceCategory {
+  id           Int         @id @default(autoincrement())
+  name         String      @unique
+  value        String      @unique
+  description  String?
+  icon         String?
+  isActive     Boolean     @default(true)
+  basePrice    Float       @default(15.00)
+  pricePerMile Float       @default(1.50)
+  serviceType  ServiceType @default(GENERAL)
+
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  rides Ride[]
+
+  @@map("service_categories")
+}
+
 model Ride {
   id         Int   @id @default(autoincrement())
-  customerId Int
-  customer   User  @relation("CustomerRides", fields: [customerId], references: [id])
+  customerId Int?
+  customer   User? @relation("CustomerRides", fields: [customerId], references: [id])
   driverId   Int?
   driver     User? @relation("DriverRides", fields: [driverId], references: [id])
 
@@ -70,8 +117,13 @@ model Ride {
   pickupLatitude   Float?
   pickupLongitude  Float?
   dropoffAddress   String
+  distance         Float? // in miles
+  duration         Int?
   dropoffLatitude  Float?
   dropoffLongitude Float?
+
+  serviceCategoryId Int
+  serviceCategory   ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
 
   // Service information
   serviceType ServiceType
@@ -82,6 +134,7 @@ model Ride {
   actualPickupAt  DateTime?
   actualDropoffAt DateTime?
 
+  isGuest         Boolean @default(false)
   // Passenger information
   passengerName   String?
   passengerPhone  String?
@@ -90,8 +143,6 @@ model Ride {
 
   // Pricing
   basePrice  Float
-  distance   Float? // in miles
-  duration   Int? // in minutes
   finalPrice Float?
 
   // Timestamps
@@ -100,6 +151,8 @@ model Ride {
 
   // Relations
   payment Payment?
+
+  invoice Invoice?
 
   @@map("rides")
 }
@@ -167,7 +220,7 @@ model RefreshToken {
 
 model Vehicle {
   id                  Int           @id @default(autoincrement())
-  driverId            Int?          // Make this optional for unassigned vehicles
+  driverId            Int? // Make this optional for unassigned vehicles
   make                String
   model               String
   year                Int
@@ -198,10 +251,10 @@ enum VehicleStatus {
 }
 
 model PatientProfile {
-    id            Int      @id @default(autoincrement())
-  userId        Int      @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalTrips    Int      @default(0)
+  id         Int  @id @default(autoincrement())
+  userId     Int  @unique
+  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalTrips Int  @default(0)
 
   // Timestamps
   createdAt DateTime @default(now())
@@ -222,7 +275,7 @@ model DriverProfile {
   isAvailable   Boolean  @default(true)
   rating        Float?   @default(5.0)
   totalTrips    Int      @default(0)
-  
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

@@ -20,13 +20,14 @@ export class CreateRideDto {
   @IsNotEmpty()
   dropoff: string;
 
-  @ApiProperty({ 
-    description: 'Type of service',
-    enum: ['Medical Appointment', 'Wheelchair Transport', 'Errands', 'Airport Shuttle', 'Other']
-  })
+  @ApiProperty({ description: 'Type of service' })
   @IsString()
-  @IsEnum(['Medical Appointment', 'Wheelchair Transport', 'Errands', 'Airport Shuttle', 'Other'])
+  @IsNotEmpty()
   serviceType: string;
+
+  @ApiProperty({ description: 'Service category ID' })
+  @IsNumber()
+  serviceCategoryId: number;
 
   @ApiProperty({ description: 'Ride date in YYYY-MM-DD format' })
   @IsDateString()
@@ -35,6 +36,17 @@ export class CreateRideDto {
   @ApiProperty({ description: 'Ride time in HH:MM format' })
   @IsString()
   time: string;
+
+  @ApiProperty({ description: 'Estimated price', required: false })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  estimatedPrice?: number;
+
+  @ApiProperty({ 
+  description: 'Type of service',
+  enum: ['medical-transport', 'wheelchair-service', 'errands', 'airport-shuttle', 'other']
+})
 
   @ApiProperty({ description: 'Additional notes', required: false })
   @IsOptional()

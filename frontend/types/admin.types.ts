@@ -1,4 +1,3 @@
-// types/admin.types.ts
 export interface Customer {
   id: number;
   email: string;
@@ -16,8 +15,8 @@ export interface Customer {
 
 export interface RideRequest {
   id: number;
-  customerId: number;
-  customer: Customer;
+  customerId?: number;
+  customer?: Customer;
   driverId?: number;
   driver?: Driver;
   
@@ -37,7 +36,7 @@ export interface RideRequest {
   passengerPhone: string;
   specialNeeds?: string;
   additionalNotes?: string;
-  
+
   // Pricing
   basePrice: number;
   distance?: number;
@@ -50,6 +49,13 @@ export interface RideRequest {
   
   // Admin
   adminNotes?: string;
+
+  invoice?: {
+    id: number;
+    pdfUrl: string;
+  };
+
+  isGuest?: boolean;
 }
 
 export interface Driver {

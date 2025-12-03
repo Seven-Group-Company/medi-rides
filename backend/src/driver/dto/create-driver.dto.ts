@@ -22,6 +22,10 @@ export class CreateDriverDto {
   @MinLength(2)
   name: string;
 
+  // @ApiProperty({ example: 1 })
+  // @IsNumber()
+  // serviceCategoryId: number;
+
   @ApiProperty({ example: '+1234567890' })
   @IsString()
   phone: string;

@@ -32,12 +32,14 @@ export class AdminRidesController {
   @ApiQuery({ name: 'limit', required: false, type: Number })
   @ApiQuery({ name: 'status', required: false, enum: RideStatus })
   @ApiQuery({ name: 'search', required: false, type: String })
+  @ApiQuery({ name: 'include', required: false, type: String, description: 'Comma-separated relations to include (e.g., invoice,customer)' })
   @ApiResponse({ status: 200, description: 'Rides retrieved successfully' })
   async getAllRides(
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('status') status?: RideStatus,
     @Query('search') search?: string,
+    @Query('include') include?: string, // Add include parameter
   ) {
     const pageNum = parseInt(page || '1') || 1;
     const limitNum = parseInt(limit || '10') || 10;
@@ -46,7 +48,8 @@ export class AdminRidesController {
       pageNum,
       limitNum,
       status,
-      search
+      search,
+      include // Pass include parameter
     );
     
     return {
@@ -109,6 +112,20 @@ export class AdminRidesController {
     return {
       success: true,
       message: 'Driver assigned successfully',
+      data: ride,
+    };
+  }
+
+  @Post(':id/complete')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Mark a ride as completed and generate invoice' })
+  @ApiResponse({ status: 200, description: 'Ride completed successfully' })
+  async completeRide(@Param('id', ParseIntPipe) rideId: number) {
+    const ride = await this.adminRidesService.completeRide(rideId);
+    
+    return {
+      success: true,
+      message: 'Ride marked as completed and invoice generated',
       data: ride,
     };
   }

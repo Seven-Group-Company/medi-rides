@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Users, Car, CheckCircle, DollarSign, UserCheck, Car as CarIcon } from 'lucide-react';
+import { Users, Car, CheckCircle, UserCheck, Car as CarIcon } from 'lucide-react';
 import { useAdminBookingManagement } from '@/hooks/useAdminBookingManagement';
 import CustomerManagement from '@/components/dashboard/admin/rides/customer-management';
 import RideManagement from '@/components/dashboard/admin/rides/ride-management';
@@ -37,6 +37,9 @@ export default function AdminBookingManagementPage() {
     
     // Stats
     stats,
+
+    completeRide,
+
   } = useAdminBookingManagement();
 
   const tabs = [
@@ -206,6 +209,7 @@ export default function AdminBookingManagementPage() {
                 onApproveRide={approveRide}
                 onDeclineRide={declineRide}
                 onAssignDriverAndVehicle={assignDriverAndVehicle}
+                onCompleteRide={completeRide}
               />
             )}
           </div>

@@ -64,6 +64,38 @@ async function main() {
     },
   });
 
+  //create Service Categories
+  console.log('Creating service categories...');
+  const serviceCategory1 = await prisma.serviceCategory.upsert({
+    where: { value: 'medical-appointment' },
+    update: {},
+    create: {
+      name: 'Medical Appointment',
+      value: 'medical-appointment',
+      description: 'Doctor visits, hospital appointments',
+      icon: 'Stethoscope',
+      isActive: true,
+      basePrice: 25.00,
+      pricePerMile: 2.50,
+      serviceType: ServiceType.MEDICAL,
+    },
+  });
+
+  const serviceCategory2 = await prisma.serviceCategory.upsert({
+    where: { value: 'general-transport' },
+    update: {},
+    create: {
+      name: 'General Transport',
+      value: 'general-transport',
+      description: 'Non-medical rides and errands',
+      icon: 'Car',
+      isActive: true,
+      basePrice: 15.00,
+      pricePerMile: 1.50,
+      serviceType: ServiceType.GENERAL,
+    },
+  });
+
   // Create Sample Drivers
   console.log('Creating sample drivers...');
   const driver1Password = await bcrypt.hash('Driver123!', 12);
@@ -198,6 +230,7 @@ async function main() {
         pickupAddress: '123 Main Street, Wasilla, AK 99654',
         dropoffAddress: 'Mat-Su Regional Medical Center, Palmer, AK 99645',
         serviceType: ServiceType.MEDICAL,
+        serviceCategoryId: serviceCategory1.id,
         status: 'COMPLETED',
         scheduledAt: new Date('2024-01-15T09:00:00Z'),
         actualPickupAt: new Date('2024-01-15T08:45:00Z'),
@@ -216,6 +249,7 @@ async function main() {
         pickupAddress: '123 Main Street, Wasilla, AK 99654',
         dropoffAddress: 'Providence Alaska Medical Center, Anchorage, AK 99508',
         serviceType: ServiceType.MEDICAL,
+        serviceCategoryId: serviceCategory1.id,
         status: 'ASSIGNED',
         scheduledAt: new Date('2024-01-20T10:30:00Z'),
         passengerName: 'John Patient',

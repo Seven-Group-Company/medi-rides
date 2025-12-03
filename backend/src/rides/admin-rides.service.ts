@@ -11,6 +11,7 @@ export class AdminRidesService {
     limit: number = 10,
     status?: RideStatus,
     search?: string,
+    include?: string, // Add include parameter
   ) {
     const skip = (page - 1) * limit;
 
@@ -26,7 +27,47 @@ export class AdminRidesService {
         { dropoffAddress: { contains: search, mode: 'insensitive' } },
         { customer: { name: { contains: search, mode: 'insensitive' } } },
         { customer: { email: { contains: search, mode: 'insensitive' } } },
+        { passengerName: { contains: search, mode: 'insensitive' } },
       ];
+    }
+
+    // Build include object
+    const includeObject: any = {
+      customer: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+        },
+      },
+      driver: {
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          phone: true,
+          driverProfile: {
+            select: {
+              licenseNumber: true,
+              vehicles: {
+                select: {
+                  id: true,
+                  make: true,
+                  model: true,
+                  licensePlate: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      payment: true,
+    };
+
+    // Include invoice if requested
+    if (include && include.includes('invoice')) {
+      includeObject.invoice = true;
     }
 
     const [rides, total] = await Promise.all([
@@ -34,38 +75,7 @@ export class AdminRidesService {
         where,
         skip,
         take: limit,
-        include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phone: true,
-            },
-          },
-          driver: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phone: true,
-              driverProfile: {
-                select: {
-                  licenseNumber: true,
-                  vehicles: {
-                    select: {
-                      id: true,
-                      make: true,
-                      model: true,
-                      licensePlate: true,
-                    },
-                  },
-                },
-              },
-            },
-          },
-          payment: true,
-        },
+        include: includeObject,
         orderBy: { createdAt: 'desc' },
       }),
       this.prisma.ride.count({ where }),
@@ -215,6 +225,63 @@ export class AdminRidesService {
     });
 
     // TODO: Send notification to driver about new assignment
+
+    return updatedRide;
+  }
+
+  async completeRide(rideId: number) {
+    const ride = await this.prisma.ride.findUnique({
+      where: { id: rideId },
+      include: {
+        customer: true,
+      },
+    });
+
+    if (!ride) {
+      throw new NotFoundException('Ride not found');
+    }
+
+    // Check if ride can be completed
+    if (ride.status !== RideStatus.ASSIGNED && ride.status !== RideStatus.IN_PROGRESS) {
+      throw new BadRequestException('Ride cannot be completed from current status');
+    }
+
+    // Update ride status to COMPLETED
+    const updatedRide = await this.prisma.ride.update({
+      where: { id: rideId },
+      data: { 
+        status: RideStatus.COMPLETED,
+      },
+      include: {
+        customer: true,
+        invoice: true,
+      },
+    });
+
+    // Generate invoice automatically if not exists
+    if (!updatedRide.invoice) {
+      try {
+        // You would call your invoice service here
+        // For now, we'll create a simple invoice
+        const invoice = await this.prisma.invoice.create({
+          data: {
+            rideId: rideId,
+            amount: ride.finalPrice || 0,
+            tax: 0,
+            totalAmount: ride.finalPrice || 0,
+            dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+            status: 'PENDING',
+            invoiceNumber: `INV-${Date.now().toString(36).toUpperCase()}`,
+            // pdfUrl would be set after PDF generation
+          },
+        });
+      } catch (error) {
+        console.error('Failed to generate invoice:', error);
+        // Don't fail the completion if invoice generation fails
+      }
+    }
+
+    // TODO: Send notification to customer about completion
 
     return updatedRide;
   }

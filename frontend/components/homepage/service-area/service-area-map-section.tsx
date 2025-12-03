@@ -1,202 +1,117 @@
 'use client';
 
-import { motion, Variants } from 'framer-motion';
-import { MapPin, Hospital, Car, Navigation, Users, Clock } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import { useEffect, useRef } from 'react';
 
-// Dynamically import the map component to avoid SSR issues
-const ServiceAreaMap = dynamic(() => import('./service-area-map'), {
-  ssr: false,
-  loading: () => (
-    <div className="w-full h-96 bg-[#F5F7FA] border border-[#E6EAF0] flex items-center justify-center">
-      <div className="text-center">
-        <Navigation className="w-8 h-8 text-[#B0D6FF] mx-auto mb-2" />
-        <p className="text-[#0A2342]">Loading map...</p>
-      </div>
-    </div>
-  )
-});
+const GoogleMapComponent = () => {
+  const mapRef = useRef<HTMLDivElement>(null);
 
-const ServiceAreaMapSection = () => {
-  const serviceAreas = [
-    {
-      icon: MapPin,
-      name: "Metro Area Coverage",
-      description: "Full service throughout the metropolitan region",
-      cities: ["Downtown", "Medical District", "Suburban Zones"]
-    },
-    {
-      icon: Hospital,
-      name: "Major Medical Centers",
-      description: "Direct service to all major hospitals and clinics",
-      facilities: ["General Hospital", "Medical Center", "Specialty Clinics"]
-    },
-    {
-      icon: Car,
-      name: "Extended Service Zone",
-      description: "Coverage in surrounding communities",
-      areas: ["North County", "South Region", "Eastern Suburbs"]
-    }
-  ];
-
-  const stats = [
-    { icon: Users, value: "25+", label: "Communities Served" },
-    { icon: Hospital, value: "15+", label: "Medical Facilities" },
-    { icon: Clock, value: "24/7", label: "Service Availability" }
-  ];
-
-  const containerVariants: Variants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
+  useEffect(() => {
+    // Load Google Maps script
+    const loadGoogleMaps = () => {
+      if (!window.google) {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=places`;
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+        
+        script.onload = initializeMap;
+      } else {
+        initializeMap();
       }
-    }
-  };
+    };
 
-  const itemVariants: Variants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-        ease: "easeOut"
-      }
-    }
-  };
+    const initializeMap = () => {
+      if (!mapRef.current) return;
+
+      // Wasilla, Alaska coordinates
+      const wasilla = { lat: 61.5816, lng: -149.4394 };
+
+      const map = new google.maps.Map(mapRef.current, {
+        center: wasilla,
+        zoom: 11,
+        styles: [
+          {
+            featureType: 'all',
+            elementType: 'geometry',
+            stylers: [{ color: '#f5f5f5' }]
+          },
+          {
+            featureType: 'all',
+            elementType: 'labels.text.fill',
+            stylers: [{ color: '#0A2342' }]
+          },
+          {
+            featureType: 'poi',
+            elementType: 'labels',
+            stylers: [{ visibility: 'off' }]
+          }
+        ],
+        disableDefaultUI: false,
+        zoomControl: true,
+        mapTypeControl: false,
+        scaleControl: true,
+        streetViewControl: false,
+        rotateControl: false,
+        fullscreenControl: true
+      });
+
+      // Add main Wasilla marker
+      new google.maps.Marker({
+        position: wasilla,
+        map: map,
+        title: 'Wasilla Service Center',
+        icon: {
+          url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAiIGhlaWdodD0iNDIiIHZpZXdCb3g9IjAgMCAzMCA0MiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTE1IDBDNi43MTU3MyAwIDAgNi43MTU3MyAwIDE1QzAgMjYgMTUgNDIgMTUgNDJDMTUgNDIgMzAgMjYgMzAgMTVDMzAgNi43MTU3MyAyMy4yODQzIDAgMTUgMFoiIGZpbGw9IiMwQTIzNDIiLz4KPHN2ZyB3aWR0aD0iMTQiIGhlaWdodD0iMTQiIHZpZXdCb3g9IjAgMCAxNCAxNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTcgMEMzLjEzNDAxIDAgMCAzLjEzNDAxIDAgN0MwIDEwLjg2NiAzLjEzNDAxIDE0IDcgMTRDMTAuODY2IDE0IDE0IDEwLjg2NiAxNCA3QzE0IDMuMTM0MDEgMTAuODY2IDAgNyAwWk03IDMuNUM3LjgyODQyIDMuNSA4LjUgNC4xNzE1OCA4LjUgNUM4LjUgNS44Mjg0MiA3LjgyODQyIDYuNSA3IDYuNUM2LjE3MTU4IDYuNSA1LjUgNS44Mjg0MiA1LjUgNUM1LjUgNC4xNzE1OCA2LjE3MTU4IDMuNSA3IDMuNVpNNyA3LjVCNy4yNzYxNCA3LjUgNy41IDcuNzc2MTQgNy41IDhWMTAuNUM3LjUgMTAuNzc2MSA3LjI3NjE0IDExIDcgMTFDNi43MjM4NiAxMSA2LjUgMTAuNzc2MSA2LjUgMTAuNVY4QzYuNSA3Ljc3NjE0IDYuNzIzODYgNy41IDcgNy41WiIgZmlsbD0id2hpdGUiLz4KPC9zdmc+Cg==',
+          scaledSize: new google.maps.Size(30, 42),
+        }
+      });
+
+      // Add service area circle
+      new google.maps.Circle({
+        strokeColor: '#B0D6FF',
+        strokeOpacity: 0.8,
+        strokeWeight: 2,
+        fillColor: '#B0D6FF',
+        fillOpacity: 0.2,
+        map: map,
+        center: wasilla,
+        radius: 8000 // 8km radius around Wasilla
+      });
+
+      // Add nearby community markers
+      const nearbyCommunities = [
+        { name: 'Palmer', lat: 61.5997, lng: -149.1127 },
+        { name: 'Big Lake', lat: 61.5214, lng: -149.9544 },
+        { name: 'Houston', lat: 61.6303, lng: -149.8181 },
+        { name: 'Willow', lat: 61.7472, lng: -150.0375 }
+      ];
+
+      nearbyCommunities.forEach(community => {
+        new google.maps.Marker({
+          position: community,
+          map: map,
+          title: community.name,
+          icon: {
+            path: google.maps.SymbolPath.CIRCLE,
+            scale: 6,
+            fillColor: '#0A2342',
+            fillOpacity: 0.8,
+            strokeColor: '#FFFFFF',
+            strokeWeight: 2
+          }
+        });
+      });
+    };
+
+    loadGoogleMaps();
+  }, []);
 
   return (
-    <section className="w-full bg-white border-t border-b border-[#E6EAF0]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        
-        {/* Header Section */}
-        <div className="mb-12">
-          <motion.h2
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-3xl md:text-4xl font-bold text-[#0A2342] mb-4"
-          >
-            Service Area Coverage
-          </motion.h2>
-          
-          <motion.p
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.5, delay: 0.1, ease: "easeOut" }}
-            className="text-lg md:text-xl text-[#0A2342] max-w-3xl"
-          >
-            Explore the cities and communities we serve with reliable medical and non-medical transportation.
-          </motion.p>
-        </div>
-
-        {/* Stats Bar */}
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.2 }}
-          className="mb-8"
-        >
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
-                className="bg-[#F5F7FA] border border-[#E6EAF0] p-4 text-center"
-              >
-                <stat.icon className="w-6 h-6 text-[#B0D6FF] mx-auto mb-2" />
-                <div className="text-xl font-bold text-[#0A2342] mb-1">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-[#0A2342] text-opacity-70">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Map and Legend Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          {/* Map Container - 3/4 width */}
-          <motion.div
-            initial={{ y: 30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 0.6, delay: 0.3, ease: "easeOut" }}
-            className="lg:col-span-3"
-          >
-            <div className="border border-[#E6EAF0] bg-white">
-              <ServiceAreaMap />
-            </div>
-          </motion.div>
-
-          {/* Legend Sidebar - 1/4 width */}
-          <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
-            className="lg:col-span-1"
-          >
-            <div className="border border-[#E6EAF0] bg-white p-6">
-              <h3 className="text-lg font-semibold text-[#0A2342] mb-4">
-                Service Zones
-              </h3>
-              
-              <div className="space-y-6">
-                {serviceAreas.map((area, index) => (
-                  <motion.div
-                    key={area.name}
-                    variants={itemVariants}
-                    className="border-0 border-l-4 border-[#B0D6FF] pl-4"
-                  >
-                    <div className="flex items-center space-x-3 mb-2">
-                      <area.icon className="w-5 h-5 text-[#0A2342]" />
-                      <h4 className="font-semibold text-[#0A2342]">
-                        {area.name}
-                      </h4>
-                    </div>
-                    
-                    <p className="text-sm text-[#0A2342] text-opacity-80 mb-3">
-                      {area.description}
-                    </p>
-
-                    {/* Cities/Facilities List */}
-                    <div className="space-y-1">
-                      {(area.cities || area.facilities || area.areas)?.map((item, idx) => (
-                        <div key={idx} className="flex items-center space-x-2">
-                          <div className="w-1.5 h-1.5 bg-[#B0D6FF] flex-shrink-0" />
-                          <span className="text-xs text-[#0A2342] text-opacity-70">
-                            {item}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Coverage Note */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.6 }}
-                className="mt-6 pt-4 border-t border-[#E6EAF0]"
-              >
-                <p className="text-xs text-[#0A2342] text-opacity-70">
-                  All service areas include wheelchair accessible vehicles and medical transport options.
-                </p>
-              </motion.div>
-            </div>
-          </motion.div>
-        </div>
-
-      </div>
-    </section>
+    <div className="w-full h-96 md:h-[500px]">
+      <div ref={mapRef} className="w-full h-full rounded-lg" />
+    </div>
   );
 };
 
-export default ServiceAreaMapSection;
+export default GoogleMapComponent;

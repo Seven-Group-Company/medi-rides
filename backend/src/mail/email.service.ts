@@ -34,6 +34,20 @@ export class EmailService {
     }
   }
 
+    async sendInvoiceEmail(emailData: {
+    to: string;
+    subject: string;
+    template: string;
+    context: any;
+  }): Promise<void> {
+    // Implement your email sending logic here, e.g., using nodemailer or any email provider
+    // Example placeholder:
+    console.log('Sending email to:', emailData.to);
+    // throw new Error('sendEmail not implemented');
+  }
+
+  
+
   async sendPasswordResetEmail(
     email: string,
     name: string,

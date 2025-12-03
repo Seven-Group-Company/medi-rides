@@ -29,6 +29,8 @@ export default function BookRidePage() {
     prevStep,
     submitBooking,
     resetBooking,
+    serviceCategories,
+    isLoadingCategories,
   } = useBooking();
 
   const handleSubmit = async () => {
@@ -55,16 +57,18 @@ export default function BookRidePage() {
             onBack={prevStep}
           />
         );
-      case 2:
-        return (
-          <ServiceTypeStep
-            formData={formData}
-            updateFormData={updateFormData}
-            errors={errors}
-            onNext={nextStep}
-            onBack={prevStep}
-          />
-        );
+case 2:
+  return (
+    <ServiceTypeStep
+      formData={formData}
+      updateFormData={updateFormData}
+      errors={errors}
+      onNext={nextStep}
+      onBack={prevStep}
+      serviceCategories={serviceCategories}
+      isLoadingCategories={isLoadingCategories}
+    />
+  );
       case 3:
         return (
           <DateTimeStep
@@ -84,6 +88,7 @@ export default function BookRidePage() {
             onBack={prevStep}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
+            serviceCategories={serviceCategories}
           />
         );
       default:

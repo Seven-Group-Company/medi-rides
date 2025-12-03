@@ -25,7 +25,7 @@ const navigation = [
   { name: 'Drivers', href: '/dashboard/manage-riders', icon: UsersIcon },
   { name: 'Vehicles', href: '/dashboard/manage-vehicles', icon: TruckIcon },
   { name: 'Customers', href: '/dashboard/customers', icon: Users },
-  { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
+  { name: 'Services', href: '/dashboard/service-management', icon: ChartBarIcon },
   { name: 'Settings', href: '/dashboard/profile', icon: CogIcon },
 ];
 

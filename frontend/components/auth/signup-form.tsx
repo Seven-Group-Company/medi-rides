@@ -109,7 +109,7 @@ const SignupForm = () => {
                 phone: '',
                 password: '',
                 confirmPassword: '',
-                role: 'ADMIN',
+                role: 'CUSTOMER',
                 agreeToTerms: false
               });
             }}
@@ -300,31 +300,6 @@ const SignupForm = () => {
             {errors.phone}
           </motion.p>
         )}
-      </div>
-
-      {/* User Type */}
-      <div>
-        <label htmlFor="role" className="block text-sm font-medium text-[#0A2342] mb-2">
-          I am a...
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <UserCheck className="h-5 w-5 text-[#64748B]" />
-          </div>
-          <select
-            id="role"
-            name="role"
-            value={formData.role}
-            onChange={handleChange}
-            disabled={isLoading}
-            className="block w-full pl-10 pr-3 py-3 border border-[#E6EAF0] rounded-lg focus:ring-2 focus:ring-[#B0D6FF] focus:border-[#B0D6FF] transition-colors duration-200 bg-white disabled:opacity-50"
-          >
-            <option value="CUSTOMER">Patient</option>
-            <option value="CUSTOMER">Caregiver</option>
-            <option value="CUSTOMER">Family Member</option>
-            <option value="DRIVER">Driver</option>
-          </select>
-        </div>
       </div>
 
       {/* Password Field */}

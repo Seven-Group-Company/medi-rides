@@ -369,6 +369,10 @@ export class DriverDashboardService {
         throw new BadRequestException('Ride cannot be accepted in current status');
       }
 
+      if (!ride.customerId) {
+        throw new BadRequestException('Ride does not have a customer assigned');
+      }
+
       const updatedRide = await this.prisma.ride.update({
         where: { id: rideId },
         data: {
@@ -388,18 +392,20 @@ export class DriverDashboardService {
       });
 
       // Create notification for customer
-      await this.prisma.notification.create({
-        data: {
-          userId: ride.customerId,
-          type: 'RIDE_UPDATED',
-          title: 'Driver Accepted Your Ride',
-          message: `Your driver will arrive in approximately ${acceptRideDto.estimatedArrivalMinutes} minutes.`,
-          metadata: {
-            rideId: ride.id,
-            estimatedArrival: acceptRideDto.estimatedArrivalMinutes,
+      if (ride.customerId) {
+        await this.prisma.notification.create({
+          data: {
+            userId: ride.customerId,
+            type: 'RIDE_UPDATED',
+            title: 'Driver Accepted Your Ride',
+            message: `Your driver will arrive in approximately ${acceptRideDto.estimatedArrivalMinutes} minutes.`,
+            metadata: {
+              rideId: ride.id,
+              estimatedArrival: acceptRideDto.estimatedArrivalMinutes,
+            },
           },
-        },
-      });
+        });
+      }
 
       return updatedRide;
     } catch (error) {
@@ -481,7 +487,7 @@ export class DriverDashboardService {
 
       // Create notification for customer
       const notificationMessage = this.getStatusNotificationMessage(statusDto.status);
-      if (notificationMessage) {
+      if (notificationMessage && ride.customerId) {
         await this.prisma.notification.create({
           data: {
             userId: ride.customerId,

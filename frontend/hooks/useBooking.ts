@@ -1,6 +1,18 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { BookingFormData, CreateRideDto } from '@/types/booking.types';
 import { RidesService } from '@/services/rides.service';
+
+export interface ServiceCategory {
+  id: number;
+  name: string;
+  value: string;
+  description: string;
+  icon: string;
+  basePrice: number;
+  pricePerMile: number;
+  serviceType: string;
+  isActive: boolean;
+}
 
 export const useBooking = () => {
   const [currentStep, setCurrentStep] = useState(1);
@@ -8,6 +20,7 @@ export const useBooking = () => {
     pickup: null,
     dropoff: null,
     serviceType: '',
+    serviceCategoryId: 0,
     date: '',
     time: '',
     notes: '',
@@ -15,6 +28,40 @@ export const useBooking = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [bookingResult, setBookingResult] = useState<any>(null);
+  const [serviceCategories, setServiceCategories] = useState<ServiceCategory[]>([]);
+  const [isLoadingCategories, setIsLoadingCategories] = useState(true);
+
+  const mapServiceTypeToEnum = (categoryName: string): string => {
+  const name = categoryName.toLowerCase();
+  if (name.includes('medical') || name.includes('appointment')) {
+    return 'Medical Appointment';
+  } else if (name.includes('wheelchair')) {
+    return 'Wheelchair Transport';
+  } else if (name.includes('errand')) {
+    return 'Errands';
+  } else if (name.includes('airport') || name.includes('shuttle')) {
+    return 'Airport Shuttle';
+  }
+  return 'Other';
+};
+
+  // Fetch service categories on component mount
+  useEffect(() => {
+    const fetchServiceCategories = async () => {
+      try {
+        setIsLoadingCategories(true);
+        const categories = await RidesService.getServiceCategories();
+        setServiceCategories(categories);
+      } catch (error) {
+        console.error('Failed to fetch service categories:', error);
+        setErrors(prev => ({ ...prev, categories: 'Failed to load service types' }));
+      } finally {
+        setIsLoadingCategories(false);
+      }
+    };
+
+    fetchServiceCategories();
+  }, []);
 
   const updateFormData = useCallback((data: Partial<BookingFormData>) => {
     setFormData(prev => ({ ...prev, ...data }));
@@ -38,7 +85,7 @@ export const useBooking = () => {
         break;
       
       case 2: // Service type step
-        if (!formData.serviceType) newErrors.serviceType = 'Please select a service type';
+        if (!formData.serviceCategoryId) newErrors.serviceType = 'Please select a service type';
         break;
       
       case 3: // Date/time step
@@ -68,32 +115,33 @@ export const useBooking = () => {
     setCurrentStep(prev => Math.max(1, prev - 1));
   }, []);
 
-  const submitBooking = useCallback(async (): Promise<any> => {
-    if (!validateStep(4)) return;
+const submitBooking = useCallback(async (): Promise<any> => {
+  if (!validateStep(4)) return;
 
-    setIsSubmitting(true);
-    try {
-      const bookingData: CreateRideDto = {
-        pickup: formData.pickup!.address,
-        dropoff: formData.dropoff!.address,
-        serviceType: formData.serviceType,
-        date: formData.date,
-        time: formData.time,
-        notes: formData.notes,
-        distanceKm: formData.distanceKm,
-        estimatedTime: formData.estimatedTime,
-      };
+  setIsSubmitting(true);
+  try {
+    const bookingData: CreateRideDto = {
+      pickup: formData.pickup!.address,
+      dropoff: formData.dropoff!.address,
+      serviceType: mapServiceTypeToEnum(formData.serviceType),
+      serviceCategoryId: formData.serviceCategoryId!,
+      date: formData.date,
+      time: formData.time,
+      notes: formData.notes,
+      distanceKm: formData.distanceKm,
+      estimatedTime: formData.estimatedTime,
+    };
 
-      const result = await RidesService.createRide(bookingData);
-      setBookingResult(result.data);
-      return result.data;
-    } catch (error: any) {
-      setErrors({ submit: error.message });
-      throw error;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [formData, validateStep]);
+    const result = await RidesService.createRide(bookingData);
+    setBookingResult(result.data);
+    return result.data;
+  } catch (error: any) {
+    setErrors({ submit: error.message });
+    throw error;
+  } finally {
+    setIsSubmitting(false);
+  }
+}, [formData, validateStep]);
 
   const resetBooking = useCallback(() => {
     setCurrentStep(1);
@@ -101,6 +149,7 @@ export const useBooking = () => {
       pickup: null,
       dropoff: null,
       serviceType: '',
+      serviceCategoryId: 0,
       date: '',
       time: '',
       notes: '',
@@ -116,6 +165,8 @@ export const useBooking = () => {
     errors,
     isSubmitting,
     bookingResult,
+    serviceCategories,
+    isLoadingCategories,
     nextStep,
     prevStep,
     submitBooking,

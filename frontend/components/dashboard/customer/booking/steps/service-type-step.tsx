@@ -1,28 +1,58 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Car, Stethoscope, Plane, ShoppingCart, Type } from 'lucide-react';
+import { Car, Stethoscope, Plane, ShoppingCart, Type, Loader } from 'lucide-react';
 import { BookingStepProps } from '@/types/booking.types';
 
-const serviceTypes = [
-  { value: 'Medical Appointment', label: 'Medical Appointment', icon: Stethoscope, description: 'Doctor visits, hospital appointments' },
-  { value: 'Wheelchair Transport', label: 'Wheelchair Transport', icon: Car, description: 'Specialized wheelchair accessible vehicles' },
-  { value: 'Errands', label: 'Errands', icon: ShoppingCart, description: 'Grocery shopping, pharmacy runs' },
-  { value: 'Airport Shuttle', label: 'Airport Shuttle', icon: Plane, description: 'Airport transfers with luggage assistance' },
-  { value: 'Other', label: 'Other', icon: Type, description: 'Other transportation needs' },
-];
+// Icon mapping for service categories
+const iconMap: { [key: string]: any } = {
+  'Stethoscope': Stethoscope,
+  'Car': Car,
+  'Plane': Plane,
+  'ShoppingCart': ShoppingCart,
+  'Type': Type,
+};
 
 export default function ServiceTypeStep({ 
   formData, 
   updateFormData, 
   errors, 
   onNext, 
-  onBack 
+  onBack,
+  serviceCategories = [],
+  isLoadingCategories = false
 }: BookingStepProps) {
   
-  const handleServiceSelect = (serviceType: string) => {
-    updateFormData({ serviceType });
+  const handleServiceSelect = (category: any) => {
+    updateFormData({ 
+      serviceType: category.value,
+      serviceCategoryId: category.id 
+    });
   };
+
+  const getIconComponent = (iconName: string) => {
+    const IconComponent = iconMap[iconName] || Type;
+    return <IconComponent className="w-8 h-8 mb-3" />;
+  };
+
+  if (isLoadingCategories) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        className="space-y-6"
+      >
+        <div className="text-center mb-8">
+          <h2 className="text-3xl font-bold text-gray-900 mb-2">What type of service do you need?</h2>
+          <p className="text-gray-600">Choose the service that best fits your needs</p>
+        </div>
+        <div className="flex justify-center items-center py-12">
+          <Loader className="w-8 h-8 animate-spin text-blue-600" />
+          <span className="ml-2 text-gray-600">Loading services...</span>
+        </div>
+      </motion.div>
+    );
+  }
 
   return (
     <motion.div
@@ -37,13 +67,12 @@ export default function ServiceTypeStep({
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {serviceTypes.map((service) => {
-          const Icon = service.icon;
-          const isSelected = formData.serviceType === service.value;
+        {serviceCategories.map((category) => {
+          const isSelected = formData.serviceCategoryId === category.id;
           
           return (
             <motion.button
-              key={service.value}
+              key={category.id}
               type="button"
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
@@ -52,21 +81,26 @@ export default function ServiceTypeStep({
                   ? 'border-blue-500 bg-blue-50 shadow-md'
                   : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
               }`}
-              onClick={() => handleServiceSelect(service.value)}
+              onClick={() => handleServiceSelect(category)}
             >
-              <Icon className={`w-8 h-8 mb-3 ${
-                isSelected ? 'text-blue-600' : 'text-gray-600'
-              }`} />
+              {getIconComponent(category.icon)}
               <span className={`block text-lg font-semibold mb-2 ${
                 isSelected ? 'text-blue-900' : 'text-gray-900'
               }`}>
-                {service.label}
+                {category.name}
               </span>
               <span className={`text-sm ${
                 isSelected ? 'text-blue-700' : 'text-gray-600'
               }`}>
-                {service.description}
+                {category.description}
               </span>
+              {category.basePrice && (
+                <div className={`mt-2 text-xs ${
+                  isSelected ? 'text-blue-600' : 'text-gray-500'
+                }`}>
+                  Starting from ${category.basePrice}
+                </div>
+              )}
             </motion.button>
           );
         })}
@@ -97,7 +131,7 @@ export default function ServiceTypeStep({
         <motion.button
           type="button"
           onClick={onNext}
-          disabled={!formData.serviceType}
+          disabled={!formData.serviceCategoryId}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           className="bg-blue-600 text-white py-3 px-8 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
