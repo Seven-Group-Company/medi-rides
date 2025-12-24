@@ -42,9 +42,10 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
     date: new Date().toISOString().split('T')[0],
     time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
     notes: '',
-    distanceKm: 0,
+    distanceMiles: 0,
     estimatedTime: 0,
-    estimatedPrice: 0
+    estimatedPrice: 0,
+    paymentType: 'private',
   });
 
   const updateFormData = (data: Partial<FormData>) => {
@@ -59,7 +60,8 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
     setErrors(newErrors);
   };
 
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 5)); // Changed to 5 steps
+  // FIXED: Changed from 5 to 6 to accommodate all 6 steps (Details, Location, Service, Payment, Schedule, Review)
+  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 6));
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
 
   const resetForm = () => {
@@ -73,8 +75,9 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
       date: new Date().toISOString().split('T')[0],
       time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
       notes: '',
-      distanceKm: 0,
+      distanceMiles: 0,
       estimatedTime: 0,
+      paymentType: 'private',
       estimatedPrice: 0
     });
     setCurrentStep(1);

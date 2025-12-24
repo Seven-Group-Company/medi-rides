@@ -9,7 +9,8 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseIntPipe
+  ParseIntPipe,
+  Query
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { RidesService } from './rides.service';
@@ -65,6 +66,58 @@ export class RidesController {
       data: categories
     };
   }
+
+    @Get('upcoming')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get user\'s upcoming rides' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Upcoming rides retrieved successfully' 
+  })
+  async getUpcomingRides(
+    @CurrentUser('sub') userId: number,
+    @Query('limit', ParseIntPipe) limit: number = 3
+  ) {
+    console.log('🔐 Get Upcoming Rides - User ID:', userId);
+    
+    if (!userId) {
+      throw new Error('User ID not found in request');
+    }
+    
+    const rides = await this.ridesService.getUserRides(userId);
+    
+    // Filter for upcoming rides
+    const now = new Date();
+    const upcomingRides = rides
+      .filter(ride => new Date(ride.scheduledAt) > now)
+      .filter(ride => 
+        ['PENDING', 'ASSIGNED', 'CONFIRMED', 'DRIVER_EN_ROUTE'].includes(ride.status)
+      )
+      .sort((a, b) => new Date(a.scheduledAt).getTime() - new Date(b.scheduledAt).getTime())
+      .slice(0, limit || 3);
+    
+    return {
+      success: true,
+      data: upcomingRides
+    };
+  }
+
+@Get('my-booked-dates')
+@UseGuards(JwtAuthGuard)
+@ApiOperation({ summary: 'Get dates already booked by authenticated user' })
+@ApiResponse({ 
+  status: 200, 
+  description: 'Booked dates retrieved successfully' 
+})
+async getMyBookedDates(@CurrentUser('id') userId: number) {
+  const bookedDates = await this.ridesService.getBookedDates(userId);
+  
+  return {
+    success: true,
+    data: bookedDates
+  };
+}
 
   // Protected routes below (require authentication)
   @Post()

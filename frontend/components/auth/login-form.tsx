@@ -233,7 +233,7 @@ const LoginForm = () => {
       </motion.button>
 
       {/* Google Login Button */}
-      <div className="mt-4">
+      {/* <div className="mt-4">
         <button
           type="button"
           onClick={handleGoogleLogin}
@@ -248,7 +248,7 @@ const LoginForm = () => {
           </svg>
           <span className="font-semibold">Continue with Google</span>
         </button>
-      </div>
+      </div> */}
     </form>
   );
 };

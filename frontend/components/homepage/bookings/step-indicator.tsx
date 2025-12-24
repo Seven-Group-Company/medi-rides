@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { motion, number } from 'framer-motion';
 
 interface StepIndicatorProps {
   currentStep: number;
@@ -11,8 +11,9 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
     { number: 1, label: 'Details' },
     { number: 2, label: 'Location' },
     { number: 3, label: 'Service' },
-    { number: 4, label: 'Schedule' },
-    { number: 5, label: 'Review' } // Added review step
+    { number: 4, label: 'Payment' },
+    { number: 5, label: 'Schedule' },
+    { number: 6, label: 'Review' } // Added review step
   ];
 
   return (

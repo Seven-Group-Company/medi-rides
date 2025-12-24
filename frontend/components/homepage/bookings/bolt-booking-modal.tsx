@@ -12,6 +12,7 @@ import ScheduleStep from './booking-steps/schedule-step';
 import ReviewSummaryStep from './booking-steps/review-summary-step';
 import SuccessModal from '@/components/dashboard/customer/booking/success-modal';
 import { GuestBookingService, ServiceCategory } from '@/services/guest-booking.service';
+import PaymentTypeStep from './booking-steps/payment-type-step';
 
 interface BoltBookingModalProps {
   isOpen: boolean;
@@ -56,11 +57,11 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
 
   // Calculate price when relevant data changes
   const calculatePrice = useCallback(async () => {
-    if (formData.serviceCategoryId && formData.distanceKm && formData.distanceKm > 0 && formData.date && formData.time) {
+    if (formData.serviceCategoryId && formData.distanceMiles && formData.distanceMiles > 0 && formData.date && formData.time) {
       try {
         const price = await GuestBookingService.calculateEstimatedPrice(
           formData.serviceCategoryId,
-          formData.distanceKm,
+          formData.distanceMiles,
           formData.date,
           formData.time
         );
@@ -70,10 +71,10 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         updateFormData({ estimatedPrice: 0 });
       }
     }
-  }, [formData.serviceCategoryId, formData.distanceKm, formData.date, formData.time, updateFormData]);
+  }, [formData.serviceCategoryId, formData.distanceMiles, formData.date, formData.time, updateFormData]);
 
   useEffect(() => {
-    if (formData.serviceCategoryId && formData.distanceKm && formData.distanceKm > 0) {
+    if (formData.serviceCategoryId && formData.distanceMiles && formData.distanceMiles > 0) {
       calculatePrice();
     }
   }, [calculatePrice]);
@@ -108,13 +109,22 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         }
         break;
 
-      case 4: // Schedule
+      case 4: // Payment Type
+        if (!formData.paymentType) {
+          errors.paymentType = 'Please select a payment type';
+        }
+        break;
+
+      case 5: // Schedule
         if (!formData.date) {
           errors.date = 'Date is required';
         }
         if (!formData.time) {
           errors.time = 'Time is required';
         }
+        break;
+
+      case 6: // Review - No validation needed
         break;
     }
 
@@ -132,7 +142,15 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(5)) {
+    // For review step, we don't need to validate again
+    // Just check that all required fields are filled
+    if (!formData.passengerName || !formData.passengerPhone || 
+        !formData.pickup || !formData.dropoff || 
+        !formData.serviceCategoryId || !formData.paymentType || 
+        !formData.date || !formData.time) {
+      setErrors({ 
+        form: 'Please complete all required fields before submitting' 
+      });
       return;
     }
 
@@ -149,8 +167,8 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         serviceCategoryId: formData.serviceCategoryId,
         date: formData.date,
         time: formData.time,
-        notes: formData.notes || '',
-        distanceKm: formData.distanceKm || 0,
+        notes: `${formData.notes || ''} | Payment: ${formData.paymentType === 'ALI' ? 'Waiver/Voucher' : formData.paymentType}}`,
+        distanceKm: formData.distanceMiles ? formData.distanceMiles * 1.60934 : 0, // Convert miles to km for backend
         estimatedTime: formData.estimatedTime || 0,
         estimatedPrice: formData.estimatedPrice || 0
       };
@@ -171,9 +189,10 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         time: formData.time,
         passengerName: formData.passengerName,
         passengerPhone: formData.passengerPhone,
-        distanceKm: formData.distanceKm,
+        distanceMiles: formData.distanceMiles,
         estimatedTime: formData.estimatedTime,
         estimatedPrice: formData.estimatedPrice,
+        paymentType: formData.paymentType,
         status: response.status,
         scheduledAt: response.scheduledAt
       });
@@ -189,8 +208,6 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
       setErrors({ 
         form: error.message || 'Failed to create booking. Please try again.' 
       });
-      // Go back to first step to show error
-      // setCurrentStep(1);
     } finally {
       setIsSubmitting(false);
     }
@@ -222,37 +239,22 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
 
     switch (currentStep) {
       case 1:
-        return <PersonalDetailsStep 
-          {...commonProps}
-          onNext={handleNextStep}
-        />;
+        return <PersonalDetailsStep {...commonProps} onNext={handleNextStep} />;
       case 2:
-        return <LocationStep 
-          {...commonProps}
-          onNext={handleNextStep}
-          onPrev={prevStep}
-        />;
+        return <LocationStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
       case 3:
-        return <ServiceSelectionStep 
-          {...commonProps}
-          onNext={handleNextStep}
-          onPrev={prevStep}
-        />;
+        return <ServiceSelectionStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
       case 4:
-        return <ScheduleStep 
-          {...commonProps}
-          isSubmitting={false}
-          onSubmit={handleNextStep}
-          onNext={handleNextStep}
-          onPrev={prevStep}
-        />;
+        return <PaymentTypeStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
       case 5:
+        return <ScheduleStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
+      case 6:
         return <ReviewSummaryStep 
+          {...commonProps}
           onPrev={prevStep}
           onNext={handleNextStep}
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          {...commonProps}
         />;
       default:
         return null;
@@ -269,7 +271,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              className="fixed inset-0 bg-black/40 z-50"
               onClick={handleClose}
             />
             

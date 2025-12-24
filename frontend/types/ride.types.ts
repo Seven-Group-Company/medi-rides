@@ -15,6 +15,7 @@ export interface Ride {
   additionalNotes?: string;
   basePrice: number;
   finalPrice?: number;
+  isGuest: boolean;
   distance?: number;
   duration?: number;
   customer: {

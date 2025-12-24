@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Car, Calendar, Clock, Type, Navigation, DollarSign } from 'lucide-react';
+import { MapPin, Car, Calendar, Clock, Navigation, Wallet, FileText, AlertCircle } from 'lucide-react';
 import { BookingStepProps } from '@/types/booking.types';
 import { useMemo } from 'react';
 
@@ -17,194 +17,116 @@ export default function ReviewStep({
   
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
-      weekday: 'long',
+      weekday: 'short',
       year: 'numeric',
-      month: 'long',
+      month: 'short',
       day: 'numeric'
     });
   };
 
-  // Calculate estimated price based on the pricing table
-  const estimatedPrice = useMemo(() => {
-    if (!formData.distanceKm || !formData.date || !formData.time || !formData.serviceCategoryId) {
-      return null;
-    }
+  const getChargeOptionName = (optionId: string) => {
+    const options: Record<string, string> = {
+      'private': 'Private Pay',
+      'ALI': 'ALI Waiver',
+      'APDD': 'APDD Waiver',
+      'IDD': 'IDD Waiver',
+      'ISW': 'ISW Waiver',
+    };
+    return options[optionId] || 'Private Pay';
+  };
 
-    try {
-      // Convert distance to miles
-      const distanceMiles = formData.distanceKm * 0.621371;
-      
-      // Get scheduled time
-      const scheduledDateTime = new Date(`${formData.date}T${formData.time}`);
-      const hour = scheduledDateTime.getHours();
-      
-      // Determine time period
-      const isDayTime = hour >= 6 && hour < 18; // 6AM to 6PM
-      const isEvening = hour >= 18 && hour <= 23; // 6PM to 11PM
-      const isLateNight = hour >= 0 && hour < 6; // 12AM to 6AM
-      
-      // Get service category to determine service type
-      const serviceCategory = serviceCategories.find(cat => cat.id === formData.serviceCategoryId);
-      const isWheelchair = serviceCategory?.name?.toLowerCase().includes('wheelchair') || 
-                          serviceCategory?.serviceType === 'WHEELCHAIR';
-      const isAmbulatory = !isWheelchair;
-
-      let price: number;
-
-      // Daytime pricing (6AM to 6PM)
-      if (isDayTime) {
-        if (distanceMiles <= 5) {
-          price = isWheelchair ? 30 : 20;
-        } else if (distanceMiles <= 10) {
-          price = isWheelchair ? 40 : 30;
-        } else if (distanceMiles <= 20) {
-          price = isWheelchair ? 50 : 40;
-        } else if (distanceMiles <= 50) {
-          price = isWheelchair ? 85 : 75;
-        } else {
-          // For distances over 50 miles
-          const baseRate = isWheelchair ? 85 : 75;
-          const additionalMiles = distanceMiles - 50;
-          const perMileRate = isWheelchair ? 2.5 : 2.0;
-          price = baseRate + (additionalMiles * perMileRate);
-        }
-      }
-      // Evening pricing (6PM to 12AM)
-      else if (isEvening) {
-        if (distanceMiles <= 5) {
-          price = isWheelchair ? 40 : 30;
-        } else if (distanceMiles <= 10) {
-          price = isWheelchair ? 50 : 40;
-        } else if (distanceMiles <= 20) {
-          price = isWheelchair ? 60 : 50;
-        } else if (distanceMiles <= 50) {
-          price = isWheelchair ? 105 : 85;
-        } else {
-          // For distances over 50 miles
-          const baseRate = isWheelchair ? 105 : 85;
-          const additionalMiles = distanceMiles - 50;
-          const perMileRate = isWheelchair ? 3.0 : 2.5;
-          price = baseRate + (additionalMiles * perMileRate);
-        }
-      }
-      // Late night pricing (12AM to 6AM) - using evening rates
-      else if (isLateNight) {
-        if (distanceMiles <= 5) {
-          price = isWheelchair ? 40 : 30;
-        } else if (distanceMiles <= 10) {
-          price = isWheelchair ? 50 : 40;
-        } else if (distanceMiles <= 20) {
-          price = isWheelchair ? 60 : 50;
-        } else if (distanceMiles <= 50) {
-          price = isWheelchair ? 105 : 85;
-        } else {
-          const baseRate = isWheelchair ? 105 : 85;
-          const additionalMiles = distanceMiles - 50;
-          const perMileRate = isWheelchair ? 3.0 : 2.5;
-          price = baseRate + (additionalMiles * perMileRate);
-        }
-      } else {
-        // Fallback calculation
-        const basePrice = serviceCategory?.basePrice || 20;
-        const pricePerMile = serviceCategory?.pricePerMile || 2;
-        price = basePrice + (distanceMiles * pricePerMile);
-      }
-
-      return parseFloat(price.toFixed(2));
-    } catch (error) {
-      console.error('Error calculating price:', error);
-      return null;
-    }
-  }, [formData, serviceCategories]);
-
-  // Get service category name
   const serviceCategoryName = useMemo(() => {
     const category = serviceCategories.find(cat => cat.id === formData.serviceCategoryId);
-    return category?.name || formData.serviceType;
-  }, [formData.serviceCategoryId, formData.serviceType, serviceCategories]);
+    return category?.name || formData.serviceName;
+  }, [formData.serviceCategoryId, formData.serviceName, serviceCategories]);
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 20 }}
-      animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="space-y-8"
     >
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">Review Your Booking</h2>
-        <p className="text-gray-600">Please review all details before submitting</p>
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-3">Review Your Booking</h2>
+        <p className="text-gray-600 mb-6">Please review all details before confirming your booking</p>
       </div>
 
-      {/* Booking Summary */}
-      <div className="bg-gray-50 rounded-2xl p-6 space-y-6">
-        <h3 className="text-xl font-semibold text-gray-900 mb-4">Trip Summary</h3>
-        
-        <div className="space-y-4">
-          {/* Locations */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {/* Booking Summary Cards */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Trip Details Card */}
+        <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+            <Car className="w-5 h-5 mr-2 text-blue-600" />
+            Trip Details
+          </h3>
+          
+          <div className="space-y-4">
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Pickup</p>
+                <p className="text-sm font-medium text-gray-900">Pickup Location</p>
                 <p className="text-sm text-gray-600">{formData.pickup?.address}</p>
               </div>
             </div>
-
+            
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Drop-off</p>
+                <p className="text-sm font-medium text-gray-900">Drop-off Location</p>
                 <p className="text-sm text-gray-600">{formData.dropoff?.address}</p>
               </div>
             </div>
+            
+            {formData.distanceKm && formData.estimatedTime && (
+              <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="flex items-center space-x-2 text-sm">
+                  <Navigation className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-900 font-medium">{Math.round(formData.distanceKm * 0.621371 * 10) / 10} miles</span>
+                </div>
+                <div className="flex items-center space-x-2 text-sm">
+                  <Clock className="w-4 h-4 text-gray-500" />
+                  <span className="text-gray-900 font-medium">~{formData.estimatedTime} min</span>
+                </div>
+              </div>
+            )}
           </div>
+        </div>
 
-          {/* Service Type */}
-          <div className="flex items-start space-x-3">
-            <Car className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Service Type</p>
-              <p className="text-sm text-gray-600">{serviceCategoryName}</p>
-            </div>
-          </div>
-
-          {/* Date & Time */}
-          <div className="flex items-start space-x-3">
-            <Calendar className="w-5 h-5 text-orange-600 mt-0.5 flex-shrink-0" />
-            <div>
-              <p className="text-sm font-medium text-gray-900">Date & Time</p>
-              <p className="text-sm text-gray-600">
-                {formatDate(formData.date)} at {formData.time}
-              </p>
-            </div>
-          </div>
-
-          {/* Distance & Time */}
-          {formData.distanceKm && formData.estimatedTime && (
+        {/* Service & Schedule Card */}
+        <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+            <Calendar className="w-5 h-5 mr-2 text-blue-600" />
+            Service & Schedule
+          </h3>
+          
+          <div className="space-y-4">
             <div className="flex items-start space-x-3">
-              <Navigation className="w-5 h-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <Car className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Trip Details</p>
+                <p className="text-sm font-medium text-gray-900">Service Type</p>
+                <p className="text-sm text-gray-600">{serviceCategoryName}</p>
+              </div>
+            </div>
+            
+            <div className="flex items-start space-x-3">
+              <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-gray-900">Date & Time</p>
                 <p className="text-sm text-gray-600">
-                  {formData.distanceKm} km ({Math.round(formData.distanceKm * 0.621371)} miles) • ~{formData.estimatedTime} minutes
+                  {formatDate(formData.date)} at {formData.time}
                 </p>
               </div>
             </div>
-          )}
-
-          {/* Estimated Price */}
-          {estimatedPrice && (
-            <div className="flex items-start space-x-3 pt-4 border-t border-gray-200">
-              <DollarSign className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+            
+            <div className="flex items-start space-x-3">
+              <Wallet className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
               <div>
-                <p className="text-sm font-medium text-gray-900">Estimated Price</p>
-                <p className="text-lg font-bold text-green-700">${estimatedPrice}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  *Final price may vary based on actual route and wait times
-                </p>
+                <p className="text-sm font-medium text-gray-900">Payment Method</p>
+                <p className="text-sm text-gray-600">{formData.chargeOption === 'ALI' ? 'Waiver/Voucher' : 'Private'}</p>
               </div>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -217,9 +139,22 @@ export default function ReviewStep({
           rows={4}
           value={formData.notes}
           onChange={(e) => updateFormData({ notes: e.target.value })}
-          placeholder="Any special requirements, medical equipment, or notes for the driver..."
+          placeholder="Any special requirements, medical equipment, mobility aids, oxygen tanks, or notes for the driver..."
           className="w-full p-4 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors resize-none"
         />
+      </div>
+
+      {/* Important Notice */}
+      <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+        <div className="flex items-start space-x-3">
+          <AlertCircle className="w-5 h-5 text-yellow-600 mt-0.5 flex-shrink-0" />
+          <div>
+            <p className="text-sm font-medium text-yellow-800">Important Notice</p>
+            <p className="text-sm text-yellow-700 mt-1">
+              Please ensure all information is correct. Our team will contact you within 30 minutes to confirm your booking details.
+            </p>
+          </div>
+        </div>
       </div>
 
       {errors.submit && (
@@ -233,14 +168,14 @@ export default function ReviewStep({
       )}
 
       {/* Navigation Buttons */}
-      <div className="flex justify-between pt-6">
+      <div className="flex flex-col sm:flex-row gap-3 pt-8 border-t border-gray-200">
         <motion.button
           type="button"
           onClick={onBack}
           disabled={isSubmitting}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="bg-gray-200 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-300 disabled:bg-gray-300 transition-colors duration-200"
+          className="py-3.5 px-6 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium disabled:bg-gray-300 transition-colors duration-200 sm:flex-1"
         >
           Back
         </motion.button>
@@ -251,16 +186,16 @@ export default function ReviewStep({
           disabled={isSubmitting}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
-          className="bg-green-600 text-white py-3 px-8 rounded-xl font-semibold hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 flex items-center"
+          className="py-3.5 px-6 bg-green-600 text-white hover:bg-green-700 rounded-xl font-medium disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 sm:flex-1 flex items-center justify-center"
         >
           {isSubmitting ? (
             <>
               <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-              Submitting...
+              Processing...
             </>
           ) : (
             <>
-              <Car className="w-5 h-5 mr-2" />
+              <FileText className="w-5 h-5 mr-2" />
               Confirm Booking
             </>
           )}

@@ -44,6 +44,19 @@ const vehicleTypes = [
   { value: 'STRETCHER_VAN', label: 'Stretcher Van' },
 ];
 
+const getInsuranceStatus = (vehicle: Vehicle) => {
+  const today = new Date();
+  const insuranceExpiry = new Date(vehicle.insuranceExpiry);
+  const diffTime = insuranceExpiry.getTime() - today.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  
+  if (diffDays <= 0) return { status: 'expired', days: diffDays };
+  if (diffDays <= 30) return { status: 'critical', days: diffDays };
+  if (diffDays <= 60) return { status: 'warning', days: diffDays };
+  return { status: 'safe', days: diffDays };
+};
+
+
 export default function VehiclesList({
   vehicles,
   searchTerm,
@@ -209,15 +222,25 @@ export default function VehiclesList({
                         <h3 className="text-xl font-semibold text-gray-900">
                           {vehicle.make} {vehicle.model} ({vehicle.year})
                         </h3>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(vehicle.status)} flex items-center`}>
-                            {getStatusIcon(vehicle.status)}
-                            <span className="ml-1">{vehicle.status.replace('_', ' ')}</span>
+                      <div className="flex items-center space-x-2 mt-1">
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${getStatusColor(vehicle.status)} flex items-center`}>
+                          {getStatusIcon(vehicle.status)}
+                          <span className="ml-1">{vehicle.status.replace('_', ' ')}</span>
+                        </span>
+                        
+                        {/* Insurance Warning Badge */}
+                        {getInsuranceStatus(vehicle).status !== 'safe' && (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            getInsuranceStatus(vehicle).status === 'expired' ? 'bg-red-100 text-red-800' :
+                            getInsuranceStatus(vehicle).status === 'critical' ? 'bg-red-100 text-red-800' :
+                            'bg-orange-100 text-orange-800'
+                          }`}>
+                            {getInsuranceStatus(vehicle).status === 'expired' ? 'Insurance Expired' :
+                            getInsuranceStatus(vehicle).status === 'critical' ? 'Insurance Expiring' :
+                            'Insurance Expiring Soon'}
                           </span>
-                          <span className="text-sm text-gray-500">
-                            {vehicle.licensePlate}
-                          </span>
-                        </div>
+                        )}
+                      </div>
                       </div>
                     </div>
 

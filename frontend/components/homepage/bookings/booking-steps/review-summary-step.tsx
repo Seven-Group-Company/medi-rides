@@ -11,7 +11,8 @@ import {
   Car, 
   DollarSign,
   ChevronLeft,
-  Loader
+  Loader,
+  CreditCard
 } from 'lucide-react';
 import { BookingStepProps } from '@/types/guest-booking-types';
 
@@ -109,6 +110,19 @@ export default function ReviewSummaryStep({
               <p className="font-medium">{formData.serviceType}</p>
             </div>
 
+                    <div className="space-y-3">
+          <h3 className="font-semibold text-gray-900 flex items-center">
+            <CreditCard className="w-4 h-4 mr-2" />
+            Payment Information
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="bg-white p-3 rounded-lg">
+              <p className="text-sm text-gray-600">Payment Type</p>
+              <p className="font-medium capitalize">{formData.paymentType === 'ALI' ? 'Waiver/Voucher' : formData.paymentType}</p>
+            </div>
+          </div>
+        </div>
+
             <div className="bg-white p-3 rounded-lg">
               <div className="flex items-center space-x-2 mb-2">
                 <Calendar className="w-4 h-4 text-gray-600" />
@@ -130,26 +144,11 @@ export default function ReviewSummaryStep({
           <div className="grid grid-cols-2 gap-3">
             <div className="bg-white p-3 rounded-lg">
               <p className="text-sm text-gray-600">Distance</p>
-              <p className="font-medium text-lg">{formData.distanceKm} km</p>
+              <p className="font-medium text-lg">{formData.distanceMiles} miles</p>
             </div>
             <div className="bg-white p-3 rounded-lg">
               <p className="text-sm text-gray-600">Est. Time</p>
               <p className="font-medium text-lg">~{formData.estimatedTime} min</p>
-            </div>
-          </div>
-
-          {/* Price & Notes */}
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <DollarSign className="w-5 h-5 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Price</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    ${formData.estimatedPrice?.toFixed(2) || 'Calculating...'}
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Calendar, Clock, Car, User, CreditCard, Navigation, FileText } from 'lucide-react';
+import { MapPin, Calendar, Clock, Car, User, CreditCard, Navigation, FileText, DollarSign } from 'lucide-react';
 import { RideHistory } from '@/types/ride-history.types';
 import { useState } from 'react';
 
@@ -209,6 +209,7 @@ export default function RideHistoryItem({ ride, onViewDetails }: RideHistoryItem
           </div>
         </div>
         
+        
         <div className="flex items-start space-x-3">
           <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
           <div className="flex-1">
@@ -216,7 +217,16 @@ export default function RideHistoryItem({ ride, onViewDetails }: RideHistoryItem
             <p className="text-sm text-gray-600 line-clamp-2">{ride.dropoff}</p>
           </div>
         </div>
+
+          <div className="flex items-start space-x-3">
+          <DollarSign className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-gray-900">Amount</p>
+            <p className="text-sm text-gray-600 line-clamp-2">{ride.finalPrice}</p>
+          </div>
+        </div>
       </div>
+
 
       {/* Details Grid */}
       <div className="grid grid-cols-2 gap-4 mb-4">

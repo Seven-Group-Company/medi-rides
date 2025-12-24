@@ -11,6 +11,11 @@ const AuthPage = () => {
 
   const features = [
     {
+      icon: Car,
+      title: "Easy Booking",
+      description: "Schedule rides in seconds with our streamlined booking system"
+    },
+    {
       icon: Shield,
       title: "Secure & Private",
       description: "Your personal and medical information is protected with enterprise-grade security"
@@ -19,11 +24,6 @@ const AuthPage = () => {
       icon: Heart,
       title: "Medical-Grade Service",
       description: "Access specialized transportation for medical appointments and mobility needs"
-    },
-    {
-      icon: Car,
-      title: "Easy Booking",
-      description: "Schedule rides in seconds with our streamlined booking system"
     },
     {
       icon: Users,
@@ -50,7 +50,7 @@ const AuthPage = () => {
           <div className="max-w-md mx-auto space-y-8">
             <div>
               <h1 className="text-4xl font-bold mb-4">
-                Welcome to Compassionate Care
+                Welcome to Compassionate Medi Rides
               </h1>
               <p className="text-lg text-blue-100 opacity-90">
                 Secure access to reliable medical and non-medical transportation services.
@@ -67,7 +67,7 @@ const AuthPage = () => {
                   className="flex items-center space-x-4"
                 >
                   <div className="w-12 h-12 bg-[#B0D6FF] bg-opacity-10 rounded-lg flex items-center justify-center">
-                    <feature.icon className="w-6 h-6 text-[#B0D6FF]" />
+                    <feature.icon className="w-6 h-6 text-[#fff]" />
                   </div>
                   <div>
                     <h3 className="font-semibold text-lg">{feature.title}</h3>

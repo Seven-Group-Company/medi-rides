@@ -71,6 +71,10 @@ export class CreateVehicleDto {
   @IsDateString()
   registrationExpiry: string;
 
+  @ApiProperty({ description: 'Liability insurance expiry date' })
+  @IsDateString()
+  liabilityInsuranceExpiry: string;
+
   @ApiProperty({ description: 'Vehicle images (optional)', type: [String], required: false })
   @IsOptional()
   @IsArray()
@@ -142,6 +146,12 @@ export class UpdateVehicleDto {
   @IsOptional()
   @IsDateString()
   registrationExpiry?: string;
+
+  @ApiProperty({ description: 'Liability insurance expiry date', required: false })
+  @IsOptional()
+  @IsDateString()
+  liabilityInsuranceExpiry?: string;
+
 
   @ApiProperty({ description: 'Vehicle status', required: false })
   @IsOptional()

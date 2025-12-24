@@ -140,45 +140,42 @@ const serviceCategory = await this.prisma.serviceCategory.findUnique({
     }
   }
 
-  async createGuestRide(createGuestRideDto: CreateGuestRideDto) {
-    try {
-      console.log('🔧 Creating guest ride:', createGuestRideDto);
+async createGuestRide(createGuestRideDto: CreateGuestRideDto) {
+  try {
+    console.log('🔧 Creating guest ride:', createGuestRideDto);
 
-      // Combine date and time into a single DateTime object
-      const scheduledAt = new Date(`${createGuestRideDto.date}T${createGuestRideDto.time}`);
+    const scheduledAt = new Date(`${createGuestRideDto.date}T${createGuestRideDto.time}`);
 
-      // Check if scheduled time is in the future
-      if (scheduledAt <= new Date()) {
-        throw new ConflictException('Ride must be scheduled for a future date and time');
-      }
+    if (scheduledAt <= new Date()) {
+      throw new ConflictException('Ride must be scheduled for a future date and time');
+    }
 
-        const serviceCategory = await this.prisma.serviceCategory.findUnique({
-    where: { id: createGuestRideDto.serviceCategoryId },
-  });
+    const serviceCategory = await this.prisma.serviceCategory.findUnique({
+      where: { id: createGuestRideDto.serviceCategoryId },
+    });
 
-  if (!serviceCategory) {
-    throw new NotFoundException('Service category not found');
-  }
+    if (!serviceCategory) {
+      throw new NotFoundException('Service category not found');
+    }
 
-      // Check for conflicting rides (same phone number, similar time)
-      const conflictingRide = await this.prisma.ride.findFirst({
-        where: {
-          passengerPhone: createGuestRideDto.passengerPhone,
-          scheduledAt: {
-            gte: new Date(scheduledAt.getTime() - 2 * 60 * 60 * 1000), // 2 hours before
-            lte: new Date(scheduledAt.getTime() + 2 * 60 * 60 * 1000), // 2 hours after
-          },
-          status: {
-            in: [RideStatus.PENDING, RideStatus.ASSIGNED, RideStatus.CONFIRMED]
-          }
+    // Check for ANY booking on this date (global check)
+    const conflictingRide = await this.prisma.ride.findFirst({
+      where: {
+        scheduledAt: {
+          gte: new Date(scheduledAt.toISOString().split('T')[0] + 'T00:00:00'),
+          lte: new Date(scheduledAt.toISOString().split('T')[0] + 'T23:59:59')
+        },
+        status: {
+          in: [RideStatus.PENDING, RideStatus.ASSIGNED, RideStatus.CONFIRMED]
         }
-      });
-
-      if (conflictingRide) {
-        throw new ConflictException(
-          'You already have a ride scheduled around this time. Please choose a different time.'
-        );
       }
+    });
+
+    if (conflictingRide) {
+      throw new ConflictException(
+        'This date is fully booked. We provide one ride per day. Please choose a different date.'
+      );
+    }
 
       // Map service type from frontend to Prisma enum
       let serviceType: ServiceType;
@@ -259,6 +256,33 @@ const serviceCategory = await this.prisma.serviceCategory.findUnique({
       throw new Error(`Failed to create guest ride booking: ${error.message}`);
     }
   }
+  
+async getBookedDates(userId: number): Promise<string[]> {
+  const rides = await this.prisma.ride.findMany({
+    where: {
+      customerId: userId,
+      scheduledAt: {
+        gte: new Date(), // Only future dates
+      },
+      status: {
+        notIn: ['CANCELLED', 'COMPLETED'] // Exclude cancelled/completed rides
+      }
+    },
+    select: {
+      scheduledAt: true
+    },
+    orderBy: {
+      scheduledAt: 'asc'
+    }
+  });
+
+  // Extract just the date part (YYYY-MM-DD) and return unique dates
+  const dates = rides.map(ride => 
+    ride.scheduledAt.toISOString().split('T')[0]
+  );
+  
+  return [...new Set(dates)]; // Remove duplicates
+}
 
    async getServiceCategories() {
     const categories = await this.prisma.serviceCategory.findMany({
@@ -390,7 +414,72 @@ private async calculateBasePrice(
   return parseFloat(price.toFixed(2));
 }
 
-  // Add method to get user's ride history
+async getExistingBookings(phone: string, serviceCategoryId: number) {
+  // Get ALL rides for this service category (from any user)
+  const rides = await this.prisma.ride.findMany({
+    where: {
+      serviceCategoryId: serviceCategoryId,
+      scheduledAt: {
+        gte: new Date() // Only future rides
+      },
+      status: {
+        notIn: ['CANCELLED', 'COMPLETED'] // Exclude cancelled/completed rides
+      }
+    },
+    select: {
+      scheduledAt: true,
+      status: true,
+      passengerPhone: true // Include to identify if it's the current user
+    },
+    orderBy: {
+      scheduledAt: 'asc'
+    }
+  });
+
+  return rides.map(ride => ({
+    date: ride.scheduledAt.toISOString().split('T')[0],
+    time: ride.scheduledAt.toTimeString().split(' ')[0].substring(0, 5),
+    status: ride.status,
+    isCurrentUser: ride.passengerPhone === phone
+  }));
+}
+
+async checkDateAvailability(passengerPhone: string, date: string, time: string): Promise<{ available: boolean; reason?: string }> {
+  try {
+    const scheduledAt = new Date(`${date}T${time}`);
+    
+    // Check if scheduled time is in the future
+    if (scheduledAt <= new Date()) {
+      return { available: false, reason: 'Ride must be scheduled for a future date and time' };
+    }
+    
+    // Check for ANY booking on this date (global check - any user)
+    const existingBookingOnDate = await this.prisma.ride.findFirst({
+      where: {
+        scheduledAt: {
+          gte: new Date(date + 'T00:00:00'),
+          lte: new Date(date + 'T23:59:59')
+        },
+        status: {
+          notIn: ['CANCELLED', 'COMPLETED']
+        }
+      }
+    });
+
+    if (existingBookingOnDate) {
+      return { 
+        available: false, 
+        reason: 'This date is fully booked. We provide one ride per day. Please choose a different date.' 
+      };
+    }
+
+    return { available: true };
+  } catch (error) {
+    console.error('Error checking date availability:', error);
+    throw error;
+  }
+}
+
   async getUserRides(userId: number) {
     if (!userId || isNaN(userId)) {
       throw new BadRequestException('Invalid user ID provided');

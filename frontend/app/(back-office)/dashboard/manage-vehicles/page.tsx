@@ -10,7 +10,8 @@ import {
   XCircle,
   Wrench,
   AlertCircle,
-  BarChart3
+  BarChart3,
+  AlertTriangle
 } from 'lucide-react';
 import { useVehicles } from '@/hooks/useVehicles';
 import { Vehicle } from '@/types/vehicle.types';
@@ -275,6 +276,53 @@ export default function VehicleManagementPage() {
             />
           )}
         </AnimatePresence>
+      </div>
+      <InsuranceAlertBanner vehicles={vehicles} />
+    </div>
+  );
+}
+
+
+function InsuranceAlertBanner({ vehicles }: { vehicles: Vehicle[] }) {
+  const expiringVehicles = vehicles.filter(vehicle => {
+    const insuranceExpiry = new Date(vehicle.insuranceExpiry);
+    const today = new Date();
+    const diffTime = insuranceExpiry.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return diffDays <= 60 && diffDays > 0;
+  });
+
+  const expiredVehicles = vehicles.filter(vehicle => {
+    const insuranceExpiry = new Date(vehicle.insuranceExpiry);
+    const today = new Date();
+    return insuranceExpiry <= today;
+  });
+
+  if (expiringVehicles.length === 0 && expiredVehicles.length === 0) return null;
+
+  return (
+    <div className={`mb-6 rounded-xl p-4 ${
+      expiredVehicles.length > 0 ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'
+    } border`}>
+      <div className="flex items-center">
+        <AlertTriangle className={`w-5 h-5 mr-2 ${
+          expiredVehicles.length > 0 ? 'text-red-600' : 'text-orange-600'
+        }`} />
+        <div className="flex-1">
+          <p className={`font-medium ${
+            expiredVehicles.length > 0 ? 'text-red-800' : 'text-orange-800'
+          }`}>
+            Insurance Alert
+          </p>
+          <p className={`text-sm ${
+            expiredVehicles.length > 0 ? 'text-red-700' : 'text-orange-700'
+          }`}>
+            {expiredVehicles.length > 0 
+              ? `${expiredVehicles.length} vehicle(s) have expired insurance!`
+              : `${expiringVehicles.length} vehicle(s) have insurance expiring within 60 days.`
+            }
+          </p>
+        </div>
       </div>
     </div>
   );

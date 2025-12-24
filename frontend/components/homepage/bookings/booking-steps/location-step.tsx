@@ -29,9 +29,10 @@ export default function LocationStep({
       if (response.rows[0].elements[0].status === 'OK') {
         const distance = response.rows[0].elements[0].distance.value / 1000;
         const duration = response.rows[0].elements[0].duration.value / 60;
+        const distanceMiles = response.rows[0].elements[0].distance.value / 1609.34;
 
         updateFormData({
-          distanceKm: parseFloat(distance.toFixed(1)),
+          distanceMiles: parseFloat(distanceMiles.toFixed(1)),
           estimatedTime: Math.ceil(duration),
         });
       }
@@ -138,7 +139,7 @@ export default function LocationStep({
               />
               
               {/* Distance & Time Info */}
-              {formData.distanceKm && formData.estimatedTime && (
+              {formData.distanceMiles && formData.estimatedTime && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -146,7 +147,7 @@ export default function LocationStep({
                 >
                   <div className="flex items-center justify-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
                     <Navigation className="w-4 h-4 mr-2 text-blue-600" />
-                    <span className="font-medium">{formData.distanceKm} km</span>
+                    <span className="font-medium">{formData.distanceMiles} km</span>
                   </div>
                   <div className="flex items-center justify-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
                     <Clock className="w-4 h-4 mr-2 text-blue-600" />

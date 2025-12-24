@@ -3,18 +3,21 @@ export interface Location {
   lat: number;
   lng: number;
 }
-
 export interface BookingFormData {
-  pickup: Location | null;
-  dropoff: Location | null;
+  pickup: any | null;
+  dropoff: any | null;
   serviceType: string;
   serviceCategoryId: number | null;
+  serviceName: string;
+  serviceIcon: string;
   date: string;
   time: string;
   notes: string;
-  distanceKm?: number;
-  estimatedTime?: number;
+  chargeOption: string; // 'private', 'ALI', 'APDD', 'IDD', 'ISW'
+  distanceKm: number; // Backend expects km
+  estimatedTime: number;
 }
+
 
 export interface CreateRideDto {
   pickup: string;
@@ -24,8 +27,11 @@ export interface CreateRideDto {
   date: string;
   time: string;
   notes?: string;
-  distanceKm?: number;
+  chargeOption?: string;
+  distanceMiles?: number;
+  distanceKm?: number; // Keep for backend compatibility
   estimatedTime?: number;
+  estimatedPrice?: number;
 }
 
 export interface BookingStepProps {

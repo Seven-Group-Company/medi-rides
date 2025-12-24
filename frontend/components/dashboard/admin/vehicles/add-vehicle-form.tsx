@@ -13,7 +13,7 @@ import {
   FerrisWheelIcon,
   Heart
 } from 'lucide-react';
-import { CreateVehicleData, Driver } from '@/types/vehicle.types';
+import { CreateVehicleData } from '@/types/vehicle.types';
 
 interface AddVehicleFormProps {
   onSubmit: (data: CreateVehicleData, images: File[]) => Promise<void>;
@@ -46,6 +46,7 @@ export default function AddVehicleForm({ onSubmit, onCancel, loading }: AddVehic
     hasOxygenSupport: false,
     insuranceExpiry: '',
     registrationExpiry: '',
+    liabilityInsuranceExpiry: '',
     driverId: undefined,
   });
 
@@ -111,6 +112,7 @@ export default function AddVehicleForm({ onSubmit, onCancel, loading }: AddVehic
     if (!formData.licensePlate.trim()) newErrors.licensePlate = 'License plate is required';
     if (!formData.insuranceExpiry) newErrors.insuranceExpiry = 'Insurance expiry is required';
     if (!formData.registrationExpiry) newErrors.registrationExpiry = 'Registration expiry is required';
+    if (!formData.liabilityInsuranceExpiry) newErrors.liabilityInsuranceExpiry = 'Liability insurance expiry is required';
 
     // Date validation
     const today = new Date();
@@ -120,6 +122,12 @@ export default function AddVehicleForm({ onSubmit, onCancel, loading }: AddVehic
     if (formData.registrationExpiry && new Date(formData.registrationExpiry) <= today) {
       newErrors.registrationExpiry = 'Registration must not be expired';
     }
+    if (!formData.liabilityInsuranceExpiry) {
+  newErrors.liabilityInsuranceExpiry = 'Liability insurance expiry is required';
+}
+    if (formData.liabilityInsuranceExpiry && new Date(formData.liabilityInsuranceExpiry) <= today) {
+  newErrors.liabilityInsuranceExpiry = 'Liability insurance must not be expired';
+}
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -132,15 +140,22 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   try {
     // Ensure data is properly formatted for the backend
-    const submitData = {
-      ...formData,
-      // Convert string dates to proper format
-      insuranceExpiry: new Date(formData.insuranceExpiry).toISOString().split('T')[0],
-      registrationExpiry: new Date(formData.registrationExpiry).toISOString().split('T')[0],
-      // Ensure numbers are properly converted
-      year: parseInt(formData.year.toString()),
-      capacity: parseInt(formData.capacity.toString()),
-    };
+        const submitData = {
+          ...formData,
+          // Convert string dates to proper format (guard against undefined)
+          insuranceExpiry: formData.insuranceExpiry
+            ? new Date(formData.insuranceExpiry).toISOString().split('T')[0]
+            : '',
+          registrationExpiry: formData.registrationExpiry
+            ? new Date(formData.registrationExpiry).toISOString().split('T')[0]
+            : '',
+          liabilityInsuranceExpiry: formData.liabilityInsuranceExpiry
+            ? new Date(formData.liabilityInsuranceExpiry).toISOString().split('T')[0]
+            : '',
+          // Ensure numbers are properly converted
+          year: parseInt(formData.year.toString()),
+          capacity: parseInt(formData.capacity.toString()),
+        };
 
     await onSubmit(submitData, images);
   } catch (error) {
@@ -416,6 +431,24 @@ const handleSubmit = async (e: React.FormEvent) => {
                 <p className="mt-1 text-sm text-red-600">{errors.insuranceExpiry}</p>
               )}
             </div>
+
+              <div>
+    <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">
+      <Calendar className="w-4 h-4 mr-1" />
+      Liability Insurance Expiry *
+    </label>
+    <input
+      type="date"
+      value={formData.liabilityInsuranceExpiry}
+      onChange={(e) => handleInputChange('liabilityInsuranceExpiry', e.target.value)}
+      className={`w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+        errors.liabilityInsuranceExpiry ? 'border-red-500' : 'border-gray-300'
+      }`}
+    />
+    {errors.liabilityInsuranceExpiry && (
+      <p className="mt-1 text-sm text-red-600">{errors.liabilityInsuranceExpiry}</p>
+    )}
+  </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2 flex items-center">

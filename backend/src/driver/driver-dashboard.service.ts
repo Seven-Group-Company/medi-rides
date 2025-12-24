@@ -349,77 +349,99 @@ export class DriverDashboardService {
   }
 
   /**
-   * Accept ride
-   */
-  async acceptRide(driverId: number, rideId: number, acceptRideDto: AcceptRideDto) {
-    try {
-      const ride = await this.prisma.ride.findUnique({
-        where: { id: rideId },
-      });
+ * Accept ride
+ */
+async acceptRide(driverId: number, rideId: number, acceptRideDto: AcceptRideDto) {
+  try {
+    const ride = await this.prisma.ride.findUnique({
+      where: { id: rideId },
+    });
 
-      if (!ride) {
-        throw new NotFoundException('Ride not found');
-      }
-
-      if (ride.driverId !== driverId) {
-        throw new UnauthorizedException('You are not assigned to this ride');
-      }
-
-      if (ride.status !== RideStatus.ASSIGNED) {
-        throw new BadRequestException('Ride cannot be accepted in current status');
-      }
-
-      if (!ride.customerId) {
-        throw new BadRequestException('Ride does not have a customer assigned');
-      }
-
-      const updatedRide = await this.prisma.ride.update({
-        where: { id: rideId },
-        data: {
-          status: RideStatus.CONFIRMED,
-        },
-        include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              phone: true,
-              email: true,
-            },
-          },
-          payment: true,
-        },
-      });
-
-      // Create notification for customer
-      if (ride.customerId) {
-        await this.prisma.notification.create({
-          data: {
-            userId: ride.customerId,
-            type: 'RIDE_UPDATED',
-            title: 'Driver Accepted Your Ride',
-            message: `Your driver will arrive in approximately ${acceptRideDto.estimatedArrivalMinutes} minutes.`,
-            metadata: {
-              rideId: ride.id,
-              estimatedArrival: acceptRideDto.estimatedArrivalMinutes,
-            },
-          },
-        });
-      }
-
-      return updatedRide;
-    } catch (error) {
-      if (
-        error instanceof NotFoundException ||
-        error instanceof UnauthorizedException ||
-        error instanceof BadRequestException
-      ) {
-        throw error;
-      }
-      console.error('Error accepting ride:', error);
-      throw new InternalServerErrorException('Failed to accept ride');
+    if (!ride) {
+      throw new NotFoundException('Ride not found');
     }
+
+    if (ride.driverId !== driverId) {
+      throw new UnauthorizedException('You are not assigned to this ride');
+    }
+
+    if (ride.status !== RideStatus.ASSIGNED) {
+      throw new BadRequestException('Ride cannot be accepted in current status');
+    }
+
+    // Check if this is a guest ride or regular ride
+    if (!ride.customerId && !ride.isGuest) {
+      throw new BadRequestException('Ride does not have a customer assigned');
+    }
+
+    const updatedRide = await this.prisma.ride.update({
+      where: { id: rideId },
+      data: {
+        status: RideStatus.CONFIRMED,
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            email: true,
+          },
+        },
+        payment: true,
+      },
+    });
+
+    // Create notification for customer (if registered) OR handle guest ride notification
+    if (ride.customerId) {
+      // Registered user - create in-app notification
+      await this.prisma.notification.create({
+        data: {
+          userId: ride.customerId,
+          type: 'RIDE_UPDATED',
+          title: 'Driver Accepted Your Ride',
+          message: `Your driver will arrive in approximately ${acceptRideDto.estimatedArrivalMinutes} minutes.`,
+          metadata: {
+            rideId: ride.id,
+            estimatedArrival: acceptRideDto.estimatedArrivalMinutes,
+          },
+        },
+      });
+    } else if (ride.isGuest) {
+      // Guest ride - log notification but don't associate with user
+      await this.prisma.notification.create({
+        data: {
+          userId: 0, // Use placeholder userId for guest rides
+          type: 'RIDE_UPDATED',
+          title: 'Driver Accepted Your Ride',
+          message: `Your driver will arrive in approximately ${acceptRideDto.estimatedArrivalMinutes} minutes.`,
+          metadata: {
+            rideId: ride.id,
+            passengerPhone: ride.passengerPhone,
+            passengerName: ride.passengerName,
+            estimatedArrival: acceptRideDto.estimatedArrivalMinutes,
+          },
+        },
+      });
+      
+      // For guest rides, we might want to send an SMS or email
+      // This would require additional SMS/email service integration
+      console.log(`Guest ride ${ride.id} accepted. Passenger: ${ride.passengerName}, Phone: ${ride.passengerPhone}`);
+    }
+
+    return updatedRide;
+  } catch (error) {
+    if (
+      error instanceof NotFoundException ||
+      error instanceof UnauthorizedException ||
+      error instanceof BadRequestException
+    ) {
+      throw error;
+    }
+    console.error('Error accepting ride:', error);
+    throw new InternalServerErrorException('Failed to accept ride');
   }
+}
 
   /**
    * Update ride status

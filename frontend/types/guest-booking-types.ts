@@ -16,9 +16,10 @@ export interface FormData {
   date: string;
   time: string;
   notes: string;
-  distanceKm?: number;
+  distanceMiles?: number;
   estimatedTime?: number;
   estimatedPrice?: number;
+  paymentType: 'private' | 'ALI' | 'APDD' | 'IDD' | 'ISW';
 }
 
 export interface BookingStepProps {
@@ -32,7 +33,7 @@ export interface BookingStepProps {
   isLoading?: boolean;
   isSubmitting?: boolean;
   onSubmit?: () => void;
-  onReview?: () => void; // Added for review step
+  onReview?: () => void;
 }
 
 export interface BookingSummary {
@@ -45,7 +46,9 @@ export interface BookingSummary {
   passengerName: string;
   categories: ServiceCategory[];
   passengerPhone: string;
-  distanceKm?: number;
+  distanceMiles?: number;
   estimatedTime?: number;
   estimatedPrice?: number;
+  paymentType: string;
+  waiverNumber?: string;
 }

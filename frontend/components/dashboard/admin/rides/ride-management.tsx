@@ -3,10 +3,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Search, Filter, Clock, MapPin, User, Car, DollarSign, 
-  CheckCircle, XCircle, FileText, CheckCheck, Loader2 
+  Search, Filter, Clock, User, Car, DollarSign, 
+  CheckCircle, XCircle, CheckCheck, Loader2,
+  ChevronLeft, ChevronRight, Eye, ArrowUpDown, Calendar,
 } from 'lucide-react';
 import { RideRequest, Driver, Vehicle } from '@/types/admin.types';
+import RideDetailsModal from './ride-details-modal'; // Add this import
 
 interface RideManagementProps {
   rideRequests: RideRequest[];
@@ -19,8 +21,11 @@ interface RideManagementProps {
   onApproveRide: (rideId: number, price: number, note?: string) => Promise<{ success: boolean; error?: string }>;
   onDeclineRide: (rideId: number, reason: string) => Promise<{ success: boolean; error?: string }>;
   onAssignDriverAndVehicle: (rideId: number, driverId: number, vehicleId: number) => Promise<{ success: boolean; error?: string }>;
-  onCompleteRide?: (rideId: number) => Promise<{ success: boolean; error?: string }>; // Add this
+  onCompleteRide?: (rideId: number) => Promise<{ success: boolean; error?: string }>;
 }
+
+type SortField = 'id' | 'scheduledAt' | 'finalPrice' | 'status';
+type SortDirection = 'asc' | 'desc';
 
 export default function RideManagement({
   rideRequests,
@@ -33,20 +38,30 @@ export default function RideManagement({
   onApproveRide,
   onDeclineRide,
   onAssignDriverAndVehicle,
-  onCompleteRide, // Add this
+  onCompleteRide,
 }: RideManagementProps) {
   const [selectedRide, setSelectedRide] = useState<RideRequest | null>(null);
   const [showApproveModal, setShowApproveModal] = useState(false);
   const [showDeclineModal, setShowDeclineModal] = useState(false);
   const [showAssignModal, setShowAssignModal] = useState(false);
-  const [showCompleteModal, setShowCompleteModal] = useState(false); // Add this
+  const [showCompleteModal, setShowCompleteModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [price, setPrice] = useState('');
   const [note, setNote] = useState('');
   const [selectedDriver, setSelectedDriver] = useState('');
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [loading, setLoading] = useState(false);
-  const [actionType, setActionType] = useState<'approve' | 'decline' | 'assign' | 'complete' | null>(null); // Track action type
+  const [actionType, setActionType] = useState<'approve' | 'decline' | 'assign' | 'complete' | null>(null);
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  
+  // Sorting state
+  const [sortField, setSortField] = useState<SortField>('scheduledAt');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
+  // Filter rides
   const filteredRides = rideRequests.filter(ride => {
     const matchesSearch = 
       ride.pickupAddress.toLowerCase().includes(search.toLowerCase()) ||
@@ -59,269 +74,245 @@ export default function RideManagement({
     return matchesSearch && matchesStatus;
   });
 
-  const handleApprove = async () => {
-    if (!selectedRide || !price) return;
+  // Sort rides
+  const sortedRides = [...filteredRides].sort((a, b) => {
+    let aValue: any, bValue: any;
     
-    setLoading(true);
-    setActionType('approve');
-    const result = await onApproveRide(selectedRide.id, parseFloat(price), note);
-    setLoading(false);
-    setActionType(null);
+    switch (sortField) {
+      case 'id':
+        aValue = a.id;
+        bValue = b.id;
+        break;
+      case 'scheduledAt':
+        aValue = new Date(a.scheduledAt).getTime();
+        bValue = new Date(b.scheduledAt).getTime();
+        break;
+      case 'finalPrice':
+        aValue = a.finalPrice || 0;
+        bValue = b.finalPrice || 0;
+        break;
+      case 'status':
+        aValue = a.status;
+        bValue = b.status;
+        break;
+    }
     
-    if (result.success) {
-      setShowApproveModal(false);
-      setPrice('');
-      setNote('');
-      setSelectedRide(null);
+    if (sortDirection === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Pagination calculations
+  const totalPages = Math.ceil(sortedRides.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedRides = sortedRides.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('desc');
     }
   };
-
-  const handleDecline = async () => {
-    if (!selectedRide || !note) return;
-    
-    setLoading(true);
-    setActionType('decline');
-    const result = await onDeclineRide(selectedRide.id, note);
-    setLoading(false);
-    setActionType(null);
-    
-    if (result.success) {
-      setShowDeclineModal(false);
-      setNote('');
-      setSelectedRide(null);
-    }
-  };
-
-  const handleAssign = async () => {
-    if (!selectedRide || !selectedDriver || !selectedVehicle) return;
-    
-    setLoading(true);
-    setActionType('assign');
-    const result = await onAssignDriverAndVehicle(
-      selectedRide.id,
-      parseInt(selectedDriver),
-      parseInt(selectedVehicle)
-    );
-    setLoading(false);
-    setActionType(null);
-    
-    if (result.success) {
-      setShowAssignModal(false);
-      setSelectedDriver('');
-      setSelectedVehicle('');
-      setSelectedRide(null);
-    }
-  };
-
-  const handleComplete = async () => {
-    if (!selectedRide || !onCompleteRide) return;
-    
-    setLoading(true);
-    setActionType('complete');
-    const result = await onCompleteRide(selectedRide.id);
-    setLoading(false);
-    setActionType(null);
-    
-    if (result.success) {
-      setShowCompleteModal(false);
-      setSelectedRide(null);
-    }
-  };
-
-  const availableDrivers = drivers.filter(driver => 
-    driver.driverProfile.isAvailable && driver.isActive
-  );
-  const availableVehicles = vehicles.filter(vehicle => 
-    vehicle.status === 'AVAILABLE'
-  );
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PENDING': return 'bg-yellow-100 text-yellow-800';
-      case 'CONFIRMED': return 'bg-blue-100 text-blue-800';
-      case 'ASSIGNED': return 'bg-purple-100 text-purple-800';
-      case 'IN_PROGRESS': return 'bg-orange-100 text-orange-800';
-      case 'COMPLETED': return 'bg-green-100 text-green-800';
-      case 'CANCELLED': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case 'PENDING': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'CONFIRMED': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'ASSIGNED': return 'bg-purple-50 text-purple-700 border-purple-200';
+      case 'DRIVER_EN_ROUTE': return 'bg-orange-50 text-orange-700 border-orange-200';
+      case 'PICKUP_ARRIVED': return 'bg-green-50 text-green-700 border-green-200';
+      case 'IN_PROGRESS': return 'bg-indigo-50 text-indigo-700 border-indigo-200';
+      case 'COMPLETED': return 'bg-emerald-50 text-emerald-700 border-emerald-200';
+      case 'CANCELLED': return 'bg-red-50 text-red-700 border-red-200';
+      case 'NO_SHOW': return 'bg-gray-50 text-gray-700 border-gray-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
 
-const handleDownloadInvoice = async (invoiceId: number, pdfUrl?: string) => {
-  try {
-    const token = localStorage.getItem('access_token');
-    
-    // If pdfUrl exists and is a full URL, open it directly
-    if (pdfUrl) {
-      const fullUrl = pdfUrl.startsWith('http') 
-        ? pdfUrl 
-        : `${process.env.NEXT_PUBLIC_API_URL}${pdfUrl}`;
-      
-      window.open(fullUrl, '_blank');
-      return;
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'PENDING': return <Clock className="w-4 h-4" />;
+      case 'CONFIRMED': return <CheckCircle className="w-4 h-4" />;
+      case 'ASSIGNED': return <Car className="w-4 h-4" />;
+      case 'DRIVER_EN_ROUTE': return <Clock className="w-4 h-4" />;
+      case 'PICKUP_ARRIVED': return <CheckCircle className="w-4 h-4" />;
+      case 'IN_PROGRESS': return <Loader2 className="w-4 h-4 animate-spin" />;
+      case 'COMPLETED': return <CheckCheck className="w-4 h-4" />;
+      case 'CANCELLED': return <XCircle className="w-4 h-4" />;
+      case 'NO_SHOW': return <XCircle className="w-4 h-4" />;
+      default: return <Clock className="w-4 h-4" />;
     }
-    
-    // If no pdfUrl, try to regenerate it
-    try {
-      const regenerateResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceId}/regenerate-pdf`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-      
-      if (!regenerateResponse.ok) {
-        throw new Error(`Regenerate failed: ${regenerateResponse.status}`);
-      }
-      
-      const regenerateData = await regenerateResponse.json();
-      
-      if (regenerateData.data?.pdfUrl) {
-        const fullUrl = regenerateData.data.pdfUrl.startsWith('http')
-          ? regenerateData.data.pdfUrl
-          : `${process.env.NEXT_PUBLIC_API_URL}${regenerateData.data.pdfUrl}`;
-        
-        window.open(fullUrl, '_blank');
-        return;
-      }
-      
-      throw new Error('PDF URL not available after regeneration');
-    } catch (regenerateError) {
-      console.error('Regeneration error:', regenerateError);
-      throw new Error('Failed to regenerate invoice PDF. The invoice may need to be created first.');
-    }
-  } catch (error) {
-    console.error('Error downloading invoice:', error);
-    
-    const errorMessage = error instanceof Error 
-      ? error.message 
-      : 'Failed to download invoice';
-    
-    alert(`Unable to download invoice: ${errorMessage}\n\nPlease try:\n1. Generating the invoice first if it doesn't exist\n2. Contacting support if the issue persists`);
-  }
-};
-
-const renderInvoiceButton = (ride: RideRequest) => {
-  // Only show invoice button for completed rides
-  if (ride.status !== 'COMPLETED') return null;
-  
-  // Check if it's a guest ride without customer
-  const isGuestWithoutCustomer = ride.isGuest && !ride.customerId;
-  
-  // If guest ride without customer, show message
-  if (isGuestWithoutCustomer) {
-    return (
-      <div className="text-sm text-gray-600 italic">
-        Guest ride - Invoice not available
-      </div>
-    );
-  }
-
-    if (ride.invoice && ride.invoice.id) {
-    return (
-      <button
-        onClick={() => handleDownloadInvoice(ride.invoice!.id, ride.invoice!.pdfUrl)}
-        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-        title={ride.invoice.pdfUrl ? "Download Invoice" : "Generate & Download Invoice"}
-      >
-        <FileText className="w-4 h-4" />
-        {ride.invoice.pdfUrl ? "Download" : "Generate"} Invoice
-      </button>
-    );
-  }
-    
- return (
-    <button
-      onClick={async () => {
-        try {
-          setLoading(true);
-          const token = localStorage.getItem('access_token');
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/invoices/ride/${ride.id}/generate`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
-              },
-            }
-          );
-          
-          if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || 'Failed to generate invoice');
-          }
-          
-          const data = await response.json();
-          alert('Invoice generated successfully!');
-          
-          // Download immediately if PDF is available
-          if (data.data.pdfUrl) {
-            handleDownloadInvoice(data.data.id, data.data.pdfUrl);
-          }
-          
-          // Refresh the page to show updated invoice
-          window.location.reload();
-        } catch (error) {
-          console.error('Error generating invoice:', error);
-          const message = error instanceof Error ? error.message : 'Unknown error';
-          alert(`Failed to generate invoice: ${message}`);
-        } finally {
-          setLoading(false);
-        }
-      }}
-      className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-      disabled={loading}
-    >
-      <FileText className="w-4 h-4" />
-      Generate Invoice
-    </button>
-  );
-};
+  };
 
   return (
     <div className="space-y-6">
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="flex-1">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <input
-              type="text"
-              placeholder="Search rides by address or customer..."
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
+      {/* Header with Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Total Rides</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{filteredRides.length}</p>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <Car className="w-6 h-6 text-blue-600" />
+            </div>
           </div>
         </div>
-        <div className="sm:w-48">
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-            <select
-              value={statusFilter}
-              onChange={(e) => onStatusFilterChange(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
-            >
-              <option value="all">All Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="CONFIRMED">Confirmed</option>
-              <option value="ASSIGNED">Assigned</option>
-              <option value="IN_PROGRESS">In Progress</option>
-              <option value="COMPLETED">Completed</option>
-              <option value="CANCELLED">Cancelled</option>
-            </select>
+        
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {filteredRides.filter(r => r.status === 'PENDING').length}
+              </p>
+            </div>
+            <div className="p-3 bg-yellow-50 rounded-lg">
+              <Clock className="w-6 h-6 text-yellow-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">In Progress</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {filteredRides.filter(r => 
+                  r.status === 'IN_PROGRESS' || 
+                  r.status === 'DRIVER_EN_ROUTE' || 
+                  r.status === 'PICKUP_ARRIVED'
+                ).length}
+              </p>
+            </div>
+            <div className="p-3 bg-orange-50 rounded-lg">
+              <Loader2 className="w-6 h-6 text-orange-600" />
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-xl border border-gray-200 p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">Completed</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">
+                {filteredRides.filter(r => r.status === 'COMPLETED').length}
+              </p>
+            </div>
+            <div className="p-3 bg-green-50 rounded-lg">
+              <CheckCheck className="w-6 h-6 text-green-600" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Rides List */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        {filteredRides.length === 0 ? (
+      {/* Filters & Controls */}
+      <div className="bg-white rounded-xl border border-gray-200 p-4">
+        <div className="flex flex-col md:flex-row gap-4 items-start md:items-center justify-between">
+          <div className="flex-1 max-w-md">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="Search rides by address, customer, or ID..."
+                value={search}
+                onChange={(e) => onSearchChange(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              />
+            </div>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            <div className="relative">
+              <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <select
+                value={statusFilter}
+                onChange={(e) => onStatusFilterChange(e.target.value)}
+                className="pl-10 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+              >
+                <option value="all">All Status</option>
+                <option value="PENDING">Pending</option>
+                <option value="CONFIRMED">Confirmed</option>
+                <option value="ASSIGNED">Assigned</option>
+                <option value="DRIVER_EN_ROUTE">Driver En Route</option>
+                <option value="PICKUP_ARRIVED">Pickup Arrived</option>
+                <option value="IN_PROGRESS">In Progress</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+                <option value="NO_SHOW">No Show</option>
+              </select>
+            </div>
+            
+            <div className="relative">
+              <select
+                value={itemsPerPage}
+                onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                className="pl-3 pr-8 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none bg-white"
+              >
+                <option value={5}>5 per page</option>
+                <option value={10}>10 per page</option>
+                <option value={20}>20 per page</option>
+                <option value={50}>50 per page</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Rides Table */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        {/* Table Header */}
+        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+          <div className="grid grid-cols-12 gap-4 text-sm font-medium text-gray-600">
+            <div className="col-span-2">
+              <button 
+                onClick={() => handleSort('id')}
+                className="flex items-center gap-1 hover:text-gray-900"
+              >
+                Ride ID
+                <ArrowUpDown className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="col-span-3">
+              <button 
+                onClick={() => handleSort('scheduledAt')}
+                className="flex items-center gap-1 hover:text-gray-900"
+              >
+                <Calendar className="w-4 h-4 mr-1" />
+                Schedule
+                <ArrowUpDown className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="col-span-3">Route</div>
+            <div className="col-span-1">
+              <button 
+                onClick={() => handleSort('finalPrice')}
+                className="flex items-center gap-1 hover:text-gray-900"
+              >
+                <DollarSign className="w-4 h-4" />
+                <ArrowUpDown className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="col-span-1">
+              <button 
+                onClick={() => handleSort('status')}
+                className="flex items-center gap-1 hover:text-gray-900"
+              >
+                Status
+                <ArrowUpDown className="w-3 h-3" />
+              </button>
+            </div>
+            <div className="col-span-1 text-right">Actions</div>
+          </div>
+        </div>
+
+        {/* Table Body */}
+        {paginatedRides.length === 0 ? (
           <div className="text-center py-12">
             <Clock className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-4 text-lg font-medium text-gray-900">No rides found</h3>
@@ -330,138 +321,198 @@ const renderInvoiceButton = (ride: RideRequest) => {
             </p>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
-            {filteredRides.map((ride) => (
+          <div className="divide-y divide-gray-100">
+            {paginatedRides.map((ride) => (
               <motion.div
                 key={ride.id}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                className="p-6 hover:bg-gray-50 transition-colors duration-200"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="px-6 py-4 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                  {/* Ride Info */}
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-4">
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        Ride #{ride.id}
-                      </h3>
-                      <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(ride.status)}`}>
-                        {ride.status.replace('_', ' ')}
+                <div className="grid grid-cols-12 gap-4 items-center">
+                  {/* Ride ID */}
+                  <div className="col-span-2">
+                    <div className="font-medium text-gray-900">#{ride.id}</div>
+                    <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      {ride.customer?.name || ride.passengerName || 'Guest'}
+                    </div>
+                  </div>
+
+                  {/* Schedule */}
+                  <div className="col-span-3">
+                    <div className="text-sm text-gray-900">
+                      {new Date(ride.scheduledAt).toLocaleDateString()}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {new Date(ride.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                    </div>
+                  </div>
+
+                  {/* Route */}
+                  <div className="col-span-3">
+                    <div className="flex items-start gap-2">
+                      <div>
+                        <div className="font-medium text-gray-900 text-sm truncate max-w-[150px]">{ride.pickupAddress}</div>
+                        <div className="font-medium text-gray-900 text-sm truncate max-w-[150px]">{ride.dropoffAddress}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Price */}
+                  <div className="col-span-1">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium text-gray-900">${ride.finalPrice}</span>
+                    </div>
+                  </div>
+
+                  {/* Service Type */}
+                  <div className="col-span-1">
+                    <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border text-xs font-medium ${getStatusColor(ride.status)}`}>
+                      {getStatusIcon(ride.status)}
+                      <span className="hidden sm:inline">
+                        {ride.status === 'DRIVER_EN_ROUTE' ? 'En Route' : 
+                         ride.status === 'PICKUP_ARRIVED' ? 'Arrived' :
+                         ride.status === 'IN_PROGRESS' ? 'In Progress' :
+                         ride.status.replace('_', ' ')}
                       </span>
-                      {ride.isGuest && (
-                        <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                          Guest
-                        </span>
-                      )}
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400 mt-1" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Pickup</p>
-                          <p className="text-sm text-gray-600">{ride.pickupAddress}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="flex items-start gap-2">
-                        <MapPin className="w-4 h-4 text-gray-400 mt-1" />
-                        <div>
-                          <p className="text-sm font-medium text-gray-900">Dropoff</p>
-                          <p className="text-sm text-gray-600">{ride.dropoffAddress}</p>
-                        </div>
-                      </div>
-                    </div>
+                  </div>
 
-                    <div className="flex flex-wrap items-center gap-3">
-                      <div className="flex items-center gap-1 text-sm">
-                        <User className="w-4 h-4 text-gray-500" />
-                        <span className="font-medium">Passenger:</span>
-                        <span>{ride.customer?.name || ride.passengerName}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <Clock className="w-4 h-4 text-gray-500" />
-                        <span>{new Date(ride.scheduledAt).toLocaleString()}</span>
-                      </div>
-                      <div className="flex items-center gap-1 text-sm">
-                        <DollarSign className="w-4 h-4 text-gray-500" />
-                        <span>${ride.finalPrice || ride.basePrice || 0}</span>
-                      </div>
-                    </div>
-
-                    {ride.additionalNotes && (
-                      <div className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                        <p className="font-medium">Notes:</p>
-                        <p>{ride.additionalNotes}</p>
-                      </div>
-                    )}
+                  {/* Status */}
+                  <div className="col-span-1">
                   </div>
 
                   {/* Actions */}
-                  <div className="flex flex-wrap gap-2">
-                    {ride.status === 'PENDING' && (
-                      <>
+                  <div className="col-span-1">
+                    <div className="flex items-center justify-end gap-2">
+                      <button
+                        onClick={() => {
+                          setSelectedRide(ride);
+                          setShowDetailsModal(true);
+                        }}
+                        className="p-2 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="View Details"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+
+                      {ride.status === 'PENDING' && (
                         <button
                           onClick={() => {
                             setSelectedRide(ride);
                             setShowApproveModal(true);
                           }}
-                          className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                          className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
                         >
-                          <CheckCircle className="w-4 h-4" />
                           Approve
                         </button>
+
+                      )}
+
+                      {ride.status === 'CONFIRMED' && (
                         <button
                           onClick={() => {
                             setSelectedRide(ride);
-                            setShowDeclineModal(true);
+                            setShowAssignModal(true);
                           }}
-                          className="inline-flex items-center gap-2 px-3 py-2 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+                          className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
                         >
-                          <XCircle className="w-4 h-4" />
-                          Decline
+                          Assign
                         </button>
-                      </>
-                    )}
+                      )}
 
-                    {ride.status === 'CONFIRMED' && (
-                      <button
-                        onClick={() => {
-                          setSelectedRide(ride);
-                          setShowAssignModal(true);
-                        }}
-                        className="inline-flex items-center gap-2 px-3 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors"
-                      >
-                        <Car className="w-4 h-4" />
-                        Assign Driver
-                      </button>
-                    )}
-
-                    {(ride.status === 'ASSIGNED' || ride.status === 'IN_PROGRESS') && onCompleteRide && (
-                      <button
-                        onClick={() => {
-                          setSelectedRide(ride);
-                          setShowCompleteModal(true);
-                        }}
-                        className="inline-flex items-center gap-2 px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                      >
-                        <CheckCheck className="w-4 h-4" />
-                        Complete Ride
-                      </button>
-                    )}
-
-                    {renderInvoiceButton(ride)}
+                      {(ride.status === 'ASSIGNED' || ride.status === 'IN_PROGRESS' || 
+                        ride.status === 'DRIVER_EN_ROUTE' || ride.status === 'PICKUP_ARRIVED') && 
+                        onCompleteRide && (
+                        <button
+                          onClick={() => {
+                            setSelectedRide(ride);
+                            setShowCompleteModal(true);
+                          }}
+                          className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          Complete
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
+
+        {/* Pagination */}
+        {totalPages > 1 && (
+          <div className="px-6 py-4 border-t border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-gray-700">
+                Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
+                <span className="font-medium">{Math.min(startIndex + itemsPerPage, filteredRides.length)}</span> of{' '}
+                <span className="font-medium">{filteredRides.length}</span> rides
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                  disabled={currentPage === 1}
+                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+                  
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-10 h-10 rounded-lg text-sm font-medium transition-colors ${
+                        currentPage === pageNum
+                          ? 'bg-blue-600 text-white'
+                          : 'border border-gray-300 text-gray-700 hover:bg-gray-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                  disabled={currentPage === totalPages}
+                  className="p-2 border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Ride Details Modal */}
+      <RideDetailsModal
+        isOpen={showDetailsModal}
+        onClose={() => setShowDetailsModal(false)}
+        ride={selectedRide}
+        rejectRide={setShowDeclineModal}
+      />
 
       {/* Approve Modal */}
       {showApproveModal && selectedRide && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -508,7 +559,20 @@ const renderInvoiceButton = (ride: RideRequest) => {
                 Cancel
               </button>
               <button
-                onClick={handleApprove}
+                onClick={async () => {
+                  if (!selectedRide || !price) return;
+                  setLoading(true);
+                  setActionType('approve');
+                  const result = await onApproveRide(selectedRide.id, parseFloat(price), note);
+                  setLoading(false);
+                  setActionType(null);
+                  if (result.success) {
+                    setShowApproveModal(false);
+                    setPrice('');
+                    setNote('');
+                    setSelectedRide(null);
+                  }
+                }}
                 disabled={!price || loading}
                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
               >
@@ -528,7 +592,7 @@ const renderInvoiceButton = (ride: RideRequest) => {
 
       {/* Decline Modal */}
       {showDeclineModal && selectedRide && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -561,7 +625,19 @@ const renderInvoiceButton = (ride: RideRequest) => {
                 Cancel
               </button>
               <button
-                onClick={handleDecline}
+                onClick={async () => {
+                  if (!selectedRide || !note) return;
+                  setLoading(true);
+                  setActionType('decline');
+                  const result = await onDeclineRide(selectedRide.id, note);
+                  setLoading(false);
+                  setActionType(null);
+                  if (result.success) {
+                    setShowDeclineModal(false);
+                    setNote('');
+                    setSelectedRide(null);
+                  }
+                }}
                 disabled={!note || loading}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
               >
@@ -581,7 +657,7 @@ const renderInvoiceButton = (ride: RideRequest) => {
 
       {/* Assign Modal */}
       {showAssignModal && selectedRide && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -602,7 +678,9 @@ const renderInvoiceButton = (ride: RideRequest) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Choose a driver</option>
-                  {availableDrivers.map(driver => (
+                  {drivers.filter(driver => 
+                    driver.driverProfile.isAvailable && driver.isActive
+                  ).map(driver => (
                     <option key={driver.id} value={driver.id}>
                       {driver.name} - {driver.driverProfile.licenseNumber}
                     </option>
@@ -620,7 +698,9 @@ const renderInvoiceButton = (ride: RideRequest) => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="">Choose a vehicle</option>
-                  {availableVehicles.map(vehicle => (
+                  {vehicles.filter(vehicle => 
+                    vehicle.status === 'AVAILABLE'
+                  ).map(vehicle => (
                     <option key={vehicle.id} value={vehicle.id}>
                       {vehicle.make} {vehicle.model} - {vehicle.licensePlate}
                     </option>
@@ -638,7 +718,24 @@ const renderInvoiceButton = (ride: RideRequest) => {
                 Cancel
               </button>
               <button
-                onClick={handleAssign}
+                onClick={async () => {
+                  if (!selectedRide || !selectedDriver || !selectedVehicle) return;
+                  setLoading(true);
+                  setActionType('assign');
+                  const result = await onAssignDriverAndVehicle(
+                    selectedRide.id,
+                    parseInt(selectedDriver),
+                    parseInt(selectedVehicle)
+                  );
+                  setLoading(false);
+                  setActionType(null);
+                  if (result.success) {
+                    setShowAssignModal(false);
+                    setSelectedDriver('');
+                    setSelectedVehicle('');
+                    setSelectedRide(null);
+                  }
+                }}
                 disabled={!selectedDriver || !selectedVehicle || loading}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
               >
@@ -649,75 +746,6 @@ const renderInvoiceButton = (ride: RideRequest) => {
                   </>
                 ) : (
                   'Assign Driver'
-                )}
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
-
-      {/* Complete Ride Modal */}
-      {showCompleteModal && selectedRide && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-white rounded-xl p-6 w-full max-w-md"
-          >
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">
-              Complete Ride #{selectedRide.id}
-            </h3>
-            
-            <div className="space-y-4">
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-sm text-yellow-800">
-                  <strong>Note:</strong> Completing this ride will:
-                </p>
-                <ul className="text-sm text-yellow-700 mt-2 list-disc pl-5">
-                  <li>Mark the ride as COMPLETED</li>
-                  <li>Generate an invoice automatically</li>
-                  <li>Send notification to the customer</li>
-                  <li>Make the vehicle available again</li>
-                </ul>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Final Notes (Optional)
-                </label>
-                <textarea
-                  value={note}
-                  onChange={(e) => setNote(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Any final notes about the ride completion..."
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => setShowCompleteModal(false)}
-                className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                disabled={loading}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleComplete}
-                disabled={loading}
-                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center"
-              >
-                {loading && actionType === 'complete' ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                    Completing...
-                  </>
-                ) : (
-                  <>
-                    <CheckCheck className="w-4 h-4 mr-2" />
-                    Complete Ride
-                  </>
                 )}
               </button>
             </div>

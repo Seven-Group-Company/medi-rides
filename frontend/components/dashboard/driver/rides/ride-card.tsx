@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, CheckCircle, Clock, Navigation, PlayCircle, Flag, AlertCircle, XCircle } from 'lucide-react';
+import { MapPin, Clock } from 'lucide-react';
 import { Ride } from '@/types/ride.types';
+import { useState } from 'react';
 
 interface RideCardProps {
   ride: Ride;
@@ -29,16 +30,31 @@ export default function RideCard({
 }: RideCardProps) {
   const StatusIcon = getStatusIcon(ride.status);
   const nextAction = getNextStatusAction?.(ride.status);
+  const [showQuickAction, setShowQuickAction] = useState(false);
+  const [estimatedArrival, setEstimatedArrival] = useState<string>('15');
 
   const handleQuickAction = async () => {
-    if (!nextAction || !onStatusUpdate) return;
+    if (!nextAction) return;
     
-    if (nextAction.requiresETA) {
+    if (nextAction.requiresETA && !showQuickAction) {
+      setShowQuickAction(true);
       return;
     }
     
     try {
-      await onStatusUpdate(ride.id, nextAction.nextStatus as Ride['status']);
+      if (nextAction.requiresETA) {
+        const etaMinutes = parseInt(estimatedArrival) || 15;
+        if (etaMinutes < 1 || etaMinutes > 180) {
+          alert('Please enter an ETA between 1 and 180 minutes');
+          return;
+        }
+        if (onAccept) {
+          await onAccept(ride.id, etaMinutes);
+        }
+      } else if (onStatusUpdate) {
+        await onStatusUpdate(ride.id, nextAction.nextStatus as Ride['status']);
+      }
+      setShowQuickAction(false);
     } catch (error) {
       // Error handled in parent
     }
@@ -66,6 +82,11 @@ export default function RideCard({
               <p className="text-sm text-gray-500">
                 {new Date(ride.scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
               </p>
+              {ride.isGuest && (
+                <span className="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-0.5 rounded-full mt-1">
+                  Guest
+                </span>
+              )}
             </div>
           </div>
           <div className="text-right">
@@ -93,19 +114,58 @@ export default function RideCard({
         </div>
 
         {/* Quick Actions */}
-        {nextAction && onStatusUpdate && (
-          <div className="flex items-center justify-between pt-3 border-t border-gray-200">
-            <span className="text-sm text-gray-600">{ride.status.replace('_', ' ')}</span>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                handleQuickAction();
-              }}
-              disabled={isUpdating}
-              className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isUpdating ? 'Updating...' : nextAction.label}
-            </button>
+        {nextAction && (onStatusUpdate || onAccept) && (
+          <div className="pt-3 border-t border-gray-200">
+            {showQuickAction && nextAction.requiresETA ? (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                className="space-y-2"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    min="1"
+                    max="180"
+                    value={estimatedArrival}
+                    onChange={(e) => setEstimatedArrival(e.target.value)}
+                    className="flex-1 p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-200 focus:border-blue-500 outline-none"
+                    placeholder="ETA (minutes)"
+                  />
+                  <button
+                    onClick={handleQuickAction}
+                    disabled={isUpdating}
+                    className="px-3 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdating ? '...' : '✓'}
+                  </button>
+                  <button
+                    onClick={() => setShowQuickAction(false)}
+                    className="px-3 py-2 bg-gray-200 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-300"
+                  >
+                    ✕
+                  </button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Enter ETA in minutes (1-180)
+                </p>
+              </motion.div>
+            ) : (
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">{ride.status.replace('_', ' ')}</span>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleQuickAction();
+                  }}
+                  disabled={isUpdating}
+                  className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isUpdating ? 'Updating...' : nextAction.label}
+                </button>
+              </div>
+            )}
           </div>
         )}
       </div>

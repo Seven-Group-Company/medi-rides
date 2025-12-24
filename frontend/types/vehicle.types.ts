@@ -12,6 +12,7 @@ export interface Vehicle {
   hasOxygenSupport: boolean;
   insuranceExpiry: string;
   registrationExpiry: string;
+  liabilityInsuranceExpiry?: string;
   status: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE';
   images: string[];
   createdAt: string;
@@ -31,6 +32,7 @@ export interface CreateVehicleData {
   hasOxygenSupport: boolean;
   insuranceExpiry: string;
   registrationExpiry: string;
+  liabilityInsuranceExpiry?: string;
   driverId?: number;
   images?: string[];
 }
@@ -48,6 +50,7 @@ export interface UpdateVehicleData {
   hasOxygenSupport?: boolean;
   insuranceExpiry?: string;
   registrationExpiry?: string;
+  liabilityInsuranceExpiry?: string;
   driverId?: number;
   status?: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE';
   images?: string[];

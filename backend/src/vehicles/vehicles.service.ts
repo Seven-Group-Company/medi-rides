@@ -46,6 +46,7 @@ export class VehiclesService {
           hasWheelchairAccess: createVehicleDto.hasWheelchairAccess,
           hasOxygenSupport: createVehicleDto.hasOxygenSupport,
           insuranceExpiry: new Date(createVehicleDto.insuranceExpiry),
+          liabilityInsuranceExpiry: new Date(createVehicleDto.liabilityInsuranceExpiry),
           registrationExpiry: new Date(createVehicleDto.registrationExpiry),
           images: imageUrls,
           status: 'AVAILABLE',
@@ -114,6 +115,7 @@ export class VehiclesService {
         if (existingVehicle) {
           throw new ConflictException('Vehicle with this license plate already exists');
         }
+        
       }
 
       let newImageUrls: string[] = [];
@@ -133,6 +135,9 @@ export class VehiclesService {
       }
       if (updateVehicleDto.registrationExpiry) {
         updateData.registrationExpiry = new Date(updateVehicleDto.registrationExpiry);
+      }
+      if (updateVehicleDto.liabilityInsuranceExpiry) {
+      updateData.liabilityInsuranceExpiry = new Date(updateVehicleDto.liabilityInsuranceExpiry);
       }
 
       const updatedVehicle = await this.prisma.vehicle.update({

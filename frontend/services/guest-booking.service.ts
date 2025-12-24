@@ -8,6 +8,7 @@ export interface ServiceCategory {
   basePrice: number;
   pricePerMile: number;
   serviceType: 'MEDICAL' | 'GENERAL';
+  serviceGroup?: 'NON_EMERGENCY' | 'TRANSPORTATION' | 'LONG_DISTANCE';
 }
 
 export interface CreateGuestRideDto {
@@ -90,6 +91,55 @@ export class GuestBookingService {
       throw error;
     }
   }
+
+static async getExistingBookings(phone: string, serviceCategoryId: number): Promise<Array<{
+  date: string;
+  time: string;
+  status: string;
+}>> {
+  try {
+    const response = await fetch(`${this.baseUrl}/public/rides/existing-bookings?phone=${encodeURIComponent(phone)}&serviceCategoryId=${serviceCategoryId}`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch existing bookings: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error fetching existing bookings:', error);
+    throw error;
+  }
+}
+
+static async checkDateAvailability(phone: string, date: string, time: string): Promise<{ available: boolean; reason?: string }> {
+  try {
+    const response = await fetch(
+      `${this.baseUrl}/public/rides/check-availability?phone=${encodeURIComponent(phone)}&date=${date}&time=${time}`,
+      {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Failed to check availability: ${response.status}`);
+    }
+
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error checking availability:', error);
+    throw error;
+  }
+}
 
   static async calculateEstimatedPrice(
     serviceCategoryId: number,
