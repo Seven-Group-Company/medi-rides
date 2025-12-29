@@ -132,7 +132,7 @@ export default function ServiceManagementPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="min-h-screen bg-gray-50 px-8 py-6 space-y-6 py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -224,10 +224,10 @@ export default function ServiceManagementPage() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
+                {/* <div className="text-right">
                   <p className="text-2xl font-bold text-gray-900">${category.basePrice}</p>
                   <p className="text-sm text-gray-500">+ ${category.pricePerMile}/mile</p>
-                </div>
+                </div> */}
               </div>
 
               {/* Description */}

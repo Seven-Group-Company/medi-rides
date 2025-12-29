@@ -111,7 +111,7 @@ export default function RideDetailsModal({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+      className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center p-4 z-50"
       onClick={onClose}
     >
       <motion.div
@@ -305,7 +305,7 @@ export default function RideDetailsModal({
               <button
                 onClick={() => {
                   // Navigate to admin ride management
-                  window.location.href = `/admin/rides/${ride.id}`;
+                  window.location.href = `/dashboard/booking-management`;
                 }}
                 className="px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium transition-colors duration-200"
               >

@@ -32,38 +32,43 @@ export class AdminRidesService {
     }
 
     // Build include object
-    const includeObject: any = {
-      customer: {
+const includeObject: any = {
+  customer: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+    },
+  },
+  driver: {
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      driverProfile: {
         select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-        },
-      },
-      driver: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          phone: true,
-          driverProfile: {
+          licenseNumber: true,
+          vehicles: {
             select: {
-              licenseNumber: true,
-              vehicles: {
-                select: {
-                  id: true,
-                  make: true,
-                  model: true,
-                  licensePlate: true,
-                },
-              },
+              id: true,
+              make: true,
+              model: true,
+              licensePlate: true,
+              status: true, // Add this line
+              capacity: true, // Add this line
+              type: true, // Add this line
+              hasWheelchairAccess: true, // Add this line
+              hasOxygenSupport: true, // Add this line
             },
           },
         },
       },
-      payment: true,
-    };
+    },
+  },
+  payment: true,
+};
 
     // Include invoice if requested
     if (include && include.includes('invoice')) {

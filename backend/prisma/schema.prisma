@@ -4,13 +4,13 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // url      = env("DATABASE_URL")
+  url      = env("DATABASE_URL")
 }
 
 model User {
   id                       Int       @id @default(autoincrement())
   email                    String    @unique
-  password                 String? // Make sure this is optional
+  password                 String?
   name                     String
   emailVerificationToken   String?
   emailVerificationExpires DateTime?
@@ -19,41 +19,36 @@ model User {
   avatar                   String?
   isVerified               Boolean   @default(false)
   isActive                 Boolean   @default(true)
-
-  provider   AuthProvider @default(LOCAL)
-  providerId String? // ID from OAuth provider
-
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  lastLoginAt DateTime?
+  provider                 AuthProvider @default(LOCAL)
+  providerId               String?
+  createdAt                DateTime  @default(now())
+  updatedAt                DateTime  @updatedAt
+  lastLoginAt              DateTime?
 
   // Relations
-  refreshTokens  RefreshToken[]
-  customerRides  Ride[]          @relation("CustomerRides")
-  driverRides    Ride[]          @relation("DriverRides")
-  driverProfile  DriverProfile?
-  patientProfile PatientProfile?
-  payments       Payment[]
-  addresses      Address[]
-
-  availabilities DriverAvailability[]
-  notifications  Notification[]
+  refreshTokens         RefreshToken[]
+  customerRides         Ride[]          @relation("CustomerRides")
+  driverRides           Ride[]          @relation("DriverRides")
+  driverProfile         DriverProfile?
+  patientProfile        PatientProfile?
+  payments              Payment[]
+  addresses             Address[]
+  availabilities        DriverAvailability[]
+  notifications         Notification[]
 
   @@map("users")
 }
 
 model DriverAvailability {
-  id       Int  @id @default(autoincrement())
-  driverId Int
-  driver   User @relation(fields: [driverId], references: [id], onDelete: Cascade)
-
+  id          Int      @id @default(autoincrement())
+  driverId    Int
+  driver      User     @relation(fields: [driverId], references: [id], onDelete: Cascade)
   startTime   DateTime
   endTime     DateTime
   isAvailable Boolean  @default(true)
   reason      String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("driver_availabilities")
 }
@@ -94,112 +89,82 @@ model ServiceCategory {
   basePrice    Float       @default(15.00)
   pricePerMile Float       @default(1.50)
   serviceType  ServiceType @default(GENERAL)
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  rides Ride[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  rides        Ride[]
 
   @@map("service_categories")
 }
 
 model Ride {
-  id         Int   @id @default(autoincrement())
-  customerId Int?
-  customer   User? @relation("CustomerRides", fields: [customerId], references: [id])
-  driverId   Int?
-  driver     User? @relation("DriverRides", fields: [driverId], references: [id])
-
-  // Ride details
-  pickupAddress    String
-  pickupLatitude   Float?
-  pickupLongitude  Float?
-  dropoffAddress   String
-  distance         Float? // in miles
-  duration         Int?
-  dropoffLatitude  Float?
-  dropoffLongitude Float?
-
-  serviceCategoryId Int
-  serviceCategory   ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
-
-  // Service information
-  serviceType ServiceType
-  status      RideStatus  @default(PENDING)
-
-  // Scheduling
-  scheduledAt     DateTime
-  actualPickupAt  DateTime?
-  actualDropoffAt DateTime?
-
-  isGuest         Boolean @default(false)
-  // Passenger information
-  passengerName   String?
-  passengerPhone  String?
-  specialNeeds    String? // Wheelchair, oxygen, etc.
-  additionalNotes String?
-
-  // Pricing
-  basePrice  Float
-  finalPrice Float?
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  payment Payment?
-
-  invoice Invoice?
+  id                   Int               @id @default(autoincrement())
+  customerId           Int?
+  customer             User?             @relation("CustomerRides", fields: [customerId], references: [id])
+  driverId             Int?
+  driver               User?             @relation("DriverRides", fields: [driverId], references: [id])
+  pickupAddress        String
+  pickupLatitude       Float?
+  pickupLongitude      Float?
+  dropoffAddress       String
+  distance             Float?
+  duration             Int?
+  dropoffLatitude      Float?
+  dropoffLongitude     Float?
+  serviceCategoryId    Int
+  serviceCategory      ServiceCategory   @relation(fields: [serviceCategoryId], references: [id])
+  serviceType          ServiceType
+  status               RideStatus        @default(PENDING)
+  scheduledAt          DateTime
+  actualPickupAt       DateTime?
+  actualDropoffAt      DateTime?
+  isGuest              Boolean           @default(false)
+  passengerName        String?
+  passengerPhone       String?
+  specialNeeds         String?
+  additionalNotes      String?
+  basePrice            Float
+  finalPrice           Float?
+  createdAt            DateTime          @default(now())
+  updatedAt            DateTime          @updatedAt
+  payment              Payment?
+  invoice              Invoice?
 
   @@map("rides")
 }
 
 model Payment {
-  id         Int  @id @default(autoincrement())
-  rideId     Int  @unique
-  ride       Ride @relation(fields: [rideId], references: [id], onDelete: Cascade)
-  customerId Int
-  customer   User @relation(fields: [customerId], references: [id])
-
-  // Payment details
-  amount        Float
-  status        PaymentStatus @default(PENDING)
-  method        PaymentMethod
-  transactionId String?
-
-  // Billing information
-  billingName    String?
-  billingEmail   String?
-  billingPhone   String?
-  billingAddress String?
-
-  // Timestamps
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  paidAt    DateTime?
+  id              Int           @id @default(autoincrement())
+  rideId          Int           @unique
+  ride            Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  customerId      Int
+  customer        User          @relation(fields: [customerId], references: [id])
+  amount          Float
+  status          PaymentStatus @default(PENDING)
+  method          PaymentMethod
+  transactionId   String?
+  billingName     String?
+  billingEmail    String?
+  billingPhone    String?
+  billingAddress  String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  paidAt          DateTime?
 
   @@map("payments")
 }
 
 model Address {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Address details
-  label     String // Home, Work, Hospital, etc.
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label     String
   address   String
   city      String
   state     String
   zipCode   String
   latitude  Float?
   longitude Float?
-  isDefault Boolean @default(false)
-
-  // Timestamps
+  isDefault Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -220,7 +185,7 @@ model RefreshToken {
 
 model Vehicle {
   id                       Int           @id @default(autoincrement())
-  driverId                 Int? // Make this optional for unassigned vehicles
+  driverId                 Int?
   make                     String
   model                    String
   year                     Int
@@ -238,26 +203,17 @@ model Vehicle {
   images                   String[]      @default([])
   createdAt                DateTime      @default(now())
   updatedAt                DateTime      @updatedAt
-
-  driverProfileId Int?
-  driverProfile   DriverProfile? @relation(fields: [driverProfileId], references: [id])
+  driverProfileId          Int?
+  driverProfile            DriverProfile? @relation(fields: [driverProfileId], references: [id])
 
   @@map("vehicles")
 }
 
-enum VehicleStatus {
-  AVAILABLE
-  IN_USE
-  MAINTENANCE
-}
-
 model PatientProfile {
-  id         Int  @id @default(autoincrement())
-  userId     Int  @unique
-  user       User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalTrips Int  @default(0)
-
-  // Timestamps
+  id        Int      @id @default(autoincrement())
+  userId    Int      @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalTrips Int     @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -276,13 +232,9 @@ model DriverProfile {
   isAvailable   Boolean  @default(true)
   rating        Float?   @default(5.0)
   totalTrips    Int      @default(0)
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Add relationship to vehicles
-  vehicles Vehicle[]
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  vehicles      Vehicle[]
 
   @@map("driver_profiles")
 }
@@ -291,33 +243,25 @@ model ServiceArea {
   id          Int     @id @default(autoincrement())
   name        String
   description String?
-
-  // Geographic boundaries
-  polygon Json? // GeoJSON polygon for service area
-
-  // Pricing
-  basePrice    Float
+  polygon     Json?
+  basePrice   Float
   pricePerMile Float
-
-  // Timestamps
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
   @@map("service_areas")
 }
 
 model Notification {
-  id     Int  @id @default(autoincrement())
-  userId Int
-  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  type     NotificationType
-  title    String
-  message  String
-  isRead   Boolean          @default(false)
-  metadata Json?
-
-  createdAt DateTime  @default(now())
+  id        Int              @id @default(autoincrement())
+  userId    Int
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  metadata  Json?
+  createdAt DateTime         @default(now())
   readAt    DateTime?
 
   @@map("notifications")
@@ -377,6 +321,12 @@ enum VehicleType {
   VAN
   WHEELCHAIR_VAN
   STRETCHER_VAN
+}
+
+enum VehicleStatus {
+  AVAILABLE
+  IN_USE
+  MAINTENANCE
 }
 
 enum NotificationType {

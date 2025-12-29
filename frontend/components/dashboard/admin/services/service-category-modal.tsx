@@ -88,7 +88,7 @@ export default function ServiceCategoryModal({ isOpen, onClose, onSuccess, categ
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 bg-black/40 bg-opacity-50 flex items-center justify-center p-4 z-50">
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -183,7 +183,7 @@ export default function ServiceCategoryModal({ isOpen, onClose, onSuccess, categ
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="hidden grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Base Price ($)
@@ -213,7 +213,7 @@ export default function ServiceCategoryModal({ isOpen, onClose, onSuccess, categ
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="hidden grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-900 mb-2">
                 Service Type

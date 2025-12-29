@@ -12,6 +12,7 @@ import {
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { VehicleType } from '@prisma/client';
+import { Transform } from 'class-transformer';
 
 export class CreateVehicleDto {
   @ApiProperty({ description: 'Vehicle make' })
@@ -47,7 +48,7 @@ export class CreateVehicleDto {
 
   @ApiProperty({ enum: VehicleType, description: 'Vehicle type' })
   @IsEnum(VehicleType)
-  vehicleType: VehicleType;
+  type: VehicleType; // Change from vehicleType to type to match Prisma
 
   @ApiProperty({ description: 'Passenger capacity' })
   @IsNumber()
@@ -64,16 +65,31 @@ export class CreateVehicleDto {
   hasOxygenSupport: boolean;
 
   @ApiProperty({ description: 'Insurance expiry date' })
-  @IsDateString()
+  @IsDateString({}, { message: 'Insurance expiry must be a valid date' })
+  @Transform(({ value }) => {
+    if (!value) return value;
+    // Convert YYYY-MM-DD to ISO string
+    if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      return new Date(value + 'T00:00:00.000Z').toISOString();
+    }
+    return value;
+  })
   insuranceExpiry: string;
-
   @ApiProperty({ description: 'Registration expiry date' })
   @IsDateString()
   registrationExpiry: string;
 
-  @ApiProperty({ description: 'Liability insurance expiry date' })
-  @IsDateString()
-  liabilityInsuranceExpiry: string;
+@ApiProperty({ description: 'Liability insurance expiry date' })
+@IsDateString({}, { message: 'Liability insurance expiry must be a valid date' })
+@Transform(({ value }) => {
+  if (!value) return value;
+  // Convert YYYY-MM-DD to ISO string
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return new Date(value + 'T00:00:00.000Z').toISOString();
+  }
+  return value;
+})
+liabilityInsuranceExpiry: string;
 
   @ApiProperty({ description: 'Vehicle images (optional)', type: [String], required: false })
   @IsOptional()
@@ -118,7 +134,7 @@ export class UpdateVehicleDto {
   @ApiProperty({ enum: VehicleType, description: 'Vehicle type', required: false })
   @IsOptional()
   @IsEnum(VehicleType)
-  vehicleType?: VehicleType;
+  type?: VehicleType; // Change from vehicleType to type
 
   @ApiProperty({ description: 'Passenger capacity', required: false })
   @IsOptional()
@@ -151,7 +167,6 @@ export class UpdateVehicleDto {
   @IsOptional()
   @IsDateString()
   liabilityInsuranceExpiry?: string;
-
 
   @ApiProperty({ description: 'Vehicle status', required: false })
   @IsOptional()

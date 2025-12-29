@@ -41,7 +41,7 @@ export class VehiclesService {
           color: createVehicleDto.color,
           licensePlate: createVehicleDto.licensePlate,
           vin: createVehicleDto.vin,
-          type: createVehicleDto.vehicleType,
+          type: createVehicleDto.type,
           capacity: createVehicleDto.capacity,
           hasWheelchairAccess: createVehicleDto.hasWheelchairAccess,
           hasOxygenSupport: createVehicleDto.hasOxygenSupport,

@@ -80,6 +80,28 @@ async createVehicle(
     };
   }
 
+  @Post('test')
+@UseInterceptors(FilesInterceptor('images', 5))
+async testEndpoint(
+  @Body() body: any,
+  @UploadedFiles() files: import('multer').File[]
+) {
+  console.log('=== TEST ENDPOINT ===');
+  console.log('Body keys:', Object.keys(body));
+  console.log('Has vehicleData?', !!body.vehicleData);
+  
+  if (body.vehicleData) {
+    try {
+      const parsed = JSON.parse(body.vehicleData);
+      console.log('Parsed vehicleData:', JSON.stringify(parsed, null, 2));
+    } catch (e) {
+      console.error('Parse error:', e);
+    }
+  }
+  
+  return { success: true, message: 'Test received' };
+}
+
   @Get('stats')
   @ApiOperation({ summary: 'Get vehicle statistics' })
   @ApiResponse({ status: 200, description: 'Vehicle stats retrieved successfully' })

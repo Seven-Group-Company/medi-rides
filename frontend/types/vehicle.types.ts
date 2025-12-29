@@ -6,7 +6,7 @@ export interface Vehicle {
   color: string;
   licensePlate: string;
   vin?: string;
-  type: string;
+  type: string; // Change from type to type (but it was already type in your Vehicle interface)
   capacity: number;
   hasWheelchairAccess: boolean;
   hasOxygenSupport: boolean;
@@ -26,13 +26,13 @@ export interface CreateVehicleData {
   color: string;
   licensePlate: string;
   vin?: string;
-  vehicleType: string;
+  type: string; // Change from vehicleType to type
   capacity: number;
   hasWheelchairAccess: boolean;
   hasOxygenSupport: boolean;
   insuranceExpiry: string;
   registrationExpiry: string;
-  liabilityInsuranceExpiry?: string;
+  liabilityInsuranceExpiry: string;
   driverId?: number;
   images?: string[];
 }

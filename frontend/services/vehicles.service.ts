@@ -3,37 +3,76 @@ import { Vehicle, CreateVehicleData, UpdateVehicleData, VehicleStats } from '@/t
 export class VehiclesService {
   private static baseUrl = `${process.env.NEXT_PUBLIC_API_URL}/admin/vehicles`;
 
-static async createVehicle(vehicleData: CreateVehicleData, images: File[] = []) {
-    const formData = new FormData();
-    
-    // Append all vehicle data as JSON string
-    const vehicleDataWithoutImages = { ...vehicleData };
-    delete vehicleDataWithoutImages.images; // Remove images array if present
-    
-    formData.append('vehicleData', JSON.stringify(vehicleDataWithoutImages));
-    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-    
-    // Append images
-    images.forEach((image) => {
-      formData.append('images', image);
-    });
+// In vehicles.service.ts (frontend), update the createVehicle method:
 
+static async createVehicle(vehicleData: CreateVehicleData, images: File[] = []) {
+  const formData = new FormData();
+  
+  // Ensure we're sending the correct field names
+  const dataForBackend: any = {
+    make: vehicleData.make,
+    model: vehicleData.model,
+    year: vehicleData.year,
+    color: vehicleData.color,
+    licensePlate: vehicleData.licensePlate,
+    vin: vehicleData.vin || '',
+    type: vehicleData.type, // Make sure this is included
+    capacity: vehicleData.capacity,
+    hasWheelchairAccess: vehicleData.hasWheelchairAccess,
+    hasOxygenSupport: vehicleData.hasOxygenSupport,
+    insuranceExpiry: vehicleData.insuranceExpiry,
+    registrationExpiry: vehicleData.registrationExpiry,
+    liabilityInsuranceExpiry: vehicleData.liabilityInsuranceExpiry || vehicleData.insuranceExpiry, // Fallback
+  };
+  
+  console.log('📤 Data for backend:', dataForBackend);
+  
+  formData.append('vehicleData', JSON.stringify(dataForBackend));
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  
+  // Append images
+  images.forEach((image) => {
+    formData.append('images', image);
+  });
+
+  try {
     const response = await fetch(`${this.baseUrl}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
       body: formData,
-      // Don't set Content-Type header - let browser set it with boundary
     });
 
     if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to create vehicle');
+      const errorData = await response.json().catch(() => null);
+      console.error('Server error response:', errorData);
+      
+      if (errorData?.message && Array.isArray(errorData.message)) {
+        // Handle validation errors array
+        const errorMessages = errorData.message
+          .map((err: any) => {
+            if (err.constraints) {
+              return Object.values(err.constraints).join(', ');
+            }
+            return err.property || 'Validation error';
+          })
+          .join('; ');
+        throw new Error(`Validation failed: ${errorMessages}`);
+      } else if (errorData?.message) {
+        // Handle single error message
+        throw new Error(errorData.message);
+      } else {
+        throw new Error(`Failed to create vehicle: ${response.status} ${response.statusText}`);
+      }
     }
 
     return response.json();
+  } catch (error) {
+    console.error('Network error:', error);
+    throw error;
   }
+}
 
 
   static async getAllVehicles(): Promise<Vehicle[]> {

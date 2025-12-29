@@ -282,15 +282,17 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
                                 Oxygen
                               </span>
                             )}
-                            <span className={`px-2 py-1 text-xs rounded-full ${
-                              ride.driver.driverProfile.vehicles[0].status === 'AVAILABLE' 
-                                ? 'bg-green-100 text-green-800'
-                                : ride.driver.driverProfile.vehicles[0].status === 'IN_USE'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {ride.driver.driverProfile.vehicles[0].status.replace('_', ' ')}
-                            </span>
+{ride.driver?.driverProfile?.vehicles?.[0]?.status && (
+  <span className={`px-2 py-1 text-xs rounded-full ${
+    ride.driver.driverProfile.vehicles[0].status === 'AVAILABLE' 
+      ? 'bg-green-100 text-green-800'
+      : ride.driver.driverProfile.vehicles[0].status === 'IN_USE'
+      ? 'bg-yellow-100 text-yellow-800'
+      : 'bg-red-100 text-red-800'
+  }`}>
+    {ride.driver.driverProfile.vehicles[0].status.replace('_', ' ')}
+  </span>
+)}
                           </div>
                         </div>
                       </div>

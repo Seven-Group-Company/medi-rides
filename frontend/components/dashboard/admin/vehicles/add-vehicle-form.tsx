@@ -33,22 +33,22 @@ const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
 export default function AddVehicleForm({ onSubmit, onCancel, loading }: AddVehicleFormProps) {
-  const [formData, setFormData] = useState<CreateVehicleData>({
-    make: '',
-    model: '',
-    year: currentYear,
-    color: '',
-    licensePlate: '',
-    vin: '',
-    vehicleType: 'SEDAN',
-    capacity: 4,
-    hasWheelchairAccess: false,
-    hasOxygenSupport: false,
-    insuranceExpiry: '',
-    registrationExpiry: '',
-    liabilityInsuranceExpiry: '',
-    driverId: undefined,
-  });
+const [formData, setFormData] = useState<CreateVehicleData>({
+  make: '',
+  model: '',
+  year: currentYear,
+  color: '',
+  licensePlate: '',
+  vin: '',
+  type: 'SEDAN', // Change from vehicleType to type
+  capacity: 4,
+  hasWheelchairAccess: false,
+  hasOxygenSupport: false,
+  insuranceExpiry: '',
+  registrationExpiry: '',
+  liabilityInsuranceExpiry: '',
+  driverId: undefined,
+});
 
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -133,33 +133,28 @@ export default function AddVehicleForm({ onSubmit, onCancel, loading }: AddVehic
     return Object.keys(newErrors).length === 0;
   };
 
-// In handleSubmit function, before calling onSubmit:
 const handleSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   if (!validateForm()) return;
 
   try {
-    // Ensure data is properly formatted for the backend
-        const submitData = {
-          ...formData,
-          // Convert string dates to proper format (guard against undefined)
-          insuranceExpiry: formData.insuranceExpiry
-            ? new Date(formData.insuranceExpiry).toISOString().split('T')[0]
-            : '',
-          registrationExpiry: formData.registrationExpiry
-            ? new Date(formData.registrationExpiry).toISOString().split('T')[0]
-            : '',
-          liabilityInsuranceExpiry: formData.liabilityInsuranceExpiry
-            ? new Date(formData.liabilityInsuranceExpiry).toISOString().split('T')[0]
-            : '',
-          // Ensure numbers are properly converted
-          year: parseInt(formData.year.toString()),
-          capacity: parseInt(formData.capacity.toString()),
-        };
+    // Convert dates to YYYY-MM-DD format (not ISO string)
+    const submitData = {
+      ...formData,
+      // Send as YYYY-MM-DD (not ISO string)
+      insuranceExpiry: formData.insuranceExpiry || '',
+      registrationExpiry: formData.registrationExpiry || '',
+      liabilityInsuranceExpiry: formData.liabilityInsuranceExpiry || '',
+      // Ensure numbers are properly converted
+      year: parseInt(formData.year.toString()),
+      capacity: parseInt(formData.capacity.toString()),
+    };
 
+    console.log('📤 Final submit data:', submitData);
+    
     await onSubmit(submitData, images);
   } catch (error) {
-    // Error handling is done in the parent component
+    console.error('❌ Form submission error:', error);
   }
 };
 
@@ -345,17 +340,17 @@ const handleSubmit = async (e: React.FormEvent) => {
             <label className="block text-sm font-medium text-gray-700 mb-2">
               Vehicle Type *
             </label>
-            <select
-              value={formData.vehicleType}
-              onChange={(e) => handleInputChange('vehicleType', e.target.value)}
-              className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-            >
-              {vehicleTypes.map(type => (
-                <option key={type.value} value={type.value}>
-                  {type.label}
-                </option>
-              ))}
-            </select>
+<select
+  value={formData.type} // Change from formData.vehicleType
+  onChange={(e) => handleInputChange('type', e.target.value)} // Change from 'vehicleType' to 'type'
+  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+>
+  {vehicleTypes.map(type => (
+    <option key={type.value} value={type.value}>
+      {type.label}
+    </option>
+  ))}
+</select>
           </div>
 
           <div>

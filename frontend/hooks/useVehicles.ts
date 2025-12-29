@@ -36,15 +36,18 @@ export const useVehicles = () => {
   }, []);
 
 
+// In useVehicles.ts, update the createVehicle function:
 const createVehicle = useCallback(async (vehicleData: CreateVehicleData, images: File[] = []) => {
   try {
     setError(null);
-    const transformedData = transformVehicleDataForBackend(vehicleData);
     
-    console.log('📤 Sending vehicle data:', transformedData);
-    console.log('📤 Images count:', images.length);
+    console.log('📤 Original form data:', vehicleData);
+    console.log('📤 Has liabilityInsuranceExpiry?', !!vehicleData.liabilityInsuranceExpiry);
+    console.log('📤 Has type?', vehicleData.type);
+    console.log('📤 Has vehicleType?', (vehicleData as any).vehicleType);
     
-    const result = await VehiclesService.createVehicle(transformedData, images);
+    // Don't transform, send as-is
+    const result = await VehiclesService.createVehicle(vehicleData, images);
     await fetchVehicles();
     await fetchStats();
     return result;
