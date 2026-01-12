@@ -7,6 +7,7 @@ import { BookingFormProvider, useBookingForm } from './booking-form-context';
 import StepIndicator from './step-indicator';
 import PersonalDetailsStep from './booking-steps/personal-details-step';
 import LocationStep from './booking-steps/location-step';
+import ServiceSelectionStep from './booking-steps/service-selection-step';
 import ScheduleStep from './booking-steps/schedule-step';
 import ReviewSummaryStep from './booking-steps/review-summary-step';
 import SuccessModal from '@/components/dashboard/customer/booking/success-modal';
@@ -20,7 +21,7 @@ interface BoltBookingModalProps {
 }
 
 function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBookingModalProps) {
-  const { currentStep, formData, nextStep, prevStep, resetForm, errors, setErrors, updateFormData } = useBookingForm();
+  const { currentStep, formData, nextStep, prevStep, resetForm, setErrors, updateFormData } = useBookingForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [bookingSummary, setBookingSummary] = useState<any>(null);
@@ -34,19 +35,15 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         setIsLoadingCategories(true);
         try {
           const categories = await GuestBookingService.getServiceCategories();
+          // Filter only active categories
           const activeCategories = categories.filter(cat => cat.isActive);
           setServiceCategories(activeCategories);
-          
-          // If we have categories and no service selected, select the first one
-          if (activeCategories.length > 0 && !formData.serviceCategoryId) {
-            updateFormData({ 
-              serviceCategoryId: activeCategories[0].id,
-              serviceType: activeCategories[0].name
-            });
-          }
         } catch (error) {
-          console.error('Failed to load services:', error);
+          console.error('Failed to load service categories:', error);
           setServiceCategories([]);
+          setErrors({ 
+            service: 'Failed to load services. Please try again.' 
+          });
         } finally {
           setIsLoadingCategories(false);
         }
@@ -58,6 +55,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
     }
   }, [isOpen]);
 
+  // Calculate price when relevant data changes
   const calculatePrice = useCallback(async () => {
     if (formData.serviceCategoryId && formData.distanceMiles && formData.distanceMiles > 0 && formData.date && formData.time) {
       try {
@@ -69,7 +67,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         );
         updateFormData({ estimatedPrice: price });
       } catch (error) {
-        console.error('Price calc failed:', error);
+        console.error('Failed to calculate price:', error);
         updateFormData({ estimatedPrice: 0 });
       }
     }
@@ -81,105 +79,112 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
     }
   }, [calculatePrice]);
 
-  const handleNextStep = () => {
-    // Clear previous errors
-    setErrors({});
-    
-    // Validate current step
-    let stepValid = true;
-    const newErrors: Record<string, string> = {};
+  const validateStep = (step: number): boolean => {
+    const errors: Record<string, string> = {};
 
-    switch (currentStep) {
+    switch (step) {
       case 1: // Personal Details
-        if (!formData.passengerName?.trim()) {
-          newErrors.passengerName = 'Name required';
-          stepValid = false;
+        if (!formData.passengerName.trim()) {
+          errors.passengerName = 'Name is required';
         }
-        if (!formData.passengerPhone?.trim()) {
-          newErrors.passengerPhone = 'Phone required';
-          stepValid = false;
+        if (!formData.passengerPhone.trim()) {
+          errors.passengerPhone = 'Phone number is required';
         } else if (!/^[\+]?[1-9][\d]{0,15}$/.test(formData.passengerPhone.replace(/\D/g, ''))) {
-          newErrors.passengerPhone = 'Invalid phone';
-          stepValid = false;
+          errors.passengerPhone = 'Please enter a valid phone number';
         }
         break;
-        
+
       case 2: // Location
         if (!formData.pickup) {
-          newErrors.pickup = 'Pickup required';
-          stepValid = false;
+          errors.pickup = 'Pickup location is required';
         }
         if (!formData.dropoff) {
-          newErrors.dropoff = 'Drop-off required';
-          stepValid = false;
+          errors.dropoff = 'Drop-off location is required';
         }
         break;
-        
-      case 3: // Payment Type
+
+      case 3: // Service Selection
+        if (!formData.serviceCategoryId) {
+          errors.service = 'Please select a service';
+        }
+        break;
+
+      case 4: // Payment Type
         if (!formData.paymentType) {
-          newErrors.paymentType = 'Select payment type';
-          stepValid = false;
+          errors.paymentType = 'Please select a payment type';
         }
         break;
-        
-      case 4: // Schedule
+
+      case 5: // Schedule
         if (!formData.date) {
-          newErrors.date = 'Date required';
-          stepValid = false;
+          errors.date = 'Date is required';
         }
         if (!formData.time) {
-          newErrors.time = 'Time required';
-          stepValid = false;
+          errors.time = 'Time is required';
         }
+        break;
+
+      case 6: // Review - No validation needed
         break;
     }
 
-    if (!stepValid) {
-      setErrors(newErrors);
-      return;
+    if (Object.keys(errors).length > 0) {
+      setErrors(errors);
+      return false;
     }
+    return true;
+  };
 
-    // If all valid, go to next step
-    nextStep();
+  const handleNextStep = () => {
+    if (validateStep(currentStep)) {
+      nextStep();
+    }
   };
 
   const handleSubmit = async () => {
+    // For review step, we don't need to validate again
+    // Just check that all required fields are filled
     if (!formData.passengerName || !formData.passengerPhone || 
         !formData.pickup || !formData.dropoff || 
         !formData.serviceCategoryId || !formData.paymentType || 
         !formData.date || !formData.time) {
-      setErrors({ form: 'Complete all fields' });
+      setErrors({ 
+        form: 'Please complete all required fields before submitting' 
+      });
       return;
     }
 
     try {
       setIsSubmitting(true);
       
+      // Prepare data for API
       const bookingData = {
         passengerName: formData.passengerName,
         passengerPhone: formData.passengerPhone,
-        pickup: formData.pickup.address,
-        dropoff: formData.dropoff.address,
+        pickup: formData.pickup!.address,
+        dropoff: formData.dropoff!.address,
         serviceType: formData.serviceType,
         serviceCategoryId: formData.serviceCategoryId,
         date: formData.date,
         time: formData.time,
         notes: `${formData.notes || ''}`.trim() || undefined,
-        distanceKm: formData.distanceMiles ? formData.distanceMiles * 1.60934 : 0,
+        distanceKm: formData.distanceMiles ? formData.distanceMiles * 1.60934 : 0, // Convert miles to km for backend
         paymentType: formData.paymentType,
         estimatedTime: formData.estimatedTime || 0,
         estimatedPrice: formData.estimatedPrice || 0
       };
 
       console.log('Submitting booking:', bookingData);
-      
+
+      // Call real API
       const response = await GuestBookingService.createGuestRide(bookingData);
       
+      // Update booking summary for success modal
       setBookingSummary({
         id: response.id.toString(),
         bookingId: `B-${response.id.toString().padStart(6, '0')}`,
-        pickup: formData.pickup.address,
-        dropoff: formData.dropoff.address,
+        pickup: formData.pickup!.address,
+        dropoff: formData.dropoff!.address,
         serviceType: formData.serviceType,
         date: formData.date,
         time: formData.time,
@@ -194,11 +199,16 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
       });
 
       setShowSuccess(true);
-      if (onBookingSuccess) onBookingSuccess(response);
+
+      if (onBookingSuccess) {
+        onBookingSuccess(response);
+      }
       
     } catch (error: any) {
       console.error('Booking failed:', error);
-      setErrors({ form: error.message || 'Booking failed' });
+      setErrors({ 
+        form: error.message || 'Failed to create booking. Please try again.' 
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -220,41 +230,26 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
     const commonProps = {
       formData,
       updateFormData,
-      errors,
+      errors: {},
       categories: serviceCategories,
       isLoading: isLoadingCategories,
-      isSubmitting,
+      setEstimatedPrice: (price: number | null) => {
+        updateFormData({ estimatedPrice: price || 0 });
+      }
     };
 
     switch (currentStep) {
-      case 1: 
-        return <PersonalDetailsStep 
-          {...commonProps} 
-          onNext={handleNextStep} 
-        />;
-        
-      case 2: 
-        return <LocationStep 
-          {...commonProps} 
-          onNext={handleNextStep} 
-          onPrev={prevStep} 
-        />;
-        
-      case 3: 
-        return <PaymentTypeStep 
-          {...commonProps} 
-          onNext={handleNextStep} 
-          onPrev={prevStep} 
-        />;
-        
-      case 4: 
-        return <ScheduleStep 
-          {...commonProps} 
-          onNext={handleNextStep} 
-          onPrev={prevStep} 
-        />;
-        
-      case 5: 
+      case 1:
+        return <PersonalDetailsStep {...commonProps} onNext={handleNextStep} />;
+      case 2:
+        return <LocationStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
+      case 3:
+        return <ServiceSelectionStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
+      case 4:
+        return <PaymentTypeStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
+      case 5:
+        return <ScheduleStep {...commonProps} onNext={handleNextStep} onPrev={prevStep} />;
+      case 6:
         return <ReviewSummaryStep 
           {...commonProps}
           onPrev={prevStep}
@@ -262,8 +257,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
           onSubmit={handleSubmit}
           isSubmitting={isSubmitting}
         />;
-        
-      default: 
+      default:
         return null;
     }
   };
@@ -273,6 +267,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
       <AnimatePresence>
         {isOpen && (
           <>
+            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -281,6 +276,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
               onClick={handleClose}
             />
             
+            {/* Bottom Sheet Modal */}
             <motion.div
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
@@ -288,11 +284,13 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
               className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-3xl shadow-2xl max-h-[90vh] overflow-hidden"
             >
+              {/* Drag Handle */}
               <div className="flex justify-center pt-3 pb-2">
                 <div className="w-12 h-1.5 bg-gray-300 rounded-full"></div>
               </div>
 
-              <div className="px-4 pt-2 pb-3 border-b border-gray-200">
+              {/* Header */}
+              <div className="px-6 pt-4 pb-4 border-b border-gray-200">
                 <div className="flex items-center justify-between">
                   <button
                     onClick={handleClose}
@@ -301,9 +299,9 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
                   >
                     <X className="w-5 h-5 text-gray-600" />
                   </button>
-                  <div className="text-center flex-1 px-2">
-                    <h2 className="text-base font-semibold text-gray-900">Book Ride</h2>
-                    <div className="mt-1">
+                  <div className="text-center flex-1">
+                    <h2 className="text-lg font-semibold text-gray-900">Book a Ride</h2>
+                    <div className="mt-2">
                       <StepIndicator currentStep={currentStep} />
                     </div>
                   </div>
@@ -311,7 +309,8 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
                 </div>
               </div>
 
-              <div className="px-4 py-4 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 100px)' }}>
+              {/* Content */}
+              <div className="px-6 py-6 overflow-y-auto" style={{ maxHeight: 'calc(90vh - 120px)' }}>
                 {renderStep()}
               </div>
             </motion.div>
@@ -319,6 +318,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         )}
       </AnimatePresence>
 
+      {/* Success Modal */}
       {showSuccess && bookingSummary && (
         <SuccessModal
           bookingSummary={bookingSummary}

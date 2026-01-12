@@ -5,6 +5,7 @@ import { Calendar, Car, Check, MapPin, ChevronRight, Shield, AlertCircle } from 
 import { useBooking } from '@/hooks/useBooking';
 import ProgressIndicator from '@/components/dashboard/customer/booking/progress-indicator';
 import LocationStep from '@/components/dashboard/customer/booking/steps/location-step';
+import ServiceTypeStep from '@/components/dashboard/customer/booking/steps/service-type-step';
 import DateTimeStep from '@/components/dashboard/customer/booking/steps/datetime-step';
 import ReviewStep from '@/components/dashboard/customer/booking/steps/review-step';
 import SuccessModal from '@/components/dashboard/customer/booking/success-modal';
@@ -12,8 +13,9 @@ import { useState } from 'react';
 
 const steps = [
   { id: 1, title: 'Location', icon: MapPin },
-  { id: 2, title: 'Schedule', icon: Calendar },
-  { id: 3, title: 'Confirm', icon: Check },
+  { id: 2, title: 'Service', icon: Car },
+  { id: 3, title: 'Schedule', icon: Calendar },
+  { id: 4, title: 'Confirm', icon: Check },
 ];
 
 export default function BookRidePage() {
@@ -78,6 +80,18 @@ export default function BookRidePage() {
         );
       case 2:
         return (
+          <ServiceTypeStep
+            formData={formData}
+            updateFormData={updateFormData}
+            errors={errors}
+            onNext={nextStep}
+            onBack={prevStep}
+            serviceCategories={serviceCategories}
+            isLoadingCategories={isLoadingCategories}
+          />
+        );
+      case 3:
+        return (
           <DateTimeStep
             formData={formData}
             updateFormData={updateFormData}
@@ -87,7 +101,7 @@ export default function BookRidePage() {
             bookedDates={bookedDates}
           />
         );
-      case 3:
+      case 4:
         return (
           <ReviewStep
             formData={formData}
@@ -195,7 +209,7 @@ export default function BookRidePage() {
                   <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">Coverage Area</p>
-                    <p className="text-sm text-gray-600">Alaska</p>
+                    <p className="text-sm text-gray-600">Maricopa County & Surrounding Areas</p>
                   </div>
                 </div>
                 
@@ -205,6 +219,25 @@ export default function BookRidePage() {
                     <p className="text-sm font-medium text-gray-900">Safety First</p>
                     <p className="text-sm text-gray-600">Certified drivers & sanitized vehicles</p>
                   </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Help Card */}
+            <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">
+              <h3 className="font-semibold text-gray-900 mb-4">Need Help?</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                  <span className="text-sm font-medium text-gray-900">View FAQ</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                  <span className="text-sm font-medium text-gray-900">Contact Support</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                </div>
+                <div className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200 hover:border-blue-300 transition-colors">
+                  <span className="text-sm font-medium text-gray-900">Pricing Guide</span>
+                  <ChevronRight className="w-4 h-4 text-gray-400" />
                 </div>
               </div>
             </div>
@@ -220,6 +253,7 @@ export default function BookRidePage() {
               id: bookingResult.id,
               pickup: formData.pickup!.address,
               dropoff: formData.dropoff!.address,
+              serviceType: formData.serviceType,
               date: formData.date,
               time: formData.time,
               distanceKm: formData.distanceKm,

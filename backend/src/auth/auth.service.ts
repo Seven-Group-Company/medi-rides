@@ -18,7 +18,7 @@ import {
   AuthResponse,
 } from '../common/types/auth.types';
 import { AuthProvider, UserRole } from '@prisma/client';
-import { AUTH_ERRORS, AUTH_SUCCESS } from '../constants/auth.constants';
+import { AUTH_ERRORS, AUTH_SUCCESS } from 'src/constants/auth.constants';
 import { PrismaService } from 'prisma/prisma.service';
 import { EmailService } from '../mail/email.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -31,7 +31,7 @@ export class AuthService {
     private jwtService: JwtService,
     private configService: ConfigService,
     private emailService: EmailService,
-  ) { }
+  ) {}
 
   // -------------------------
   // Register new user with email verification
@@ -47,9 +47,9 @@ export class AuthService {
       } else {
         // Resend verification email for unverified users
         await this.sendVerificationEmail(existingUser);
-        return {
-          message: AUTH_SUCCESS.VERIFICATION_EMAIL_SENT,
-          user: this.mapUser(existingUser)
+        return { 
+          message: AUTH_SUCCESS.VERIFICATION_EMAIL_SENT, 
+          user: this.mapUser(existingUser) 
         };
       }
     }
@@ -76,9 +76,9 @@ export class AuthService {
     // Send verification email
     await this.sendVerificationEmail(user);
 
-    return {
-      message: AUTH_SUCCESS.REGISTRATION_SUCCESS,
-      user: this.mapUser(user)
+    return { 
+      message: AUTH_SUCCESS.REGISTRATION_SUCCESS, 
+      user: this.mapUser(user) 
     };
   }
 
@@ -112,8 +112,8 @@ export class AuthService {
 
     await this.updateRefreshToken(user.id, tokens.refresh_token);
 
-    return {
-      user,
+    return { 
+      user, 
       tokens,
       redirectTo: this.getRoleBasedRedirect(user.role)
     };
@@ -163,7 +163,7 @@ export class AuthService {
     }
 
     const emailVerificationToken = this.generateVerificationToken();
-
+    
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -177,101 +177,101 @@ export class AuthService {
     return { message: AUTH_SUCCESS.VERIFICATION_EMAIL_SENT };
   }
 
-  // -------------------------
-  // Enhanced OAuth validation
-  // -------------------------
-  async validateOAuthUser(oauthUser: {
-    provider: string;
-    providerId: string;
-    email: string;
-    name: string;
-    avatar?: string;
-  }): Promise<{ user: any; isNew: boolean }> {
-    try {
-      let user = await this.prisma.user.findUnique({
-        where: { email: oauthUser.email }
-      });
-      let isNew = false;
+// -------------------------
+// Enhanced OAuth validation
+// -------------------------
+async validateOAuthUser(oauthUser: {
+  provider: string;
+  providerId: string;
+  email: string;
+  name: string;
+  avatar?: string;
+}): Promise<{ user: any; isNew: boolean }> {
+  try {
+    let user = await this.prisma.user.findUnique({ 
+      where: { email: oauthUser.email } 
+    });
+    let isNew = false;
 
-      if (user) {
-        // Update existing user with OAuth info
-        if (user.provider === AuthProvider.LOCAL) {
-          user = await this.prisma.user.update({
-            where: { id: user.id },
-            data: {
-              provider: oauthUser.provider as AuthProvider,
-              providerId: oauthUser.providerId,
-              avatar: oauthUser.avatar,
-              isVerified: true,
-              lastLoginAt: new Date(),
-            },
-          });
-        } else {
-          // Update last login for existing OAuth users
-          user = await this.prisma.user.update({
-            where: { id: user.id },
-            data: {
-              lastLoginAt: new Date(),
-            },
-          });
-        }
-      } else {
-        // Create new user from OAuth
-        user = await this.prisma.user.create({
+    if (user) {
+      // Update existing user with OAuth info
+      if (user.provider === AuthProvider.LOCAL) {
+        user = await this.prisma.user.update({
+          where: { id: user.id },
           data: {
-            email: oauthUser.email,
-            name: oauthUser.name,
             provider: oauthUser.provider as AuthProvider,
             providerId: oauthUser.providerId,
             avatar: oauthUser.avatar,
             isVerified: true,
-            isActive: true,
-            role: UserRole.CUSTOMER,
             lastLoginAt: new Date(),
-            // Add required fields that might be missing
-            password: null, // Explicitly set to null for OAuth users
           },
         });
-        isNew = true;
+      } else {
+        // Update last login for existing OAuth users
+        user = await this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            lastLoginAt: new Date(),
+          },
+        });
       }
-
-      return { user: this.mapUser(user), isNew };
-    } catch (error) {
-      console.error('Error in validateOAuthUser:', error);
-      throw error;
-    }
-  }
-
-  async googleLogin(googleUser: any): Promise<AuthResponse> {
-    try {
-      const { user, isNew } = googleUser;
-
-      const tokens = await this.generateTokens({
-        sub: user.id,
-        email: user.email,
-        role: user.role,
+    } else {
+      // Create new user from OAuth
+      user = await this.prisma.user.create({
+        data: {
+          email: oauthUser.email,
+          name: oauthUser.name,
+          provider: oauthUser.provider as AuthProvider,
+          providerId: oauthUser.providerId,
+          avatar: oauthUser.avatar,
+          isVerified: true,
+          isActive: true,
+          role: UserRole.CUSTOMER,
+          lastLoginAt: new Date(),
+          // Add required fields that might be missing
+          password: null, // Explicitly set to null for OAuth users
+        },
       });
-
-      await this.updateRefreshToken(user.id, tokens.refresh_token);
-
-      return {
-        user,
-        tokens,
-        redirectTo: this.getRoleBasedRedirect(user.role),
-        isNew,
-      };
-    } catch (error) {
-      console.error('Error in googleLogin:', error);
-      throw new InternalServerErrorException('Failed to complete Google login');
+      isNew = true;
     }
+
+    return { user: this.mapUser(user), isNew };
+  } catch (error) {
+    console.error('Error in validateOAuthUser:', error);
+    throw error;
   }
+}
+
+async googleLogin(googleUser: any): Promise<AuthResponse> {
+  try {
+    const { user, isNew } = googleUser;
+
+    const tokens = await this.generateTokens({
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    await this.updateRefreshToken(user.id, tokens.refresh_token);
+
+    return {
+      user,
+      tokens,
+      redirectTo: this.getRoleBasedRedirect(user.role),
+      isNew,
+    };
+  } catch (error) {
+    console.error('Error in googleLogin:', error);
+    throw new InternalServerErrorException('Failed to complete Google login');
+  }
+}
 
   // -------------------------
   // Role-based redirect helper
   // -------------------------
   private getRoleBasedRedirect(role: UserRole): string {
     const baseUrl = this.configService.get('FRONTEND_URL') || 'http://localhost:3000';
-
+    
     const redirectPaths = {
       [UserRole.ADMIN]: '/dashboard',
       [UserRole.DRIVER]: '/driver-dashboard',
@@ -286,10 +286,10 @@ export class AuthService {
   // Enhanced user validation
   // -------------------------
   async validateUser(email: string, password: string): Promise<any> {
-    const user = await this.prisma.user.findUnique({
+    const user = await this.prisma.user.findUnique({ 
       where: { email },
     });
-
+    
     if (!user || !user.password) return null;
 
     const isValid = await bcrypt.compare(password, user.password);
@@ -298,109 +298,41 @@ export class AuthService {
     return this.mapUser(user);
   }
 
-  // -------------------------
-  // Change Password
-  // -------------------------
-  async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException(AUTH_ERRORS.USER_NOT_FOUND);
-    }
-
-    // For OAuth users without password
-    if (!user.password) {
-      throw new BadRequestException(AUTH_ERRORS.OAUTH_USER_NO_PASSWORD);
-    }
-
-    // Check current password
-    const isValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
-    if (!isValid) {
-      throw new UnauthorizedException(AUTH_ERRORS.INVALID_CURRENT_PASSWORD);
-    }
-
-    // Hash new password
-    const hashedPassword = await this.hashData(changePasswordDto.newPassword);
-
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { password: hashedPassword },
-    });
-
-    return { message: AUTH_SUCCESS.PASSWORD_CHANGED };
+  // Add to auth.service.ts
+async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
+  const user = await this.prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    throw new NotFoundException(AUTH_ERRORS.USER_NOT_FOUND);
   }
 
-  // -------------------------
-  // Forgot Password
-  // -------------------------
-  async forgotPassword(email: string): Promise<{ message: string }> {
-    const user = await this.prisma.user.findUnique({ where: { email } });
-
-    // security: do not reveal if user exists
-    if (!user) {
-      return { message: AUTH_SUCCESS.PASSWORD_RESET_EMAIL_SENT };
-    }
-
-    if (user.provider !== AuthProvider.LOCAL) {
-      // If user uses social login, they can't reset password.
-      // We might want to notify them, but for now just returning success to avoid enumeration
-      return { message: AUTH_SUCCESS.PASSWORD_RESET_EMAIL_SENT };
-    }
-
-    const token = crypto.randomBytes(32).toString('hex');
-    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordResetToken: token,
-        passwordResetExpires: expires,
-      },
-    });
-
-    const resetUrl = `${this.configService.get('FRONTEND_URL')}/auth/reset-password?token=${token}`;
-
-    await this.emailService.sendPasswordResetEmail(user.email, user.name, resetUrl);
-
-    return { message: AUTH_SUCCESS.PASSWORD_RESET_EMAIL_SENT };
+  // For OAuth users without password
+  if (!user.password) {
+    throw new BadRequestException(AUTH_ERRORS.OAUTH_USER_NO_PASSWORD);
   }
 
-  // -------------------------
-  // Reset Password
-  // -------------------------
-  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
-    const user = await this.prisma.user.findFirst({
-      where: {
-        passwordResetToken: token,
-        passwordResetExpires: {
-          gt: new Date(),
-        },
-      },
-    });
-
-    if (!user) {
-      throw new BadRequestException('Invalid or expired password reset token');
-    }
-
-    const hashedPassword = await this.hashData(newPassword);
-
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        password: hashedPassword,
-        passwordResetToken: null,
-        passwordResetExpires: null,
-      },
-    });
-
-    return { message: AUTH_SUCCESS.PASSWORD_CHANGED };
+  // Check current password
+  const isValid = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
+  if (!isValid) {
+    throw new UnauthorizedException(AUTH_ERRORS.INVALID_CURRENT_PASSWORD);
   }
+
+  // Hash new password
+  const hashedPassword = await this.hashData(changePasswordDto.newPassword);
+
+  await this.prisma.user.update({
+    where: { id: userId },
+    data: { password: hashedPassword },
+  });
+
+  return { message: AUTH_SUCCESS.PASSWORD_CHANGED };
+}
 
   // -------------------------
   // Send verification email
   // -------------------------
   private async sendVerificationEmail(user: any): Promise<void> {
     const verificationUrl = `${this.configService.get('FRONTEND_URL')}/auth/verify-email?token=${user.emailVerificationToken}`;
-
+    
     await this.emailService.sendVerificationEmail(
       user.email,
       user.name,
@@ -471,67 +403,67 @@ export class AuthService {
   // -------------------------
   // Update profile
   // -------------------------
-  // auth.service.ts - Fix the updateProfile method
-  async updateProfile(userId: number, dto: UpdateProfileDto) {
+// auth.service.ts - Fix the updateProfile method
+async updateProfile(userId: number, dto: UpdateProfileDto) {
 
-    if (!userId) {
-      console.error('❌ User ID is undefined in updateProfile');
-      throw new BadRequestException('User ID is required');
+  if (!userId) {
+    console.error('❌ User ID is undefined in updateProfile');
+    throw new BadRequestException('User ID is required');
+  }
+
+  const { email, ...updateData } = dto;
+
+  // Check if user exists
+  const existingUser = await this.prisma.user.findUnique({
+    where: { id: userId }
+  });
+
+  if (!existingUser) {
+    console.error('❌ User not found for ID:', userId);
+    throw new NotFoundException(AUTH_ERRORS.USER_NOT_FOUND);
+  }
+
+  if (email && email !== existingUser.email) {
+    const userWithEmail = await this.prisma.user.findUnique({ 
+      where: { email } 
+    });
+    
+    if (userWithEmail && userWithEmail.id !== userId) {
+      throw new ConflictException(AUTH_ERRORS.EMAIL_ALREADY_EXISTS);
     }
+    
+    // If email is changed, mark as unverified and send verification email
+    updateData['email'] = email;
+    updateData['isVerified'] = false;
+    
+    // Generate new verification token
+    const emailVerificationToken = this.generateVerificationToken();
+    updateData['emailVerificationToken'] = emailVerificationToken;
+    updateData['emailVerificationExpires'] = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  }
 
-    const { email, ...updateData } = dto;
+  // Remove undefined values to avoid Prisma errors
+  const cleanUpdateData = Object.fromEntries(
+    Object.entries(updateData).filter(([_, value]) => value !== undefined)
+  );
 
-    // Check if user exists
-    const existingUser = await this.prisma.user.findUnique({
-      where: { id: userId }
+  try {
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: cleanUpdateData,
     });
 
-    if (!existingUser) {
-      console.error('❌ User not found for ID:', userId);
-      throw new NotFoundException(AUTH_ERRORS.USER_NOT_FOUND);
-    }
-
+    // If email was changed, send verification email
     if (email && email !== existingUser.email) {
-      const userWithEmail = await this.prisma.user.findUnique({
-        where: { email }
-      });
-
-      if (userWithEmail && userWithEmail.id !== userId) {
-        throw new ConflictException(AUTH_ERRORS.EMAIL_ALREADY_EXISTS);
-      }
-
-      // If email is changed, mark as unverified and send verification email
-      updateData['email'] = email;
-      updateData['isVerified'] = false;
-
-      // Generate new verification token
-      const emailVerificationToken = this.generateVerificationToken();
-      updateData['emailVerificationToken'] = emailVerificationToken;
-      updateData['emailVerificationExpires'] = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await this.sendVerificationEmail(updatedUser);
     }
 
-    // Remove undefined values to avoid Prisma errors
-    const cleanUpdateData = Object.fromEntries(
-      Object.entries(updateData).filter(([_, value]) => value !== undefined)
-    );
-
-    try {
-      const updatedUser = await this.prisma.user.update({
-        where: { id: userId },
-        data: cleanUpdateData,
-      });
-
-      // If email was changed, send verification email
-      if (email && email !== existingUser.email) {
-        await this.sendVerificationEmail(updatedUser);
-      }
-
-      return this.mapUser(updatedUser);
-    } catch (error) {
-      console.error('❌ Prisma update error:', error);
-      throw new InternalServerErrorException('Failed to update profile');
-    }
+    return this.mapUser(updatedUser);
+  } catch (error) {
+    console.error('❌ Prisma update error:', error);
+    throw new InternalServerErrorException('Failed to update profile');
   }
+}
   // Enhanced token generation with better security
   private async generateTokens(payload: JwtPayload): Promise<Tokens> {
     const [access_token, refresh_token] = await Promise.all([
@@ -551,28 +483,28 @@ export class AuthService {
   // -------------------------
   // Update refresh token
   // -------------------------
-  // -------------------------
-  // Update refresh token
-  // -------------------------
-  private async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
-    const hashedRefreshToken = await this.hashData(refreshToken);
-    const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
+// -------------------------
+// Update refresh token
+// -------------------------
+private async updateRefreshToken(userId: number, refreshToken: string): Promise<void> {
+  const hashedRefreshToken = await this.hashData(refreshToken);
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + 7); // 7 days from now
 
-    // Delete any existing refresh tokens for this user first
-    await this.prisma.refreshToken.deleteMany({
-      where: { userId }
-    });
+  // Delete any existing refresh tokens for this user first
+  await this.prisma.refreshToken.deleteMany({
+    where: { userId }
+  });
 
-    // Then create a new refresh token
-    await this.prisma.refreshToken.create({
-      data: {
-        token: hashedRefreshToken,
-        userId,
-        expiresAt,
-      },
-    });
-  }
+  // Then create a new refresh token
+  await this.prisma.refreshToken.create({
+    data: {
+      token: hashedRefreshToken,
+      userId,
+      expiresAt,
+    },
+  });
+}
 
   // Enhanced user mapping
   private mapUser(user: any) {
