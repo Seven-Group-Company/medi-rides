@@ -271,7 +271,7 @@ const Navigation = () => {
                     </Link>
                     <motion.button
                       whileTap={{ scale: 0.95 }}
-                      className="w-full bg-[#B0D6FF] text-white py-3 font-semibold border-0 rounded-lg"
+                      className="w-full bg-[#002b59] text-white py-3 font-semibold border-0 rounded-lg"
                     >
                       <Link 
                         href="/auth" 
