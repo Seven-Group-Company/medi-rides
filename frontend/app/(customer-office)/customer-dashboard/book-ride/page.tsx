@@ -9,8 +9,7 @@ import ServiceTypeStep from '@/components/dashboard/customer/booking/steps/servi
 import DateTimeStep from '@/components/dashboard/customer/booking/steps/datetime-step';
 import ReviewStep from '@/components/dashboard/customer/booking/steps/review-step';
 import SuccessModal from '@/components/dashboard/customer/booking/success-modal';
-import { useEffect, useState } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useState } from 'react';
 
 const steps = [
   { id: 1, title: 'Location', icon: MapPin },
@@ -35,37 +34,7 @@ export default function BookRidePage() {
     isLoadingCategories,
   } = useBooking();
 
-  const { user } = useAuth();
   const [bookedDates, setBookedDates] = useState<string[]>([]);
-  const [isLoadingBookedDates, setIsLoadingBookedDates] = useState(false);
-
-  // Fetch booked dates for the authenticated user
-  useEffect(() => {
-    const fetchBookedDates = async () => {
-      if (!user) return;
-      
-      setIsLoadingBookedDates(true);
-      try {
-        // You need to create this API endpoint
-        const response = await fetch(`/api/rides/my-booked-dates`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          },
-        });
-        
-        if (response.ok) {
-          const data = await response.json();
-          setBookedDates(data.data || []);
-        }
-      } catch (error) {
-        console.error('Failed to fetch booked dates:', error);
-      } finally {
-        setIsLoadingBookedDates(false);
-      }
-    };
-
-    fetchBookedDates();
-  }, [user]);
 
   const handleSubmit = async () => {
     try {
@@ -253,40 +222,6 @@ export default function BookRidePage() {
                 </div>
               </div>
             </div>
-
-            {/* Booked Dates Summary */}
-            {bookedDates.length > 0 && (
-              <div className="bg-white rounded-2xl p-6 border border-gray-200">
-                <h3 className="font-semibold text-gray-900 mb-4">Your Booked Dates</h3>
-                <div className="space-y-3">
-                  {bookedDates.slice(0, 3).map((dateStr) => (
-                    <div 
-                      key={dateStr}
-                      className="flex items-center justify-between p-3 bg-amber-50 rounded-lg border border-amber-100"
-                    >
-                      <div className="flex items-center">
-                        <Calendar className="w-4 h-4 text-amber-600 mr-2" />
-                        <span className="text-sm font-medium text-amber-800">
-                          {new Date(dateStr).toLocaleDateString('en-US', {
-                            month: 'short',
-                            day: 'numeric',
-                            year: 'numeric'
-                          })}
-                        </span>
-                      </div>
-                      <span className="text-xs px-2 py-1 bg-amber-100 text-amber-800 rounded-full">
-                        Booked
-                      </span>
-                    </div>
-                  ))}
-                  {bookedDates.length > 3 && (
-                    <p className="text-sm text-gray-500 text-center">
-                      + {bookedDates.length - 3} more booked dates
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
 
             {/* Help Card */}
             <div className="bg-gray-50 rounded-2xl p-6 border border-gray-200">

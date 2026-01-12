@@ -19,6 +19,8 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { AnalyticsModule } from './dashboard/analytics.module';
+import { DocumentTrackingModule } from './document-tracking/document-tracking.module';
+import { MulterModule } from '@nestjs/platform-express/multer/multer.module';
 
 @Module({
   imports: [
@@ -26,6 +28,11 @@ import { AnalyticsModule } from './dashboard/analytics.module';
       isGlobal: true,
       load: [authConfig],
     }),
+    MulterModule.register({
+  limits: {
+    fileSize: 10 * 1024 * 1024, // 10MB limit
+  },
+}),
     // Fix 1: Serve from project root, not dist folder
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'uploads'),
@@ -49,6 +56,7 @@ import { AnalyticsModule } from './dashboard/analytics.module';
     InvoiceModule,
     DashboardModule,
     AnalyticsModule,
+    DocumentTrackingModule
   ],
   providers: [
     PrismaService,

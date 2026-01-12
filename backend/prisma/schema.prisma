@@ -8,33 +8,38 @@ datasource db {
 }
 
 model User {
-  id                       Int       @id @default(autoincrement())
-  email                    String    @unique
+  id                       Int          @id @default(autoincrement())
+  email                    String       @unique
   password                 String?
   name                     String
   emailVerificationToken   String?
   emailVerificationExpires DateTime?
-  role                     UserRole  @default(CUSTOMER)
+  role                     UserRole     @default(CUSTOMER)
   phone                    String?
   avatar                   String?
-  isVerified               Boolean   @default(false)
-  isActive                 Boolean   @default(true)
+  isVerified               Boolean      @default(false)
+  isActive                 Boolean      @default(true)
   provider                 AuthProvider @default(LOCAL)
   providerId               String?
-  createdAt                DateTime  @default(now())
-  updatedAt                DateTime  @updatedAt
+  createdAt                DateTime     @default(now())
+  updatedAt                DateTime     @updatedAt
   lastLoginAt              DateTime?
 
   // Relations
-  refreshTokens         RefreshToken[]
-  customerRides         Ride[]          @relation("CustomerRides")
-  driverRides           Ride[]          @relation("DriverRides")
-  driverProfile         DriverProfile?
-  patientProfile        PatientProfile?
-  payments              Payment[]
-  addresses             Address[]
-  availabilities        DriverAvailability[]
-  notifications         Notification[]
+  refreshTokens     RefreshToken[]
+  customerRides     Ride[]               @relation("CustomerRides")
+  driverRides       Ride[]               @relation("DriverRides")
+  driverProfile     DriverProfile?
+  patientProfile    PatientProfile?
+  payments          Payment[]
+  addresses         Address[]
+  availabilities    DriverAvailability[]
+  notifications     Notification[]
+  documentTrackings DocumentTracking[]
+  documentRenewals  DocumentRenewal[]
+  documentsCreated  DocumentTracking[]   @relation("DocumentCreatedBy")
+  documentsUpdated  DocumentTracking[]   @relation("DocumentUpdatedBy")
+  renewalsCreated   DocumentRenewal[]    @relation("RenewalCreatedBy")
 
   @@map("users")
 }
@@ -97,58 +102,59 @@ model ServiceCategory {
 }
 
 model Ride {
-  id                   Int               @id @default(autoincrement())
-  customerId           Int?
-  customer             User?             @relation("CustomerRides", fields: [customerId], references: [id])
-  driverId             Int?
-  driver               User?             @relation("DriverRides", fields: [driverId], references: [id])
-  pickupAddress        String
-  pickupLatitude       Float?
-  pickupLongitude      Float?
-  dropoffAddress       String
-  distance             Float?
-  duration             Int?
-  dropoffLatitude      Float?
-  dropoffLongitude     Float?
-  serviceCategoryId    Int
-  serviceCategory      ServiceCategory   @relation(fields: [serviceCategoryId], references: [id])
-  serviceType          ServiceType
-  status               RideStatus        @default(PENDING)
-  scheduledAt          DateTime
-  actualPickupAt       DateTime?
-  actualDropoffAt      DateTime?
-  isGuest              Boolean           @default(false)
-  passengerName        String?
-  passengerPhone       String?
-  specialNeeds         String?
-  additionalNotes      String?
-  basePrice            Float
-  finalPrice           Float?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  payment              Payment?
-  invoice              Invoice?
+  id                Int             @id @default(autoincrement())
+  customerId        Int?
+  customer          User?           @relation("CustomerRides", fields: [customerId], references: [id])
+  driverId          Int?
+  driver            User?           @relation("DriverRides", fields: [driverId], references: [id])
+  pickupAddress     String
+  pickupLatitude    Float?
+  pickupLongitude   Float?
+  dropoffAddress    String
+  distance          Float?
+  duration          Int?
+  dropoffLatitude   Float?
+  dropoffLongitude  Float?
+  serviceCategoryId Int
+  serviceCategory   ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
+  serviceType       ServiceType
+  status            RideStatus      @default(PENDING)
+  scheduledAt       DateTime
+  actualPickupAt    DateTime?
+  actualDropoffAt   DateTime?
+  isGuest           Boolean         @default(false)
+  passengerName     String?
+  passengerPhone    String?
+  paymentType       methodType      @default(private)
+  specialNeeds      String?
+  additionalNotes   String?
+  basePrice         Float
+  finalPrice        Float?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  payment           Payment?
+  invoice           Invoice?
 
   @@map("rides")
 }
 
 model Payment {
-  id              Int           @id @default(autoincrement())
-  rideId          Int           @unique
-  ride            Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
-  customerId      Int
-  customer        User          @relation(fields: [customerId], references: [id])
-  amount          Float
-  status          PaymentStatus @default(PENDING)
-  method          PaymentMethod
-  transactionId   String?
-  billingName     String?
-  billingEmail    String?
-  billingPhone    String?
-  billingAddress  String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  paidAt          DateTime?
+  id             Int           @id @default(autoincrement())
+  rideId         Int           @unique
+  ride           Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  customerId     Int
+  customer       User          @relation(fields: [customerId], references: [id])
+  amount         Float
+  status         PaymentStatus @default(PENDING)
+  method         PaymentMethod
+  transactionId  String?
+  billingName    String?
+  billingEmail   String?
+  billingPhone   String?
+  billingAddress String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  paidAt         DateTime?
 
   @@map("payments")
 }
@@ -184,25 +190,25 @@ model RefreshToken {
 }
 
 model Vehicle {
-  id                       Int           @id @default(autoincrement())
+  id                       Int            @id @default(autoincrement())
   driverId                 Int?
   make                     String
   model                    String
   year                     Int
   color                    String
-  licensePlate             String        @unique
+  licensePlate             String         @unique
   vin                      String?
   type                     VehicleType
   capacity                 Int
-  hasWheelchairAccess      Boolean       @default(false)
-  hasOxygenSupport         Boolean       @default(false)
+  hasWheelchairAccess      Boolean        @default(false)
+  hasOxygenSupport         Boolean        @default(false)
   insuranceExpiry          DateTime
   registrationExpiry       DateTime
   liabilityInsuranceExpiry DateTime?
-  status                   VehicleStatus @default(AVAILABLE)
-  images                   String[]      @default([])
-  createdAt                DateTime      @default(now())
-  updatedAt                DateTime      @updatedAt
+  status                   VehicleStatus  @default(AVAILABLE)
+  images                   String[]       @default([])
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
   driverProfileId          Int?
   driverProfile            DriverProfile? @relation(fields: [driverProfileId], references: [id])
 
@@ -210,44 +216,44 @@ model Vehicle {
 }
 
 model PatientProfile {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalTrips Int     @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalTrips Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("patient_profiles")
 }
 
 model DriverProfile {
-  id            Int      @id @default(autoincrement())
-  userId        Int      @unique
-  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id            Int       @id @default(autoincrement())
+  userId        Int       @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   licenseNumber String
   licenseState  String
   licenseExpiry DateTime
   vehicleInfo   String?
   insuranceInfo String?
-  isAvailable   Boolean  @default(true)
-  rating        Float?   @default(5.0)
-  totalTrips    Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isAvailable   Boolean   @default(true)
+  rating        Float?    @default(5.0)
+  totalTrips    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   vehicles      Vehicle[]
 
   @@map("driver_profiles")
 }
 
 model ServiceArea {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String?
-  polygon     Json?
-  basePrice   Float
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?
+  polygon      Json?
+  basePrice    Float
   pricePerMile Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("service_areas")
 }
@@ -265,6 +271,172 @@ model Notification {
   readAt    DateTime?
 
   @@map("notifications")
+}
+
+// prisma/schema.prisma (add these models)
+
+model DocumentCategory {
+  id                Int      @id @default(autoincrement())
+  name              String   @unique
+  description       String?
+  color             String   @default("#3B82F6")
+  icon              String   @default("Tag")
+  requiresRenewal   Boolean  @default(true)
+  renewalPeriodDays Int      @default(365)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  documents DocumentTracking[]
+}
+
+model DocumentTracking {
+  id             Int              @id @default(autoincrement())
+  title          String
+  description    String?
+  documentNumber String
+  documentType   String?
+  categoryId     Int
+  category       DocumentCategory @relation(fields: [categoryId], references: [id])
+
+  // Dates
+  issueDate        DateTime
+  expiryDate       DateTime
+  renewalDate      DateTime?
+  lastReminderSent DateTime?
+
+  // Status
+  status   DocumentStatus @default(VALID)
+  priority Priority       @default(MEDIUM)
+
+  // Associated entity
+  entityType EntityType @default(OTHER)
+  entityId   Int?
+  entityName String?
+
+  // Files
+  fileUrl  String
+  fileName String
+  fileSize Int
+  fileType String
+
+  // Metadata
+  tags         String[] // Stored as JSON array
+  notes        String?
+  reminderDays Int      @default(30)
+
+  // Tracking
+  createdBy   User     @relation("DocumentCreatedBy", fields: [createdById], references: [id])
+  createdById Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  updatedBy   User?    @relation("DocumentUpdatedBy", fields: [updatedById], references: [id])
+  updatedById Int?
+
+  // Relations
+  renewals  DocumentRenewal[]
+  reminders DocumentReminder[]
+  user      User?              @relation(fields: [userId], references: [id])
+  userId    Int?
+
+  @@index([documentNumber])
+  @@index([status])
+  @@index([priority])
+  @@index([expiryDate])
+  @@index([entityType, entityId])
+  @@index([categoryId])
+}
+
+model DocumentRenewal {
+  id          Int              @id @default(autoincrement())
+  documentId  Int
+  document    DocumentTracking @relation(fields: [documentId], references: [id])
+  renewalDate DateTime
+  expiryDate  DateTime
+  fileUrl     String
+  fileName    String
+  notes       String?
+
+  createdBy   User     @relation("RenewalCreatedBy", fields: [createdById], references: [id])
+  createdById Int
+  createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      Int?
+
+  @@index([documentId])
+}
+
+model DocumentReminder {
+  id             Int              @id @default(autoincrement())
+  documentId     Int
+  document       DocumentTracking @relation(fields: [documentId], references: [id])
+  reminderType   ReminderType     @default(IN_APP)
+  sentAt         DateTime         @default(now())
+  recipientEmail String?
+  recipientPhone String?
+  status         ReminderStatus   @default(SENT)
+  message        String?
+  createdAt      DateTime         @default(now())
+
+  @@index([documentId])
+  @@index([sentAt])
+}
+
+model DocumentStats {
+  id                Int      @id @default(autoincrement())
+  totalDocuments    Int      @default(0)
+  validDocuments    Int      @default(0)
+  expiringSoonCount Int      @default(0)
+  expiredDocuments  Int      @default(0)
+  renewalInProgress Int      @default(0)
+  lastUpdated       DateTime @default(now()) @updatedAt
+
+  @@map("document_stats")
+}
+
+model PaginatedDocuments {
+  id         Int      @id @default(autoincrement())
+  page       Int
+  pageSize   Int
+  totalCount Int
+  documents  Json // Stored as JSON array of DocumentTracking
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("paginated_documents")
+}
+
+// Enums
+enum DocumentStatus {
+  VALID
+  EXPIRING_SOON
+  EXPIRED
+  RENEWAL_IN_PROGRESS
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum EntityType {
+  VEHICLE
+  DRIVER
+  COMPANY
+  OTHER
+}
+
+enum ReminderType {
+  EMAIL
+  SMS
+  IN_APP
+}
+
+enum ReminderStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 // Enums
@@ -313,6 +485,11 @@ enum PaymentMethod {
   CASH
   VOUCHER
   CORPORATE_BILLING
+}
+
+enum methodType {
+  private
+  waiver
 }
 
 enum VehicleType {

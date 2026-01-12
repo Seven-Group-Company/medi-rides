@@ -186,18 +186,6 @@ export default function RideDetails({
               Cancel Ride
             </button>
           )}
-
-          {/* Navigation Actions */}
-          <div className="grid grid-cols-2 gap-3">
-            <button className="flex items-center justify-center space-x-2 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-              <Navigation className="w-4 h-4" />
-              <span>Directions</span>
-            </button>
-            <button className="flex items-center justify-center space-x-2 py-2 px-4 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors">
-              <Phone className="w-4 h-4" />
-              <span>Call</span>
-            </button>
-          </div>
         </div>
       </div>
     </motion.div>

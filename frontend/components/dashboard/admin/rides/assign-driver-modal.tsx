@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { X, User, Car, Star, Phone, MapPin } from 'lucide-react';
-import { AdminRideRequest, Driver, Vehicle } from '@/types/admin.types';
+import { Driver, RideRequest, Vehicle } from '@/types/admin.types';
 
 interface AssignDriverModalProps {
   isOpen: boolean;
   onClose: () => void;
-  ride: AdminRideRequest | null;
+  ride: RideRequest | null;
   drivers: Driver[];
   vehicles: Vehicle[];
   onAssign: (driverId: number, vehicleId: number) => void;
@@ -86,8 +86,8 @@ export default function AssignDriverModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <p className="text-sm font-medium text-gray-900 mb-2">Customer</p>
-                <p className="text-gray-600">{ride.customer.name}</p>
-                <p className="text-sm text-gray-500">{ride.customer.phone}</p>
+                <p className="text-gray-600">{ride.customer?.name || 'Guest'}</p>
+                <p className="text-sm text-gray-500">{ride.customer?.phone || ride.passengerPhone}</p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900 mb-2">Schedule</p>
@@ -97,14 +97,14 @@ export default function AssignDriverModal({
                 <p className="text-sm font-medium text-gray-900 mb-2">Pickup</p>
                 <p className="text-gray-600 flex items-start">
                   <MapPin className="w-4 h-4 text-green-600 mr-2 mt-0.5 flex-shrink-0" />
-                  {ride.pickup}
+                  {ride.pickupAddress}
                 </p>
               </div>
               <div>
                 <p className="text-sm font-medium text-gray-900 mb-2">Drop-off</p>
                 <p className="text-gray-600 flex items-start">
                   <MapPin className="w-4 h-4 text-blue-600 mr-2 mt-0.5 flex-shrink-0" />
-                  {ride.dropoff}
+                  {ride.dropoffAddress}
                 </p>
               </div>
             </div>

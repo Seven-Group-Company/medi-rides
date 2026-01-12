@@ -19,7 +19,7 @@ export interface FormData {
   distanceMiles?: number;
   estimatedTime?: number;
   estimatedPrice?: number;
-  paymentType: 'private' | 'ALI' | 'APDD' | 'IDD' | 'ISW';
+  paymentType: 'private' | 'waiver';
 }
 
 export interface BookingStepProps {

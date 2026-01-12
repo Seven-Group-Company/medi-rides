@@ -19,6 +19,7 @@ import VehiclesList from '@/components/dashboard/admin/vehicles/vehicles-list';
 import AddVehicleForm from '@/components/dashboard/admin/vehicles/add-vehicle-form';
 import VehicleDetailsModal from '@/components/dashboard/admin/vehicles/vehicle-details-modal';
 import VehicleStats from '@/components/dashboard/admin/vehicles/vehicle-stats';
+import EditVehicleForm from '@/components/dashboard/admin/vehicles/edit-vehicle-form';
 
 export default function VehicleManagementPage() {
   const {
@@ -210,26 +211,20 @@ export default function VehicleManagementPage() {
               loading={actionLoading}
             />
           ) : editingVehicle ? (
-            <motion.div
-              key="edit-form"
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-            >
-              {/* Edit form would go here - similar to AddVehicleForm but with existing data */}
-              <div className="bg-white rounded-xl border border-gray-200 p-6">
-                <p className="text-center text-gray-600">Edit form implementation would go here</p>
-                <div className="flex justify-center space-x-3 mt-4">
-                  <button
-                    onClick={() => setEditingVehicle(null)}
-                    className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </motion.div>
-          ) : (
+          <motion.div
+            key="edit-form"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+          >
+            <EditVehicleForm
+              vehicle={editingVehicle}
+              onSubmit={handleEditVehicle}
+              onCancel={() => setEditingVehicle(null)}
+              loading={actionLoading}
+            />
+          </motion.div>
+        ) : (
             <motion.div
               key="vehicles-list"
               initial={{ opacity: 0 }}

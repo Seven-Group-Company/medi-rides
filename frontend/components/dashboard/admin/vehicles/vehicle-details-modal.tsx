@@ -169,18 +169,6 @@ export default function VehicleDetailsModal({
             </div>
           </div>
 
-          {/* Insurance Warnings Section */}
-          <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-              <AlertTriangle className="w-5 h-5 text-yellow-600" />
-              Insurance Status
-            </h3>
-            <InsuranceWarning 
-              insuranceExpiry={new Date(vehicle.insuranceExpiry)}
-              liabilityInsuranceExpiry={vehicle.liabilityInsuranceExpiry ? new Date(vehicle.liabilityInsuranceExpiry) : undefined}
-            />
-          </div>
-
           {/* Detailed Information Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Vehicle Specifications */}
@@ -274,12 +262,11 @@ export default function VehicleDetailsModal({
                   {formatDate(vehicle.insuranceExpiry)}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">
-                  {isInsuranceExpiring(vehicle.insuranceExpiry) ? 'Expiring soon!' : 'Valid'}
+                  {isInsuranceExpiring(vehicle.insuranceExpiry) ? 'Expiring' : 'Valid'}
                 </p>
               </div>
 
               {/* Liability Insurance */}
-              {vehicle.liabilityInsuranceExpiry && (
                 <div className={`p-4 rounded-lg border ${isInsuranceExpiring(vehicle.liabilityInsuranceExpiry) ? 'border-red-300 bg-red-50' : 'border-blue-300 bg-blue-50'}`}>
                   <div className="flex items-center justify-between mb-3">
                     <span className="font-medium text-gray-900">Liability Insurance</span>
@@ -291,10 +278,9 @@ export default function VehicleDetailsModal({
                     {formatDate(vehicle.liabilityInsuranceExpiry)}
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
-                    {isInsuranceExpiring(vehicle.liabilityInsuranceExpiry) ? 'Expiring soon!' : 'Valid'}
+                    {isInsuranceExpiring(vehicle.liabilityInsuranceExpiry) ? 'Expiring' : 'Valid'}
                   </p>
                 </div>
-              )}
 
               {/* Registration */}
               <div className={`p-4 rounded-lg border ${isInsuranceExpiring(vehicle.registrationExpiry) ? 'border-orange-300 bg-orange-50' : 'border-purple-300 bg-purple-50'}`}>
@@ -308,7 +294,7 @@ export default function VehicleDetailsModal({
                   {formatDate(vehicle.registrationExpiry)}
                 </p>
                 <p className="text-sm text-gray-600 mt-1">
-                  {isInsuranceExpiring(vehicle.registrationExpiry) ? 'Expiring soon!' : 'Valid'}
+                  {isInsuranceExpiring(vehicle.registrationExpiry) ? 'Expiring' : 'Valid'}
                 </p>
               </div>
             </div>

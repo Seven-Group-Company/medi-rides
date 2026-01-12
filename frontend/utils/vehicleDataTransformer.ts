@@ -8,7 +8,7 @@ export const transformVehicleDataForBackend = (data: CreateVehicleData) => {
     color: data.color.trim(),
     licensePlate: data.licensePlate.trim().toUpperCase(),
     vin: data.vin?.trim() || undefined,
-    vehicleType: data.vehicleType,
+    vehicleType: data.type,
     capacity: parseInt(data.capacity.toString()),
     hasWheelchairAccess: Boolean(data.hasWheelchairAccess),
     hasOxygenSupport: Boolean(data.hasOxygenSupport),

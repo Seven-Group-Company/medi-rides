@@ -46,6 +46,34 @@ export class CloudinaryService {
     }
   }
 
+  async uploadFile(file: import('multer').File): Promise<{ url: string; public_id: string }> {
+    return new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        {
+          resource_type: 'raw',
+          folder: 'medi-rides/documents',
+        },
+        (error, result) => {
+          if (error) {
+            reject(new Error(`Cloudinary upload failed: ${error.message}`));
+          } else if (!result) {
+            reject(new Error('Cloudinary upload failed: no result returned'));
+          } else {
+            resolve({
+              url: result.secure_url,
+              public_id: result.public_id
+            });
+          }
+        }
+      );
+
+      const readableStream = new Readable();
+      readableStream.push(file.buffer);
+      readableStream.push(null);
+      readableStream.pipe(uploadStream);
+    });
+  }
+
   async uploadMultipleImages(files: import('multer').File[]): Promise<{ url: string; public_id: string }[]> {
     const uploadPromises = files.map(file => this.uploadImage(file));
     return Promise.all(uploadPromises);

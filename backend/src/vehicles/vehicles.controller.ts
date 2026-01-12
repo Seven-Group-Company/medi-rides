@@ -125,20 +125,43 @@ async testEndpoint(
     };
   }
 
-  @Put(':id')
-  @UseInterceptors(FilesInterceptor('images', 5))
-  @ApiConsumes('multipart/form-data')
-  @UsePipes(new ValidationPipe({ whitelist: true, forbidNonWhitelisted: true }))
-  @ApiOperation({ summary: 'Update vehicle information' })
-  @ApiResponse({ status: 200, description: 'Vehicle updated successfully' })
-  @ApiResponse({ status: 404, description: 'Vehicle not found' })
-  async updateVehicle(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateVehicleDto: UpdateVehicleDto,
-    @UploadedFiles() files: import('multer').File[]
-  ) {
-    return this.vehiclesService.updateVehicle(id, updateVehicleDto, files);
+// vehicles.controller.ts - updateVehicle method
+@Put(':id')
+@UseInterceptors(FilesInterceptor('images', 5))
+@ApiConsumes('multipart/form-data')
+@HttpCode(HttpStatus.OK)
+async updateVehicle(
+  @Param('id', ParseIntPipe) id: number,
+  @Body() body: any,
+  @UploadedFiles() files: import('multer').File[]
+) {
+  let updateVehicleDto: UpdateVehicleDto;
+  
+  try {
+    // Try to parse from 'data' field (frontend default) or 'vehicleData' field
+    if (body.data) {
+      const vehicleData = JSON.parse(body.data);
+      updateVehicleDto = plainToInstance(UpdateVehicleDto, vehicleData);
+    } else if (body.vehicleData) {
+      const vehicleData = JSON.parse(body.vehicleData);
+      updateVehicleDto = plainToInstance(UpdateVehicleDto, vehicleData);
+    } else {
+      // Fallback: try to use the raw body
+      updateVehicleDto = plainToInstance(UpdateVehicleDto, body);
+    }
+  } catch (error) {
+    console.error('Error parsing vehicle data:', error);
+    throw new BadRequestException('Invalid vehicle data format');
   }
+
+  // Validate the DTO
+  const errors = await validate(updateVehicleDto);
+  if (errors.length > 0) {
+    throw new BadRequestException(errors);
+  }
+
+  return this.vehiclesService.updateVehicle(id, updateVehicleDto, files);
+}
 
   @Delete(':id')
   @ApiOperation({ summary: 'Delete a vehicle' })

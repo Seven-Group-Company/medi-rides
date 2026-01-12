@@ -14,7 +14,7 @@ const PAYMENT_TYPES = [
     hoverColor: 'hover:bg-blue-50 hover:border-blue-300'
   },
   {
-    id: 'ALI',
+    id: 'waiver',
     label: 'Waivers/Vouchers',
     description: 'ALI, APDD, IDD, ISW',
     icon: Shield,
@@ -30,7 +30,7 @@ export default function PaymentTypeStep({
   onNext,
   onPrev,
 }: BookingStepProps) {
-  const handlePaymentTypeSelect = (paymentType: 'private' | 'ALI' | 'APDD' | 'IDD' | 'ISW') => {
+  const handlePaymentTypeSelect = (paymentType: 'private' | 'waiver') => {
     updateFormData({ paymentType });
   };
 

@@ -8,7 +8,7 @@ import {
   ChevronLeft, ChevronRight, Eye, ArrowUpDown, Calendar,
 } from 'lucide-react';
 import { RideRequest, Driver, Vehicle } from '@/types/admin.types';
-import RideDetailsModal from './ride-details-modal'; // Add this import
+import RideDetailsModal from './ride-details-modal';
 
 interface RideManagementProps {
   rideRequests: RideRequest[];
@@ -332,7 +332,10 @@ export default function RideManagement({
                 <div className="grid grid-cols-12 gap-4 items-center">
                   {/* Ride ID */}
                   <div className="col-span-2">
-                    <div className="font-medium text-gray-900">#{ride.id}</div>
+                    <div className="font-medium text-gray-900 flex items-center gap-2">
+                      <p>#{ride.id}</p>
+                      <p className='font-medium bg-gray-100 rounded px-2 py-1'>{ride.paymentType}</p>
+                    </div>
                     <div className="text-xs text-gray-500 mt-1 flex items-center gap-1">
                       <User className="w-3 h-3" />
                       {ride.customer?.name || ride.passengerName || 'Guest'}

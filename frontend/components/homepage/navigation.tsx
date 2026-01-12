@@ -37,11 +37,10 @@ const Navigation = () => {
   const navItems = [
     { name: 'Home', href: '/', icon: null, auth: false },
     { name: 'Services', href: '/services', icon: Calendar, auth: false },
-    { name: 'Contact', href: '#contact', icon: Phone, auth: false },
-    // Authenticated-only items
-    { name: 'Dashboard', href: '/customer-dashboard', icon: Settings, auth: true },
+    { name: 'Contact', href: '/contact', icon: Phone, auth: false },
+    { name: 'Dashboard', href: '/customer-dashboard', icon: Settings, auth: true, role: 'CUSTOMER' },
     { name: 'Admin Panel', href: '/admin/dashboard', icon: Shield, auth: true, role: 'ADMIN' },
-    { name: 'Driver Portal', href: '/driver/dashboard', icon: Car, auth: true, role: 'DRIVER' },
+    { name: 'Driver Portal', href: '/driver-dashboard', icon: Car, auth: true, role: 'DRIVER' },
   ];
 
   const filteredNavItems = navItems.filter(item => {

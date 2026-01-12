@@ -19,6 +19,7 @@ export interface RideRequest {
   customer?: Customer;
   driverId?: number;
   driver?: Driver;
+  paymentType: 'private' | 'waiver';
   
   // Ride details
   pickupAddress: string;
@@ -64,6 +65,10 @@ export interface Driver {
   name: string;
   phone: string;
   avatar?: string;
+  totalRides: number;
+  completedRides: number;
+  rating?: number;
+  vehicle?: Vehicle;
   isVerified: boolean;
   isActive: boolean;
   role: 'DRIVER';
@@ -94,4 +99,10 @@ export interface Vehicle {
   hasOxygenSupport: boolean;
   status: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE';
   images: string[];
+  driver?: Driver;
+}
+
+export interface AdminRideRequest extends RideRequest {
+  customer?: Customer;
+  driver?: Driver;
 }

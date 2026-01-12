@@ -13,9 +13,10 @@ export interface BookingFormData {
   date: string;
   time: string;
   notes: string;
-  chargeOption: string; // 'private', 'ALI', 'APDD', 'IDD', 'ISW'
+  chargeOption: string;
   distanceKm: number; // Backend expects km
   estimatedTime: number;
+  paymentType?: 'private' | 'waiver';
 }
 
 
@@ -32,6 +33,7 @@ export interface CreateRideDto {
   distanceKm?: number; // Keep for backend compatibility
   estimatedTime?: number;
   estimatedPrice?: number;
+  paymentType?: 'private' | 'waiver';
 }
 
 export interface BookingStepProps {

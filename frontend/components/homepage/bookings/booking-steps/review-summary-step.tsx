@@ -118,7 +118,7 @@ export default function ReviewSummaryStep({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div className="bg-white p-3 rounded-lg">
               <p className="text-sm text-gray-600">Payment Type</p>
-              <p className="font-medium capitalize">{formData.paymentType === 'ALI' ? 'Waiver/Voucher' : formData.paymentType}</p>
+              <p className="font-medium capitalize">{formData.paymentType === 'waiver' ? 'Waiver/Voucher' : formData.paymentType}</p>
             </div>
           </div>
         </div>

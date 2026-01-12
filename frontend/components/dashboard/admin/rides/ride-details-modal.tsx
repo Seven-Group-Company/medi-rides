@@ -66,6 +66,14 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
     }
   };
 
+  const getPaymentTypeIcon = (type: string) => {
+    switch (type) {
+      case 'private': return <DollarSign className="w-4 h-4 text-blue-600" />;
+      case 'waiver': return <Shield className="w-4 h-4 text-green-600" />;
+      default: return <DollarSign className="w-4 h-4 text-gray-600" />;
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -100,6 +108,10 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
                   Guest Ride
                 </span>
               )}
+            <div className="flex items-center gap-2 bg-gray-100 px-3 py-1 rounded-full">
+              {getPaymentTypeIcon(ride.paymentType)}
+              <span className="font-medium text-gray-900 capitalize">{ride.paymentType}</span>
+            </div>
             </div>
           </div>
           <button

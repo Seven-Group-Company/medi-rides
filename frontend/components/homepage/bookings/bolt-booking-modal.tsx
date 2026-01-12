@@ -167,8 +167,9 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         serviceCategoryId: formData.serviceCategoryId,
         date: formData.date,
         time: formData.time,
-        notes: `${formData.notes || ''} | Payment: ${formData.paymentType === 'ALI' ? 'Waiver/Voucher' : formData.paymentType}}`,
+        notes: `${formData.notes || ''}`.trim() || undefined,
         distanceKm: formData.distanceMiles ? formData.distanceMiles * 1.60934 : 0, // Convert miles to km for backend
+        paymentType: formData.paymentType,
         estimatedTime: formData.estimatedTime || 0,
         estimatedPrice: formData.estimatedPrice || 0
       };

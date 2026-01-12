@@ -22,7 +22,7 @@ const iconMap: { [key: string]: any } = {
 // Charge options
 const chargeOptions = [
   { id: 'private', name: 'Private Pay', description: 'Pay directly for service' },
-  { id: 'ALI', name: 'Waiver/Voucher', description: 'ALI, APDD, ISW' },
+  { id: 'waiver', name: 'Waiver/Voucher', description: 'ALI, APDD, ISW' },
 ];
 
   const serviceCategoriesList = [

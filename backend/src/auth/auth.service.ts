@@ -188,14 +188,9 @@ async validateOAuthUser(oauthUser: {
   avatar?: string;
 }): Promise<{ user: any; isNew: boolean }> {
   try {
-    console.log('Validating OAuth user:', oauthUser.email);
-    
     let user = await this.prisma.user.findUnique({ 
       where: { email: oauthUser.email } 
     });
-
-    console.log('Found user:', user);
-
     let isNew = false;
 
     if (user) {
@@ -240,7 +235,6 @@ async validateOAuthUser(oauthUser: {
       isNew = true;
     }
 
-    console.log('Final user:', user);
     return { user: this.mapUser(user), isNew };
   } catch (error) {
     console.error('Error in validateOAuthUser:', error);
@@ -248,41 +242,6 @@ async validateOAuthUser(oauthUser: {
   }
 }
 
-async debugUserCreation() {
-  try {
-    // Test creating a simple user to see if Prisma works
-    const testUser = await this.prisma.user.create({
-      data: {
-        email: `test-${Date.now()}@test.com`,
-        name: 'Test User',
-        provider: AuthProvider.LOCAL,
-        isVerified: true,
-        isActive: true,
-        role: UserRole.CUSTOMER,
-        password: 'temp',
-      },
-    });
-    console.log('Test user created:', testUser);
-    
-    // Clean up
-    await this.prisma.user.delete({
-      where: { id: testUser.id }
-    });
-    console.log('Test user deleted');
-    
-    return true;
-  } catch (error) {
-    console.error('Prisma test failed:', error);
-    return false;
-  }
-}
-
-  // -------------------------
-  // Enhanced Google OAuth login
-  // -------------------------
-// -------------------------
-// Enhanced Google OAuth login
-// -------------------------
 async googleLogin(googleUser: any): Promise<AuthResponse> {
   try {
     const { user, isNew } = googleUser;
@@ -446,8 +405,6 @@ async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Prom
   // -------------------------
 // auth.service.ts - Fix the updateProfile method
 async updateProfile(userId: number, dto: UpdateProfileDto) {
-  console.log('🔧 updateProfile called with userId:', userId);
-  console.log('🔧 updateProfile data:', dto);
 
   if (!userId) {
     console.error('❌ User ID is undefined in updateProfile');
@@ -466,13 +423,6 @@ async updateProfile(userId: number, dto: UpdateProfileDto) {
     throw new NotFoundException(AUTH_ERRORS.USER_NOT_FOUND);
   }
 
-  console.log('🔧 Existing user:', {
-    id: existingUser.id,
-    email: existingUser.email,
-    name: existingUser.name
-  });
-
-  // Check email uniqueness if email is being updated
   if (email && email !== existingUser.email) {
     const userWithEmail = await this.prisma.user.findUnique({ 
       where: { email } 
@@ -497,15 +447,11 @@ async updateProfile(userId: number, dto: UpdateProfileDto) {
     Object.entries(updateData).filter(([_, value]) => value !== undefined)
   );
 
-  console.log('🔧 Clean update data:', cleanUpdateData);
-
   try {
     const updatedUser = await this.prisma.user.update({
       where: { id: userId },
       data: cleanUpdateData,
     });
-
-    console.log('✅ Profile updated successfully:', updatedUser.id);
 
     // If email was changed, send verification email
     if (email && email !== existingUser.email) {

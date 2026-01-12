@@ -64,4 +64,8 @@ export class CreateRideDto {
   @IsNumber()
   @Min(0)
   estimatedTime?: number;
+
+  @ApiProperty({ description: 'Payment type' })
+  @IsEnum(['private', 'waiver'])
+  paymentType: 'private' | 'waiver';
 }

@@ -368,26 +368,6 @@ export default function VehiclesList({
                       )}
                     </div>
                   )}
-
-                    {/* Document Expiry */}
-                    <div className="space-y-1 text-sm text-gray-600">
-                      <div className="flex items-center justify-between">
-                        <span>Insurance:</span>
-                        <span className={`font-medium ${
-                          new Date(vehicle.insuranceExpiry) < new Date() ? 'text-red-600' : 'text-gray-900'
-                        }`}>
-                          {formatDate(vehicle.insuranceExpiry)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span>Registration:</span>
-                        <span className={`font-medium ${
-                          new Date(vehicle.registrationExpiry) < new Date() ? 'text-red-600' : 'text-gray-900'
-                        }`}>
-                          {formatDate(vehicle.registrationExpiry)}
-                        </span>
-                      </div>
-                    </div>
                   </div>
 
                   {/* Additional Images */}

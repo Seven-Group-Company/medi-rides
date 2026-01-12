@@ -1,17 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
   Car,
-  Calendar,
   User,
-  DollarSign,
-  MapPin,
-  BarChart3,
   X
 } from 'lucide-react';
 
@@ -26,11 +22,7 @@ export default function DriverSidebar({ isOpen, onClose }: DriverSidebarProps) {
   const navigation = [
     { name: 'Dashboard', href: '/driver-dashboard', icon: LayoutDashboard },
     { name: 'Rides', href: '/driver-dashboard/rides', icon: Car },
-    { name: 'Schedule', href: '/driver-dashboard/schedule', icon: Calendar },
-    { name: 'Vehicle', href: '/driver-dashboard/vehicle', icon: MapPin },
-    { name: 'Earnings', href: '/driver-dashboard/earnings', icon: DollarSign },
     { name: 'Profile', href: '/driver-dashboard/profile', icon: User },
-    { name: 'Analytics', href: '/driver-dashboard/analytics', icon: BarChart3 },
   ];
 
   // Close sidebar when route changes on mobile
@@ -52,14 +44,14 @@ export default function DriverSidebar({ isOpen, onClose }: DriverSidebarProps) {
   }, [isOpen, onClose]);
 
   const sidebarContent = (
-    <div className="flex flex-col h-full bg-white border-r border-gray-200">
+    <div className="flex flex-col h-full bg-white border-r border-gray-200 w-64">
       {/* Logo and close button */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center space-x-3">
           <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
             <Car className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold text-blue-600">DriveFlex</span>
+          <span className="text-xl font-bold text-blue-600 py-2">DrivePanel</span>
         </div>
         <button
           onClick={onClose}
@@ -93,19 +85,6 @@ export default function DriverSidebar({ isOpen, onClose }: DriverSidebarProps) {
           );
         })}
       </nav>
-
-      {/* Online status toggle */}
-      <div className="p-4 border-t border-gray-200">
-        <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-          <div>
-            <p className="text-sm font-medium text-gray-900">Online Status</p>
-            <p className="text-xs text-gray-500">Go online to receive rides</p>
-          </div>
-          <div className="relative inline-block w-12 h-6 rounded-full bg-gray-300 cursor-pointer">
-            <div className="absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform"></div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 

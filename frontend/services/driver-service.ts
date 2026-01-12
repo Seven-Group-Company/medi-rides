@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { Driver, DriverStats, CreateDriverData, UpdateDriverData } from '@/types/driver';
+import { CreateDriverData, UpdateDriverData } from '@/types/driver';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -93,4 +93,82 @@ async createDriver(data: CreateDriverData) {
     });
     return response.data;
   },
+
+  async getProfile(): Promise<any> {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/driver/profile`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch driver profile');
+    }
+
+    return response.json();
+  },
+
+  async getStats(): Promise<any> {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/driver/stats`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch driver stats');
+    }
+
+    return response.json();
+  },
+
+  async getRideHistory(): Promise<any> {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/driver/rides/history`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch ride history');
+    }
+
+    return response.json();
+  },
+
+   async getEarnings(): Promise<any> {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/driver/earnings`, {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch earnings');
+    }
+
+    return response.json();
+  },
+
+   async updateStatus(statusDto: { isAvailable: boolean; reason?: string }): Promise<any> {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(`${API_BASE_URL}/driver/status`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(statusDto),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update driver status');
+    }
+
+    return response.json();
+  }
 };

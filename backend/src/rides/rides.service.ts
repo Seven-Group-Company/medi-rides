@@ -93,6 +93,7 @@ const serviceCategory = await this.prisma.serviceCategory.findUnique({
           duration: createRideDto.estimatedTime,
           passengerName: user.name,
           passengerPhone: user.phone,
+          paymentType: createRideDto.paymentType,
           basePrice: await this.calculateBasePrice(createRideDto.serviceCategoryId, distanceMiles, scheduledAt),
           status: RideStatus.PENDING,
         },
@@ -123,6 +124,7 @@ const serviceCategory = await this.prisma.serviceCategory.findUnique({
         passengerName: ride.passengerName,
         passengerPhone: ride.passengerPhone,
         scheduledAt: ride.scheduledAt,
+        paymentType: ride.paymentType,
         createdAt: ride.createdAt,
       };
     } catch (error) {
@@ -216,6 +218,7 @@ async createGuestRide(createGuestRideDto: CreateGuestRideDto) {
         distance: distanceMiles,
         duration: createGuestRideDto.estimatedTime,
         basePrice,
+        paymentType: createGuestRideDto.paymentType,
         status: RideStatus.PENDING,
         isGuest: true,
       },
@@ -239,6 +242,7 @@ async createGuestRide(createGuestRideDto: CreateGuestRideDto) {
         passengerPhone: ride.passengerPhone,
         basePrice: basePrice,
         scheduledAt: ride.scheduledAt,
+        paymentType: ride.paymentType,
         createdAt: ride.createdAt,
         isGuest: true,
       };

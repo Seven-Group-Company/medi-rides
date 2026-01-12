@@ -67,7 +67,10 @@ export class CreateGuestRideDto {
   @Min(0)
   estimatedTime?: number;
 
-  // Add this if you want to accept estimatedPrice from frontend
+  @ApiProperty({ description: 'Payment type', enum: ['private', 'waiver'] })
+  @IsEnum(['private', 'waiver'])
+  paymentType: 'private' | 'waiver';
+
   @ApiProperty({ 
     description: 'Estimated price calculated by frontend', 
     required: false 

@@ -12,7 +12,7 @@ export interface Vehicle {
   hasOxygenSupport: boolean;
   insuranceExpiry: string;
   registrationExpiry: string;
-  liabilityInsuranceExpiry?: string;
+  liabilityInsuranceExpiry: string;
   status: 'AVAILABLE' | 'IN_USE' | 'MAINTENANCE';
   images: string[];
   createdAt: string;
@@ -44,7 +44,8 @@ export interface UpdateVehicleData {
   color?: string;
   licensePlate?: string;
   vin?: string;
-  vehicleType?: string;
+  type?: string; // For CreateVehicleDto
+  vehicleType?: string; // For UpdateVehicleDto - match backend DTO
   capacity?: number;
   hasWheelchairAccess?: boolean;
   hasOxygenSupport?: boolean;

@@ -66,8 +66,6 @@ async login(@Body() loginDto: LoginDto): Promise<AuthResponse> {
 @ApiOperation({ summary: 'Google OAuth callback' })
 async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
   try {
-    console.log('Google callback user:', req.user);
-    
     if (!req.user) {
       throw new Error('No user data received from Google');
     }
@@ -82,7 +80,6 @@ async googleAuthRedirect(@Req() req: any, @Res() res: Response) {
       `is_new=${authResponse.isNew ? 'true' : 'false'}&` +
       `redirect_to=${encodeURIComponent(authResponse.redirectTo || '/')}`;
     
-    console.log('Redirecting to:', redirectUrl);
     return res.redirect(redirectUrl);
   } catch (error) {
     console.error('Google OAuth callback error:', error);
@@ -114,7 +111,6 @@ async changePassword(
   @CurrentUser('sub') userId: number,
   @Body() changePasswordDto: ChangePasswordDto,
 ) {
-  console.log('🔐 Change Password - User ID:', userId);
   
   if (!userId) {
     throw new UnauthorizedException('User ID not found. Please log in again.');
@@ -189,8 +185,6 @@ async updateProfile(
   @CurrentUser('sub') userId: number, // Use CurrentUser decorator instead of Req
   @Body() updateProfileDto: UpdateProfileDto,
 ) {
-  console.log('✅ Extracted user ID from CurrentUser:', userId);
-
   if (!userId) {
     console.error('❌ No user ID found from CurrentUser');
     throw new UnauthorizedException('User ID not found');

@@ -58,19 +58,23 @@ const createVehicle = useCallback(async (vehicleData: CreateVehicleData, images:
   }
 }, [fetchVehicles, fetchStats]);
 
-  const updateVehicle = useCallback(async (id: number, vehicleData: UpdateVehicleData, images: File[] = []) => {
-    try {
-      setError(null);
-      const result = await VehiclesService.updateVehicle(id, vehicleData, images);
-      await fetchVehicles(); // Refresh the list
-      await fetchStats(); // Refresh stats
-      return result;
-    } catch (err: any) {
-      console.error('Error updating vehicle:', err);
-      setError(err.message || 'Failed to update vehicle');
-      throw err;
-    }
-  }, [fetchVehicles, fetchStats]);
+const updateVehicle = useCallback(async (id: number, vehicleData: UpdateVehicleData, images: File[] = []) => {
+  try {
+    setError(null);
+    
+    // Log for debugging
+    console.log('📝 Updating vehicle:', { id, vehicleData, imagesCount: images.length });
+    
+    const result = await VehiclesService.updateVehicle(id, vehicleData, images);
+    await fetchVehicles(); // Refresh the list
+    await fetchStats(); // Refresh stats
+    return result;
+  } catch (err: any) {
+    console.error('Error updating vehicle:', err);
+    setError(err.message || 'Failed to update vehicle');
+    throw err;
+  }
+}, [fetchVehicles, fetchStats]);
 
   const deleteVehicle = useCallback(async (id: number) => {
     try {

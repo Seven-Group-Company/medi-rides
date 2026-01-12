@@ -1,4 +1,5 @@
-import { CreateRideDto, Ride, RideDetails } from '@/types/booking.types';
+import { CreateRideDto } from '@/types/booking.types';
+import { Ride } from '@/types/ride.types';
 
 class RidesApi {
   private baseURL = process.env.NEXT_PUBLIC_API_URL;
@@ -84,7 +85,7 @@ class RidesApi {
     return this.handleResponse(response);
   }
 
-  async getRideDetails(rideId: number): Promise<{ data: RideDetails }> {
+  async getRideDetails(rideId: number): Promise<{ data: Ride }> {
     const response = await this.fetchWithAuth(`${this.baseURL}/rides/${rideId}`);
     return this.handleResponse(response);
   }

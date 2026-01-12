@@ -293,20 +293,6 @@ export const useBooking = () => {
 
     setIsSubmitting(true);
     try {
-      // Combine waiver info with notes if waiver is selected
-      let notes = formData.notes || '';
-      if (formData.chargeOption !== 'private') {
-        const waiverOptions = {
-          'private': 'Private Pay',
-          'ALI': 'ALI Waiver',
-          'APDD': 'APDD Waiver',
-          'IDD': 'IDD Waiver',
-          'ISW': 'ISW Waiver',
-        };
-        const waiverName = waiverOptions[formData.chargeOption as keyof typeof waiverOptions] || formData.chargeOption;
-        notes = `${notes ? notes + '\n' : ''}Payment Method: ${waiverName}`.trim();
-      }
-
       const bookingData: CreateRideDto = {
         pickup: formData.pickup!.address,
         dropoff: formData.dropoff!.address,
@@ -314,8 +300,9 @@ export const useBooking = () => {
         serviceCategoryId: formData.serviceCategoryId!,
         date: formData.date,
         time: formData.time,
-        notes: `${formData.notes || ''} | Payment: ${formData.chargeOption === 'ALI' ? 'Waiver/Voucher' : formData.chargeOption}`,
+        notes: `${formData.notes || ''}`.trim(),
         distanceKm: formData.distanceKm || 0,
+        paymentType: formData.chargeOption as "private" | "waiver" | undefined,
         estimatedTime: formData.estimatedTime,
       };
 

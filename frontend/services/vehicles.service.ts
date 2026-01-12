@@ -138,35 +138,76 @@ static async createVehicle(vehicleData: CreateVehicleData, images: File[] = []) 
     return result.data;
   }
 
-  static async updateVehicle(id: number, vehicleData: UpdateVehicleData, images: File[] = []) {
-    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
-    
-    if (!token) {
-      throw new Error('No authentication token found');
-    }
-
-    const formData = new FormData();
-    formData.append('data', JSON.stringify(vehicleData));
-    
-    images.forEach((image, index) => {
-      formData.append('images', image);
-    });
-
-    const response = await fetch(`${this.baseUrl}/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-      body: formData,
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => null);
-      throw new Error(errorData?.message || `Failed to update vehicle: ${response.status}`);
-    }
-
-    return response.json();
+// vehicles.service.ts - updateVehicle method
+static async updateVehicle(id: number, vehicleData: UpdateVehicleData, images: File[] = []) {
+  const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+  
+  if (!token) {
+    throw new Error('No authentication token found');
   }
+
+  const formData = new FormData();
+  
+  // Ensure we're sending the correct field name (should match backend expectation)
+  const dataForBackend: any = {
+    make: vehicleData.make,
+    model: vehicleData.model,
+    year: vehicleData.year,
+    color: vehicleData.color,
+    licensePlate: vehicleData.licensePlate,
+    vin: vehicleData.vin || '',
+    type: vehicleData.vehicleType || vehicleData, // Handle both names
+    capacity: vehicleData.capacity,
+    hasWheelchairAccess: vehicleData.hasWheelchairAccess,
+    hasOxygenSupport: vehicleData.hasOxygenSupport,
+    insuranceExpiry: vehicleData.insuranceExpiry,
+    registrationExpiry: vehicleData.registrationExpiry,
+    liabilityInsuranceExpiry: vehicleData.liabilityInsuranceExpiry || vehicleData.insuranceExpiry,
+    status: vehicleData.status,
+    images: vehicleData.images || [], // Include existing images
+  };
+  
+  console.log('📤 Update data for backend:', dataForBackend);
+  
+  // Use 'vehicleData' field name to match backend expectation
+  formData.append('vehicleData', JSON.stringify(dataForBackend));
+  
+  // Append new images
+  images.forEach((image, index) => {
+    formData.append('images', image);
+  });
+
+  const response = await fetch(`${this.baseUrl}/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => null);
+    console.error('Update error response:', errorData);
+    
+    if (errorData?.message && Array.isArray(errorData.message)) {
+      const errorMessages = errorData.message
+        .map((err: any) => {
+          if (err.constraints) {
+            return Object.values(err.constraints).join(', ');
+          }
+          return err.property || 'Validation error';
+        })
+        .join('; ');
+      throw new Error(`Validation failed: ${errorMessages}`);
+    } else if (errorData?.message) {
+      throw new Error(errorData.message);
+    } else {
+      throw new Error(`Failed to update vehicle: ${response.status} ${response.statusText}`);
+    }
+  }
+
+  return response.json();
+}
 
   static async deleteVehicle(id: number) {
     const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
