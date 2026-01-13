@@ -5,7 +5,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { EmailService } from '../mail/email.service';
 import { AuthModule } from '../auth/auth.module';
 import { UploadController } from './upload.controller';
-import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { CloudinaryModule } from '../cloudinary/cloudinary.module';
 
 @Module({
   imports: [AuthModule, CloudinaryModule],
@@ -13,4 +13,4 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
   providers: [DriversService, PrismaService, EmailService],
   exports: [DriversService],
 })
-export class DriversModule {}
+export class DriversModule { }

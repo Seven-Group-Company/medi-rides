@@ -1,5 +1,5 @@
 import { Module } from "@nestjs/common";
-import { AuthModule } from "src/auth/auth.module";
+import { AuthModule } from "../auth/auth.module";
 import { DashboardController } from "./dashboard.controller";
 import { DashboardService } from "./dashboard.service";
 import { PrismaService } from "prisma/prisma.service";
@@ -10,4 +10,4 @@ import { PrismaService } from "prisma/prisma.service";
     providers: [DashboardService, PrismaService],
     exports: [DashboardService],
 })
-export class DashboardModule {}
+export class DashboardModule { }

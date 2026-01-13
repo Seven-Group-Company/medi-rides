@@ -21,12 +21,12 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { UserRole } from '@prisma/client';
 import { InvoiceService } from './invoice.service';
 import { CreateInvoiceDto, UpdateInvoiceDto } from './dto/invoice.dto';
-import { Public } from 'src/common/decorators/public.decorator';
+import { Public } from '../common/decorators/public.decorator';
 
 @ApiTags('invoices')
 @Controller('invoices')
 export class InvoiceController {
-  constructor(private readonly invoiceService: InvoiceService) {}
+  constructor(private readonly invoiceService: InvoiceService) { }
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -36,7 +36,7 @@ export class InvoiceController {
   @ApiResponse({ status: 201, description: 'Invoice created successfully' })
   async createInvoice(@Body() createInvoiceDto: CreateInvoiceDto) {
     const invoice = await this.invoiceService.createInvoice(createInvoiceDto);
-    
+
     return {
       success: true,
       message: 'Invoice created successfully',
@@ -52,7 +52,7 @@ export class InvoiceController {
   @ApiResponse({ status: 201, description: 'Invoice generated successfully' })
   async generateInvoiceForRide(@Param('rideId', ParseIntPipe) rideId: number) {
     const invoice = await this.invoiceService.generateInvoiceOnRideCompletion(rideId);
-    
+
     return {
       success: true,
       message: 'Invoice generated successfully',
@@ -68,7 +68,7 @@ export class InvoiceController {
   @ApiResponse({ status: 200, description: 'Invoice retrieved successfully' })
   async getInvoice(@Param('id', ParseIntPipe) invoiceId: number) {
     const invoice = await this.invoiceService.getInvoice(invoiceId);
-    
+
     return {
       success: true,
       data: invoice,
@@ -90,13 +90,13 @@ export class InvoiceController {
   ) {
     const pageNum = parseInt(page || '1') || 1;
     const limitNum = parseInt(limit || '10') || 10;
-    
+
     const result = await this.invoiceService.getInvoicesByCustomer(
       customerId,
       pageNum,
       limitNum
     );
-    
+
     return {
       success: true,
       ...result,
@@ -104,20 +104,20 @@ export class InvoiceController {
   }
 
   @Post(':id/regenerate-pdf')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(UserRole.ADMIN)
-@ApiBearerAuth()
-@ApiOperation({ summary: 'Regenerate PDF for existing invoice' })
-@ApiResponse({ status: 200, description: 'PDF regenerated successfully' })
-async regeneratePdf(@Param('id', ParseIntPipe) invoiceId: number) {
-  const invoice = await this.invoiceService.regenerateInvoicePdf(invoiceId);
-  
-  return {
-    success: true,
-    message: 'PDF regenerated successfully',
-    data: invoice,
-  };
-}
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Regenerate PDF for existing invoice' })
+  @ApiResponse({ status: 200, description: 'PDF regenerated successfully' })
+  async regeneratePdf(@Param('id', ParseIntPipe) invoiceId: number) {
+    const invoice = await this.invoiceService.regenerateInvoicePdf(invoiceId);
+
+    return {
+      success: true,
+      message: 'PDF regenerated successfully',
+      data: invoice,
+    };
+  }
 
   @Put(':id/status')
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -130,7 +130,7 @@ async regeneratePdf(@Param('id', ParseIntPipe) invoiceId: number) {
     @Body() updateInvoiceDto: UpdateInvoiceDto,
   ) {
     const invoice = await this.invoiceService.updateInvoice(invoiceId, updateInvoiceDto);
-    
+
     return {
       success: true,
       message: 'Invoice status updated successfully',
@@ -146,7 +146,7 @@ async regeneratePdf(@Param('id', ParseIntPipe) invoiceId: number) {
   @ApiResponse({ status: 200, description: 'Invoice marked as paid successfully' })
   async markAsPaid(@Param('id', ParseIntPipe) invoiceId: number) {
     const invoice = await this.invoiceService.markAsPaid(invoiceId);
-    
+
     return {
       success: true,
       message: 'Invoice marked as paid successfully',
@@ -154,75 +154,75 @@ async regeneratePdf(@Param('id', ParseIntPipe) invoiceId: number) {
     };
   }
 
-@Get(':id/download')
-@Public()
-@ApiOperation({ summary: 'Download invoice PDF' })
-@ApiResponse({ status: 200, description: 'Invoice PDF retrieved' })
-async downloadInvoice(
-  @Param('id', ParseIntPipe) invoiceId: number,
-  @Res() res: Response,
-) {
-  try {
-    const invoice = await this.invoiceService.getInvoice(invoiceId);
-    
-    if (!invoice.pdfUrl) {
-      // Try to regenerate the PDF if it's missing
-      const regeneratedInvoice = await this.invoiceService.regenerateInvoicePdf(invoiceId);
-      if (!regeneratedInvoice.pdfUrl) {
-        throw new NotFoundException('Unable to generate PDF for this invoice');
+  @Get(':id/download')
+  @Public()
+  @ApiOperation({ summary: 'Download invoice PDF' })
+  @ApiResponse({ status: 200, description: 'Invoice PDF retrieved' })
+  async downloadInvoice(
+    @Param('id', ParseIntPipe) invoiceId: number,
+    @Res() res: Response,
+  ) {
+    try {
+      const invoice = await this.invoiceService.getInvoice(invoiceId);
+
+      if (!invoice.pdfUrl) {
+        // Try to regenerate the PDF if it's missing
+        const regeneratedInvoice = await this.invoiceService.regenerateInvoicePdf(invoiceId);
+        if (!regeneratedInvoice.pdfUrl) {
+          throw new NotFoundException('Unable to generate PDF for this invoice');
+        }
+        invoice.pdfUrl = regeneratedInvoice.pdfUrl;
       }
-      invoice.pdfUrl = regeneratedInvoice.pdfUrl;
-    }
-    
-    // Check if pdfUrl is a full URL or relative path
-    if (invoice.pdfUrl.startsWith('http')) {
-      // Redirect to external URL
-      return res.redirect(invoice.pdfUrl);
-    }
-    
-    // For local files
-    const fs = require('fs');
-    const path = require('path');
-    
-    // Try multiple possible locations
-    const possiblePaths = [
-      // Original path (relative to project root)
-      path.join(process.cwd(), invoice.pdfUrl),
-      // Path from uploads folder
-      path.join(process.cwd(), 'uploads', invoice.pdfUrl.replace('/uploads/', '')),
-      // Direct path if already absolute
-      invoice.pdfUrl,
-    ];
-    
-    let filePath: string = '';
-    let found = false;
-    
-    for (const possiblePath of possiblePaths) {
-      if (fs.existsSync(possiblePath)) {
-        filePath = possiblePath;
-        found = true;
-        break;
+
+      // Check if pdfUrl is a full URL or relative path
+      if (invoice.pdfUrl.startsWith('http')) {
+        // Redirect to external URL
+        return res.redirect(invoice.pdfUrl);
       }
+
+      // For local files
+      const fs = require('fs');
+      const path = require('path');
+
+      // Try multiple possible locations
+      const possiblePaths = [
+        // Original path (relative to project root)
+        path.join(process.cwd(), invoice.pdfUrl),
+        // Path from uploads folder
+        path.join(process.cwd(), 'uploads', invoice.pdfUrl.replace('/uploads/', '')),
+        // Direct path if already absolute
+        invoice.pdfUrl,
+      ];
+
+      let filePath: string = '';
+      let found = false;
+
+      for (const possiblePath of possiblePaths) {
+        if (fs.existsSync(possiblePath)) {
+          filePath = possiblePath;
+          found = true;
+          break;
+        }
+      }
+
+      if (!found) {
+        console.error('PDF not found at any of these paths:', possiblePaths);
+        throw new NotFoundException('PDF file not found on server');
+      }
+
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename="invoice-${invoice.invoiceNumber}.pdf"`);
+
+      const fileStream = fs.createReadStream(filePath);
+      fileStream.pipe(res);
+    } catch (error) {
+      console.error('Download error:', error);
+      if (error instanceof NotFoundException) {
+        throw error;
+      }
+      throw new NotFoundException('Failed to retrieve invoice PDF');
     }
-    
-    if (!found) {
-      console.error('PDF not found at any of these paths:', possiblePaths);
-      throw new NotFoundException('PDF file not found on server');
-    }
-    
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="invoice-${invoice.invoiceNumber}.pdf"`);
-    
-    const fileStream = fs.createReadStream(filePath);
-    fileStream.pipe(res);
-  } catch (error) {
-    console.error('Download error:', error);
-    if (error instanceof NotFoundException) {
-      throw error;
-    }
-    throw new NotFoundException('Failed to retrieve invoice PDF');
   }
-}
 
   // ADD: Alternative endpoint that returns JSON with download URL
   @Get(':id/download-url')
@@ -233,17 +233,17 @@ async downloadInvoice(
   @ApiResponse({ status: 200, description: 'Invoice download URL retrieved' })
   async getDownloadUrl(@Param('id', ParseIntPipe) invoiceId: number) {
     const invoice = await this.invoiceService.getInvoice(invoiceId);
-    
+
     if (!invoice.pdfUrl) {
       throw new NotFoundException('PDF not available for this invoice');
     }
-    
+
     return {
       success: true,
       data: {
         pdfUrl: invoice.pdfUrl,
-        downloadUrl: invoice.pdfUrl.startsWith('http') 
-          ? invoice.pdfUrl 
+        downloadUrl: invoice.pdfUrl.startsWith('http')
+          ? invoice.pdfUrl
           : `${process.env.APP_URL || 'http://localhost:1000'}${invoice.pdfUrl}`,
       },
     };

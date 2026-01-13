@@ -4,8 +4,6 @@ import {
   UseGuards,
   Query,
   ParseIntPipe,
-  HttpCode,
-  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -20,7 +18,7 @@ import { AnalyticsService } from './analytics.service';
 @Roles(UserRole.ADMIN)
 @ApiBearerAuth()
 export class AnalyticsController {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly analyticsService: AnalyticsService) { }
 
   @Get('weekly')
   @ApiOperation({ summary: 'Get weekly analytics data' })
@@ -28,7 +26,7 @@ export class AnalyticsController {
   @ApiResponse({ status: 200, description: 'Weekly analytics retrieved successfully' })
   async getWeeklyAnalytics(@Query('weeks', new ParseIntPipe({ optional: true })) weeks: number = 4) {
     const data = await this.analyticsService.getWeeklyAnalytics(weeks);
-    
+
     return {
       success: true,
       data,
@@ -41,7 +39,7 @@ export class AnalyticsController {
   @ApiResponse({ status: 200, description: 'Monthly analytics retrieved successfully' })
   async getMonthlyAnalytics(@Query('months', new ParseIntPipe({ optional: true })) months: number = 6) {
     const data = await this.analyticsService.getMonthlyAnalytics(months);
-    
+
     return {
       success: true,
       data,
@@ -54,7 +52,7 @@ export class AnalyticsController {
   @ApiResponse({ status: 200, description: 'Service breakdown retrieved successfully' })
   async getServiceBreakdown(@Query('period') period: string = 'month') {
     const data = await this.analyticsService.getServiceBreakdown(period);
-    
+
     return {
       success: true,
       data,
@@ -67,7 +65,7 @@ export class AnalyticsController {
   @ApiResponse({ status: 200, description: 'Revenue analytics retrieved successfully' })
   async getRevenueAnalytics(@Query('period') period: string = 'month') {
     const data = await this.analyticsService.getRevenueAnalytics(period);
-    
+
     return {
       success: true,
       data,
@@ -79,7 +77,7 @@ export class AnalyticsController {
   @ApiResponse({ status: 200, description: 'Analytics summary retrieved successfully' })
   async getAnalyticsSummary() {
     const data = await this.analyticsService.getAnalyticsSummary();
-    
+
     return {
       success: true,
       data,

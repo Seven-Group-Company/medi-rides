@@ -10,7 +10,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { LocalAuthGuard } from './guards/local-auth.guard';
 import { RolesGuard } from './guards/roles.guard';
-import { EmailService } from 'src/mail/email.service';
+import { EmailService } from '../mail/email.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { GoogleOAuthGuard } from './guards/google-oauth.guard';
 
@@ -43,4 +43,4 @@ import { GoogleOAuthGuard } from './guards/google-oauth.guard';
   ],
   exports: [AuthService, JwtAuthGuard, RolesGuard],
 })
-export class AuthModule {}
+export class AuthModule { }

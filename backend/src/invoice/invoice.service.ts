@@ -3,7 +3,7 @@ import { PrismaService } from 'prisma/prisma.service';
 import { CreateInvoiceDto, UpdateInvoiceDto, InvoiceStatus } from './dto/invoice.dto';
 import { PDFService } from './pdf.service';
 import * as moment from 'moment';
-import { EmailService } from 'src/mail/email.service';
+import { EmailService } from '../mail/email.service';
 
 @Injectable()
 export class InvoiceService {
@@ -11,7 +11,7 @@ export class InvoiceService {
     private prisma: PrismaService,
     private pdfService: PDFService,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   async createInvoice(createInvoiceDto: CreateInvoiceDto) {
     // Check if ride exists
@@ -65,10 +65,10 @@ export class InvoiceService {
     // Generate PDF invoice - THIS IS CRITICAL
     try {
       const pdfBuffer = await this.pdfService.generateInvoice(invoice);
-      
+
       // Save PDF to storage
       const pdfUrl = await this.saveInvoicePdf(pdfBuffer, invoice.id);
-      
+
       // Update invoice with PDF URL
       const updatedInvoice = await this.prisma.invoice.update({
         where: { id: invoice.id },
@@ -95,130 +95,130 @@ export class InvoiceService {
   }
 
   // ADD: Method to regenerate PDF for existing invoice
-async regenerateInvoicePdf(invoiceId: number) {
-  const invoice = await this.prisma.invoice.findUnique({
-    where: { id: invoiceId },
-    include: {
-      ride: {
-        include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phone: true,
-            },
-          },
-          driver: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              phone: true,
-            },
-          },
-        },
-      },
-    },
-  });
-
-  if (!invoice) {
-    throw new NotFoundException('Invoice not found');
-  }
-
-  // Check if this is a guest ride or if customer data is missing
-  const isGuest = invoice.ride.isGuest || !invoice.ride.customer;
-  
-  if (!isGuest && !invoice.ride.customer) {
-    throw new BadRequestException(
-      'Cannot generate PDF: Customer information is missing. This may be a data integrity issue.'
-    );
-  }
-
-  try {
-    // Generate new PDF (pdf.service will handle guest rides)
-    const pdfBuffer = await this.pdfService.generateInvoice(invoice);
-    
-    // Save PDF to storage
-    const pdfUrl = await this.saveInvoicePdf(pdfBuffer, invoice.id);
-    
-    // Update invoice with new PDF URL
-    const updatedInvoice = await this.prisma.invoice.update({
+  async regenerateInvoicePdf(invoiceId: number) {
+    const invoice = await this.prisma.invoice.findUnique({
       where: { id: invoiceId },
-      data: { pdfUrl },
       include: {
         ride: {
           include: {
-            customer: true,
-            driver: true,
+            customer: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+              },
+            },
+            driver: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+              },
+            },
           },
         },
       },
     });
 
-    return updatedInvoice;
-  } catch (error) {
-    console.error('Error regenerating PDF:', error);
-    throw new BadRequestException(`Failed to regenerate PDF: ${error.message}`);
+    if (!invoice) {
+      throw new NotFoundException('Invoice not found');
+    }
+
+    // Check if this is a guest ride or if customer data is missing
+    const isGuest = invoice.ride.isGuest || !invoice.ride.customer;
+
+    if (!isGuest && !invoice.ride.customer) {
+      throw new BadRequestException(
+        'Cannot generate PDF: Customer information is missing. This may be a data integrity issue.'
+      );
+    }
+
+    try {
+      // Generate new PDF (pdf.service will handle guest rides)
+      const pdfBuffer = await this.pdfService.generateInvoice(invoice);
+
+      // Save PDF to storage
+      const pdfUrl = await this.saveInvoicePdf(pdfBuffer, invoice.id);
+
+      // Update invoice with new PDF URL
+      const updatedInvoice = await this.prisma.invoice.update({
+        where: { id: invoiceId },
+        data: { pdfUrl },
+        include: {
+          ride: {
+            include: {
+              customer: true,
+              driver: true,
+            },
+          },
+        },
+      });
+
+      return updatedInvoice;
+    } catch (error) {
+      console.error('Error regenerating PDF:', error);
+      throw new BadRequestException(`Failed to regenerate PDF: ${error.message}`);
+    }
   }
-}
 
   async generateInvoiceOnRideCompletion(rideId: number) {
-  const ride = await this.prisma.ride.findUnique({
-    where: { id: rideId },
-    include: {
-      customer: true,
-      driver: true,
-      payment: true,
-      serviceCategory: true,
-    },
-  });
+    const ride = await this.prisma.ride.findUnique({
+      where: { id: rideId },
+      include: {
+        customer: true,
+        driver: true,
+        payment: true,
+        serviceCategory: true,
+      },
+    });
 
-  if (!ride) {
-    throw new NotFoundException('Ride not found');
-  }
+    if (!ride) {
+      throw new NotFoundException('Ride not found');
+    }
 
-  // Check if ride is completed
-  if (ride.status !== 'COMPLETED') {
-    throw new BadRequestException('Ride must be completed to generate invoice');
-  }
+    // Check if ride is completed
+    if (ride.status !== 'COMPLETED') {
+      throw new BadRequestException('Ride must be completed to generate invoice');
+    }
 
-  // Check if invoice already exists
-  const existingInvoice = await this.prisma.invoice.findUnique({
-    where: { rideId },
-    include: {
-      ride: {
-        include: {
-          customer: true,
+    // Check if invoice already exists
+    const existingInvoice = await this.prisma.invoice.findUnique({
+      where: { rideId },
+      include: {
+        ride: {
+          include: {
+            customer: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  if (existingInvoice) {
-    // If PDF is missing, regenerate it
-    if (!existingInvoice.pdfUrl) {
-      return this.regenerateInvoicePdf(existingInvoice.id);
+    if (existingInvoice) {
+      // If PDF is missing, regenerate it
+      if (!existingInvoice.pdfUrl) {
+        return this.regenerateInvoicePdf(existingInvoice.id);
+      }
+      return existingInvoice;
     }
-    return existingInvoice;
+
+    // Calculate amount
+    const amount = ride.finalPrice || ride.basePrice || 0;
+    const dueDate = moment().add(30, 'days').toDate();
+
+    const createInvoiceDto: CreateInvoiceDto = {
+      rideId,
+      amount: Number(amount),
+      tax: this.calculateTax(Number(amount)),
+      dueDate,
+      notes: ride.isGuest
+        ? 'Invoice for completed guest ride'
+        : 'Invoice for completed ride',
+    };
+
+    return this.createInvoice(createInvoiceDto);
   }
-
-  // Calculate amount
-  const amount = ride.finalPrice || ride.basePrice || 0;
-  const dueDate = moment().add(30, 'days').toDate();
-
-  const createInvoiceDto: CreateInvoiceDto = {
-    rideId,
-    amount: Number(amount),
-    tax: this.calculateTax(Number(amount)),
-    dueDate,
-    notes: ride.isGuest 
-      ? 'Invoice for completed guest ride' 
-      : 'Invoice for completed ride',
-  };
-
-  return this.createInvoice(createInvoiceDto);
-}
 
   async getInvoice(invoiceId: number) {
     const invoice = await this.prisma.invoice.findUnique({
@@ -322,19 +322,19 @@ async regenerateInvoicePdf(invoiceId: number) {
   private async saveInvoicePdf(pdfBuffer: Buffer, invoiceId: number): Promise<string> {
     const fs = require('fs');
     const path = require('path');
-    
+
     const uploadsDir = path.join(process.cwd(), 'uploads', 'invoices');
-    
+
     // Create directory if it doesn't exist
     if (!fs.existsSync(uploadsDir)) {
       fs.mkdirSync(uploadsDir, { recursive: true });
     }
-    
+
     const filename = `invoice-${invoiceId}-${Date.now()}.pdf`;
     const filePath = path.join(uploadsDir, filename);
-    
+
     fs.writeFileSync(filePath, pdfBuffer);
-    
+
     // Return URL or file path
     return `/uploads/invoices/${filename}`;
   }
@@ -347,7 +347,7 @@ async regenerateInvoicePdf(invoiceId: number) {
   private async sendInvoiceEmail(invoice: any) {
     const customerEmail = invoice.ride.customer.email;
     const customerName = invoice.ride.customer.name;
-    
+
     const emailData = {
       to: customerEmail,
       subject: `Invoice #${invoice.invoiceNumber} - Your Ride Invoice`,
