@@ -7,6 +7,11 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     super({
       log: ['query', 'info', 'warn', 'error'],
       errorFormat: 'colorless',
+      datasources: {
+        db: {
+          url: (process.env.DATABASE_URL || '') + ((process.env.DATABASE_URL || '').includes('?') ? '&' : '?') + 'sslmode=require'
+        }
+      }
     });
   }
 
@@ -16,20 +21,5 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 
   async onModuleDestroy() {
     await this.$disconnect();
-  }
-
-  async cleanDatabase() {
-    if (process.env.NODE_ENV === 'production') return;
-    
-    const models = Reflect.ownKeys(this).filter(
-  (key): key is string => typeof key === 'string' && key[0] !== '_'
-);
-
-return Promise.all(
-  models.map((modelKey) => {
-    if (modelKey === '$transaction' || modelKey === '$queryRaw') return;
-    return this[modelKey].deleteMany();
-  }),
-);
   }
 }
