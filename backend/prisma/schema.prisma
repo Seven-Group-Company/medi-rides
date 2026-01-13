@@ -5,28 +5,21 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
-<<<<<<< HEAD
   relationMode = "prisma"
 }
 
 model User {
   id                       Int          @id @default(autoincrement())
   email                    String       @unique
-=======
-}
-
-model User {
-  id                       Int       @id @default(autoincrement())
-  email                    String    @unique
   password                 String?
   name                     String
   emailVerificationToken   String?
   emailVerificationExpires DateTime?
-  role                     UserRole  @default(CUSTOMER)
+  role                     UserRole     @default(CUSTOMER)
   phone                    String?
   avatar                   String?
-  isVerified               Boolean   @default(false)
-  isActive                 Boolean   @default(true)
+  isVerified               Boolean      @default(false)
+  isActive                 Boolean      @default(true)
   provider                 AuthProvider @default(LOCAL)
   providerId               String?
   createdAt                DateTime     @default(now())
@@ -34,15 +27,20 @@ model User {
   lastLoginAt              DateTime?
 
   // Relations
-  refreshTokens         RefreshToken[]
-  customerRides         Ride[]          @relation("CustomerRides")
-  driverRides           Ride[]          @relation("DriverRides")
-  driverProfile         DriverProfile?
-  patientProfile        PatientProfile?
-  payments              Payment[]
-  addresses             Address[]
-  availabilities        DriverAvailability[]
-  notifications         Notification[]
+  refreshTokens     RefreshToken[]
+  customerRides     Ride[]               @relation("CustomerRides")
+  driverRides       Ride[]               @relation("DriverRides")
+  driverProfile     DriverProfile?
+  patientProfile    PatientProfile?
+  payments          Payment[]
+  addresses         Address[]
+  availabilities    DriverAvailability[]
+  notifications     Notification[]
+  documentTrackings DocumentTracking[]
+  documentRenewals  DocumentRenewal[]
+  documentsCreated  DocumentTracking[]   @relation("DocumentCreatedBy")
+  documentsUpdated  DocumentTracking[]   @relation("DocumentUpdatedBy")
+  renewalsCreated   DocumentRenewal[]    @relation("RenewalCreatedBy")
 
   @@map("users")
 }
@@ -105,58 +103,59 @@ model ServiceCategory {
 }
 
 model Ride {
-  id                   Int               @id @default(autoincrement())
-  customerId           Int?
-  customer             User?             @relation("CustomerRides", fields: [customerId], references: [id])
-  driverId             Int?
-  driver               User?             @relation("DriverRides", fields: [driverId], references: [id])
-  pickupAddress        String
-  pickupLatitude       Float?
-  pickupLongitude      Float?
-  dropoffAddress       String
-  distance             Float?
-  duration             Int?
-  dropoffLatitude      Float?
-  dropoffLongitude     Float?
-  serviceCategoryId    Int
-  serviceCategory      ServiceCategory   @relation(fields: [serviceCategoryId], references: [id])
-  serviceType          ServiceType
-  status               RideStatus        @default(PENDING)
-  scheduledAt          DateTime
-  actualPickupAt       DateTime?
-  actualDropoffAt      DateTime?
-  isGuest              Boolean           @default(false)
-  passengerName        String?
-  passengerPhone       String?
-  specialNeeds         String?
-  additionalNotes      String?
-  basePrice            Float
-  finalPrice           Float?
-  createdAt            DateTime          @default(now())
-  updatedAt            DateTime          @updatedAt
-  payment              Payment?
-  invoice              Invoice?
+  id                Int             @id @default(autoincrement())
+  customerId        Int?
+  customer          User?           @relation("CustomerRides", fields: [customerId], references: [id])
+  driverId          Int?
+  driver            User?           @relation("DriverRides", fields: [driverId], references: [id])
+  pickupAddress     String
+  pickupLatitude    Float?
+  pickupLongitude   Float?
+  dropoffAddress    String
+  distance          Float?
+  duration          Int?
+  dropoffLatitude   Float?
+  dropoffLongitude  Float?
+  serviceCategoryId Int
+  serviceCategory   ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
+  serviceType       ServiceType
+  status            RideStatus      @default(PENDING)
+  scheduledAt       DateTime
+  actualPickupAt    DateTime?
+  actualDropoffAt   DateTime?
+  isGuest           Boolean         @default(false)
+  passengerName     String?
+  passengerPhone    String?
+  paymentType       methodType      @default(private)
+  specialNeeds      String?
+  additionalNotes   String?
+  basePrice         Float
+  finalPrice        Float?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  payment           Payment?
+  invoice           Invoice?
 
   @@map("rides")
 }
 
 model Payment {
-  id              Int           @id @default(autoincrement())
-  rideId          Int           @unique
-  ride            Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
-  customerId      Int
-  customer        User          @relation(fields: [customerId], references: [id])
-  amount          Float
-  status          PaymentStatus @default(PENDING)
-  method          PaymentMethod
-  transactionId   String?
-  billingName     String?
-  billingEmail    String?
-  billingPhone    String?
-  billingAddress  String?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  paidAt          DateTime?
+  id             Int           @id @default(autoincrement())
+  rideId         Int           @unique
+  ride           Ride          @relation(fields: [rideId], references: [id], onDelete: Cascade)
+  customerId     Int
+  customer       User          @relation(fields: [customerId], references: [id])
+  amount         Float
+  status         PaymentStatus @default(PENDING)
+  method         PaymentMethod
+  transactionId  String?
+  billingName    String?
+  billingEmail   String?
+  billingPhone   String?
+  billingAddress String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  paidAt         DateTime?
 
   @@map("payments")
 }
@@ -192,7 +191,7 @@ model RefreshToken {
 }
 
 model Vehicle {
-  id                       Int           @id @default(autoincrement())
+  id                       Int            @id @default(autoincrement())
   driverId                 Int?
   make                     String
   model                    String
@@ -207,10 +206,10 @@ model Vehicle {
   insuranceExpiry          DateTime
   registrationExpiry       DateTime
   liabilityInsuranceExpiry DateTime?
-  status                   VehicleStatus @default(AVAILABLE)
-  images                   String[]      @default([])
-  createdAt                DateTime      @default(now())
-  updatedAt                DateTime      @updatedAt
+  status                   VehicleStatus  @default(AVAILABLE)
+  images                   String[]       @default([])
+  createdAt                DateTime       @default(now())
+  updatedAt                DateTime       @updatedAt
   driverProfileId          Int?
   driverProfile            DriverProfile? @relation(fields: [driverProfileId], references: [id])
 
@@ -218,12 +217,12 @@ model Vehicle {
 }
 
 model PatientProfile {
-  id        Int      @id @default(autoincrement())
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  totalTrips Int     @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         Int      @id @default(autoincrement())
+  userId     Int      @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  totalTrips Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("patient_profiles")
 }
@@ -237,25 +236,25 @@ model DriverProfile {
   licenseExpiry DateTime
   vehicleInfo   String?
   insuranceInfo String?
-  isAvailable   Boolean  @default(true)
-  rating        Float?   @default(5.0)
-  totalTrips    Int      @default(0)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  isAvailable   Boolean   @default(true)
+  rating        Float?    @default(5.0)
+  totalTrips    Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
   vehicles      Vehicle[]
 
   @@map("driver_profiles")
 }
 
 model ServiceArea {
-  id          Int     @id @default(autoincrement())
-  name        String
-  description String?
-  polygon     Json?
-  basePrice   Float
+  id           Int      @id @default(autoincrement())
+  name         String
+  description  String?
+  polygon      Json?
+  basePrice    Float
   pricePerMile Float
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("service_areas")
 }
