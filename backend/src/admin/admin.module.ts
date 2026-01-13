@@ -8,10 +8,10 @@ import { AdminRidesService } from '../rides/admin-rides.service';
 import { AdminCustomersService } from '../customer/admin-customers.service';
 import { InvoiceService } from '../invoice/invoice.service';
 import { PDFService } from '../invoice/pdf.service';
-import { MailModule } from '../mail/mail.module';
+import { EmailService } from '../mail/email.service';
 
 @Module({
-  imports: [MailModule],
+  imports: [],
   controllers: [
     AdminRidesController,
     AdminCustomersController,
@@ -24,6 +24,7 @@ import { MailModule } from '../mail/mail.module';
     PrismaService,
     InvoiceService,
     PDFService,
+    EmailService,
   ],
   exports: [
     AdminRidesService,
