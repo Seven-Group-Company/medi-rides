@@ -8,16 +8,23 @@ const ContactInfo = () => {
         {
             icon: <Phone className="w-6 h-6 text-blue-600" />,
             title: "Phone",
-            content: "+1 (907) 414-7664",
+            content: "+1 (555) 123-4567",
             subContent: "Mon-Fri 8am-6pm",
             delay: 0.1
         },
         {
             icon: <Mail className="w-6 h-6 text-blue-600" />,
             title: "Email",
-            content: "rcompassionate@gmail.com",
+            content: "rides@compassionatemedi.com",
             subContent: "Quick Response",
             delay: 0.2
+        },
+        {
+            icon: <MapPin className="w-6 h-6 text-blue-600" />,
+            title: "Office",
+            content: "123 Care Street",
+            subContent: "Medical District, CA 90210",
+            delay: 0.3
         },
         {
             icon: <Clock className="w-6 h-6 text-blue-600" />,
