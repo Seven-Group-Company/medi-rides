@@ -55,9 +55,9 @@ const FAQSection = () => {
   };
 
   return (
-    <section className="w-full bg-white border-t border-b border-[#E6EAF0]">
+    <section className="w-full">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        
+
         {/* Header */}
         <div className="text-center mb-12">
           <motion.h2
@@ -101,7 +101,7 @@ const FAQSection = () => {
                   <ChevronDown className="w-5 h-5 text-[#B0D6FF] flex-shrink-0" />
                 )}
               </button>
-              
+
               {openIndex === index && (
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}

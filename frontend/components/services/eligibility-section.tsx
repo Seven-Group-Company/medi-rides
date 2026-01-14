@@ -66,9 +66,9 @@ const EligibilitySection = () => {
   };
 
   return (
-    <section className="w-full bg-white border-t border-b border-[#E6EAF0]">
+    <section className="w-full">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-        
+
         {/* Header */}
         <div className="text-center mb-12">
           <motion.h2
@@ -85,7 +85,7 @@ const EligibilitySection = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-xl text-[#0A2342] max-w-3xl mx-auto"
           >
-            Our transportation services are available to individuals and families across the community, 
+            Our transportation services are available to individuals and families across the community,
             with specialized support for those with medical and mobility needs.
           </motion.p>
         </div>

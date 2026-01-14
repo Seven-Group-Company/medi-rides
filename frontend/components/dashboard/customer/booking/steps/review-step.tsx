@@ -5,16 +5,16 @@ import { MapPin, Car, Calendar, Clock, Navigation, Wallet, FileText, AlertCircle
 import { BookingStepProps } from '@/types/booking.types';
 import { useMemo } from 'react';
 
-export default function ReviewStep({ 
-  formData, 
-  updateFormData, 
-  errors, 
-  onBack, 
+export default function ReviewStep({
+  formData,
+  updateFormData,
+  errors,
+  onBack,
   isSubmitting,
   onSubmit,
   serviceCategories = []
 }: BookingStepProps & { onSubmit: () => void; serviceCategories?: any[] }) {
-  
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       weekday: 'short',
@@ -60,7 +60,7 @@ export default function ReviewStep({
             <Car className="w-5 h-5 mr-2 text-blue-600" />
             Trip Details
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -69,7 +69,7 @@ export default function ReviewStep({
                 <p className="text-sm text-gray-600">{formData.pickup?.address}</p>
               </div>
             </div>
-            
+
             <div className="flex items-start space-x-3">
               <MapPin className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
               <div>
@@ -77,7 +77,7 @@ export default function ReviewStep({
                 <p className="text-sm text-gray-600">{formData.dropoff?.address}</p>
               </div>
             </div>
-            
+
             {formData.distanceKm && formData.estimatedTime && (
               <div className="grid grid-cols-2 gap-4 mt-4">
                 <div className="flex items-center space-x-2 text-sm">
@@ -99,7 +99,7 @@ export default function ReviewStep({
             <Calendar className="w-5 h-5 mr-2 text-blue-600" />
             Service & Schedule
           </h3>
-          
+
           <div className="space-y-4">
             <div className="flex items-start space-x-3">
               <Car className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -108,7 +108,7 @@ export default function ReviewStep({
                 <p className="text-sm text-gray-600">{serviceCategoryName}</p>
               </div>
             </div>
-            
+
             <div className="flex items-start space-x-3">
               <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
               <div>
@@ -118,7 +118,7 @@ export default function ReviewStep({
                 </p>
               </div>
             </div>
-            
+
             <div className="flex items-start space-x-3">
               <Wallet className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
               <div>
@@ -151,7 +151,7 @@ export default function ReviewStep({
           <div>
             <p className="text-sm font-medium text-yellow-800">Important Notice</p>
             <p className="text-sm text-yellow-700 mt-1">
-              Please ensure all information is correct. Our team will contact you within 30 minutes to confirm your booking details.
+              Please ensure all information is correct. Our team will contact you within 24 hours to confirm your booking details.
             </p>
           </div>
         </div>
@@ -179,7 +179,7 @@ export default function ReviewStep({
         >
           Back
         </motion.button>
-        
+
         <motion.button
           type="button"
           onClick={onSubmit}

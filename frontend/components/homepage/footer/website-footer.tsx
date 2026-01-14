@@ -1,14 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
+import {
+  Phone,
+  Mail,
+  MapPin,
   Clock,
-  Facebook, 
-  Instagram, 
-  Twitter, 
+  Facebook,
+  Instagram,
+  Twitter,
   Linkedin,
   ArrowUp,
   Heart
@@ -22,10 +22,10 @@ const WebsiteFooter = () => {
   return (
     <footer className="w-full bg-[#F8FAFC] border-t border-[#E2E8F0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        
+
         {/* Main Footer Content */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
-          
+
           {/* Company Info */}
           <motion.div
             initial={{ y: 20, opacity: 0 }}
@@ -39,7 +39,7 @@ const WebsiteFooter = () => {
             <p className="text-[#64748B] leading-relaxed">
               Providing safe, reliable medical and non-medical transportation with compassion and professionalism.
             </p>
-            
+
             {/* Trust Badges */}
             <div className="flex flex-wrap gap-2 pt-2">
               <span className="bg-white px-3 py-1 rounded text-xs text-[#1E293B] border border-[#E2E8F0]">
@@ -71,7 +71,7 @@ const WebsiteFooter = () => {
                   <p className="text-sm text-[#64748B]">24/7 Dispatch</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center">
                   <Mail className="w-4 h-4 text-[#0077B6]" />
@@ -81,7 +81,7 @@ const WebsiteFooter = () => {
                   <p className="text-sm text-[#64748B]">Quick Response</p>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center">
                   <MapPin className="w-4 h-4 text-[#0077B6]" />
@@ -144,7 +144,7 @@ const WebsiteFooter = () => {
             <h4 className="text-lg font-semibold text-[#1E293B]">
               Connect With Us
             </h4>
-            
+
             {/* Social Media Icons */}
             <div className="flex space-x-3">
               {[
@@ -192,9 +192,7 @@ const WebsiteFooter = () => {
             {/* Copyright */}
             <div className="text-[#64748B] text-sm">
               <p>
-                © 2025 Compassionate Medi Rides. All rights reserved. 
-                <span className="mx-2">•</span>
-                Made with <Heart className="w-3 h-3 inline text-red-500" /> for our community
+                © 2025 Compassionate Medi Rides. All rights reserved.
               </p>
             </div>
 

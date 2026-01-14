@@ -4,13 +4,17 @@ import {
   BadRequestException,
   ConflictException,
 } from '@nestjs/common';
+import { EmailService } from '../mail/email.service';
 import { PrismaService } from 'prisma/prisma.service';
 import { RideStatus, Prisma } from '@prisma/client';
 import { AcceptRideDto, UpdateRideStatusDto } from './dto/driver-ride.dto';
 
 @Injectable()
 export class DriverRidesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private emailService: EmailService,
+  ) { }
 
   async getAssignedRides(driverId: number) {
     return this.prisma.ride.findMany({
@@ -150,7 +154,7 @@ export class DriverRidesService {
       where: { id: rideId },
       data: {
         status: RideStatus.CONFIRMED,
-        additionalNotes: acceptRideDto.notes 
+        additionalNotes: acceptRideDto.notes
           ? `${ride.additionalNotes || ''}\nDriver ETA: ${acceptRideDto.estimatedArrivalMinutes} minutes`.trim()
           : ride.additionalNotes,
       },
@@ -200,7 +204,7 @@ export class DriverRidesService {
       updateData.additionalNotes = `${ride.additionalNotes || ''}\nDriver: ${updateRideStatusDto.notes}`.trim();
     }
 
-    return this.prisma.ride.update({
+    const updatedRide = await this.prisma.ride.update({
       where: { id: rideId },
       data: updateData,
       include: {
@@ -214,6 +218,24 @@ export class DriverRidesService {
         },
       },
     });
+
+    console.log(`[DriverRidesService] Ride #${rideId} status updated to ${updateRideStatusDto.status}`);
+
+    // Notify user if driver arrived
+    if (updateRideStatusDto.status === RideStatus.PICKUP_ARRIVED) {
+      if (updatedRide.customer?.email) {
+        console.log(`[DriverRidesService] Triggering driver arrived email to ${updatedRide.customer.email}`);
+        await this.emailService.sendDriverArrivedEmail(
+          updatedRide.customer.email,
+          updatedRide.customer.name,
+          updatedRide
+        );
+      } else {
+        console.log(`[DriverRidesService] Cannot send driver arrived email: No customer email linked (Guest ride?).`);
+      }
+    }
+
+    return updatedRide;
   }
 
   async completeRide(rideId: number, driverId: number, actualDistance?: number, actualDuration?: number) {
@@ -251,6 +273,8 @@ export class DriverRidesService {
             status: true,
             amount: true,
             method: true,
+            transactionId: true,
+            paidAt: true,
           },
         },
       },

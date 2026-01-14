@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
-import { User, LoginCredentials, RegisterCredentials } from '@/types/auth.types';
+import { useState } from 'react';
+import { User } from '@/types/auth.types';
 import {
-    BarChart3,
-  BellIcon,
+  BarChart3,
   MagnetIcon,
 } from 'lucide-react';
 
@@ -27,7 +26,7 @@ export default function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
           >
             <BarChart3 className="h-6 w-6" />
           </button>
-          
+
           {/* Search Bar */}
           <div className="ml-4 md:ml-0 relative max-w-md w-full">
             <div className="relative">
@@ -47,12 +46,6 @@ export default function AdminHeader({ onMenuClick, user }: AdminHeaderProps) {
 
         {/* Right Section */}
         <div className="flex items-center space-x-4">
-          {/* Notifications */}
-          <button className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 relative">
-            <BellIcon className="h-6 w-6" />
-            <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-          </button>
-
           {/* User Menu */}
           <div className="flex items-center space-x-3">
             <div className="hidden sm:flex flex-col text-right">

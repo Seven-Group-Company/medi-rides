@@ -1,0 +1,452 @@
+-- Create Enums
+CREATE TYPE "UserRole" AS ENUM ('CUSTOMER', 'DRIVER', 'ADMIN', 'DISPATCHER');
+CREATE TYPE "AuthProvider" AS ENUM ('LOCAL', 'GOOGLE');
+CREATE TYPE "ServiceType" AS ENUM ('MEDICAL', 'GENERAL');
+CREATE TYPE "RideStatus" AS ENUM ('PENDING', 'ASSIGNED', 'CONFIRMED', 'DRIVER_EN_ROUTE', 'PICKUP_ARRIVED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED', 'NO_SHOW');
+CREATE TYPE "PaymentStatus" AS ENUM ('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'REFUNDED', 'PARTIALLY_REFUNDED');
+CREATE TYPE "PaymentMethod" AS ENUM ('CREDIT_CARD', 'DEBIT_CARD', 'INSURANCE', 'CASH', 'VOUCHER', 'CORPORATE_BILLING');
+CREATE TYPE "methodType" AS ENUM ('private', 'waiver');
+CREATE TYPE "VehicleType" AS ENUM ('SEDAN', 'SUV', 'VAN', 'WHEELCHAIR_VAN', 'STRETCHER_VAN');
+CREATE TYPE "VehicleStatus" AS ENUM ('AVAILABLE', 'IN_USE', 'MAINTENANCE');
+CREATE TYPE "NotificationType" AS ENUM ('RIDE_BOOKED', 'RIDE_ASSIGNED', 'RIDE_UPDATED', 'RIDE_COMPLETED', 'PAYMENT_RECEIVED', 'SYSTEM_ALERT', 'PROMOTIONAL');
+CREATE TYPE "DocumentStatus" AS ENUM ('VALID', 'EXPIRING_SOON', 'EXPIRED', 'RENEWAL_IN_PROGRESS');
+CREATE TYPE "Priority" AS ENUM ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL');
+CREATE TYPE "EntityType" AS ENUM ('VEHICLE', 'DRIVER', 'COMPANY', 'OTHER');
+CREATE TYPE "ReminderType" AS ENUM ('EMAIL', 'SMS', 'IN_APP');
+CREATE TYPE "ReminderStatus" AS ENUM ('PENDING', 'SENT', 'FAILED');
+CREATE TYPE "InvoiceStatus" AS ENUM ('PENDING', 'PAID', 'OVERDUE', 'CANCELLED');
+
+-- Create users table
+CREATE TABLE "users" (
+    "id" SERIAL PRIMARY KEY,
+    "email" VARCHAR(255) UNIQUE NOT NULL,
+    "password" VARCHAR(255),
+    "name" VARCHAR(255) NOT NULL,
+    "emailVerificationToken" VARCHAR(255),
+    "emailVerificationExpires" TIMESTAMP,
+    "role" "UserRole" DEFAULT 'CUSTOMER',
+    "phone" VARCHAR(255),
+    "avatar" VARCHAR(255),
+    "isVerified" BOOLEAN DEFAULT false,
+    "isActive" BOOLEAN DEFAULT true,
+    "provider" "AuthProvider" DEFAULT 'LOCAL',
+    "providerId" VARCHAR(255),
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "lastLoginAt" TIMESTAMP
+);
+
+-- Create service_categories table
+CREATE TABLE "service_categories" (
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR(255) UNIQUE NOT NULL,
+    "value" VARCHAR(255) UNIQUE NOT NULL,
+    "description" TEXT,
+    "icon" VARCHAR(255),
+    "isActive" BOOLEAN DEFAULT true,
+    "basePrice" DECIMAL(10,2) DEFAULT 15.00,
+    "pricePerMile" DECIMAL(10,2) DEFAULT 1.50,
+    "serviceType" "ServiceType" DEFAULT 'GENERAL',
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create rides table
+CREATE TABLE "rides" (
+    "id" SERIAL PRIMARY KEY,
+    "customerId" INTEGER,
+    "driverId" INTEGER,
+    "pickupAddress" TEXT NOT NULL,
+    "pickupLatitude" DECIMAL(10,7),
+    "pickupLongitude" DECIMAL(10,7),
+    "dropoffAddress" TEXT NOT NULL,
+    "distance" DECIMAL(10,2),
+    "duration" INTEGER,
+    "dropoffLatitude" DECIMAL(10,7),
+    "dropoffLongitude" DECIMAL(10,7),
+    "serviceCategoryId" INTEGER NOT NULL,
+    "serviceType" "ServiceType",
+    "status" "RideStatus" DEFAULT 'PENDING',
+    "scheduledAt" TIMESTAMP NOT NULL,
+    "actualPickupAt" TIMESTAMP,
+    "actualDropoffAt" TIMESTAMP,
+    "isGuest" BOOLEAN DEFAULT false,
+    "passengerName" VARCHAR(255),
+    "passengerPhone" VARCHAR(255),
+    "paymentType" "methodType" DEFAULT 'private',
+    "specialNeeds" TEXT,
+    "additionalNotes" TEXT,
+    "basePrice" DECIMAL(10,2) NOT NULL,
+    "finalPrice" DECIMAL(10,2),
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("customerId") REFERENCES "users"("id") ON DELETE SET NULL,
+    FOREIGN KEY ("driverId") REFERENCES "users"("id") ON DELETE SET NULL,
+    FOREIGN KEY ("serviceCategoryId") REFERENCES "service_categories"("id") ON DELETE RESTRICT
+);
+
+-- Create driver_profiles table
+CREATE TABLE "driver_profiles" (
+    "id" SERIAL PRIMARY KEY,
+    "userId" INTEGER UNIQUE NOT NULL,
+    "licenseNumber" VARCHAR(255) NOT NULL,
+    "licenseState" VARCHAR(100) NOT NULL,
+    "licenseExpiry" TIMESTAMP NOT NULL,
+    "vehicleInfo" TEXT,
+    "insuranceInfo" TEXT,
+    "isAvailable" BOOLEAN DEFAULT true,
+    "rating" DECIMAL(3,2) DEFAULT 5.00,
+    "totalTrips" INTEGER DEFAULT 0,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+-- Create patient_profiles table
+CREATE TABLE "patient_profiles" (
+    "id" SERIAL PRIMARY KEY,
+    "userId" INTEGER UNIQUE NOT NULL,
+    "totalTrips" INTEGER DEFAULT 0,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+-- Create vehicles table
+CREATE TABLE "vehicles" (
+    "id" SERIAL PRIMARY KEY,
+    "driverId" INTEGER,
+    "make" VARCHAR(100) NOT NULL,
+    "model" VARCHAR(100) NOT NULL,
+    "year" INTEGER NOT NULL,
+    "color" VARCHAR(50) NOT NULL,
+    "licensePlate" VARCHAR(50) UNIQUE NOT NULL,
+    "vin" VARCHAR(100),
+    "type" "VehicleType" NOT NULL,
+    "capacity" INTEGER NOT NULL,
+    "hasWheelchairAccess" BOOLEAN DEFAULT false,
+    "hasOxygenSupport" BOOLEAN DEFAULT false,
+    "insuranceExpiry" TIMESTAMP NOT NULL,
+    "registrationExpiry" TIMESTAMP NOT NULL,
+    "liabilityInsuranceExpiry" TIMESTAMP,
+    "status" "VehicleStatus" DEFAULT 'AVAILABLE',
+    "images" TEXT[] DEFAULT '{}',
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "driverProfileId" INTEGER,
+    FOREIGN KEY ("driverId") REFERENCES "users"("id") ON DELETE SET NULL,
+    FOREIGN KEY ("driverProfileId") REFERENCES "driver_profiles"("id") ON DELETE SET NULL
+);
+
+-- Create payments table
+CREATE TABLE "payments" (
+    "id" SERIAL PRIMARY KEY,
+    "rideId" INTEGER UNIQUE NOT NULL,
+    "customerId" INTEGER NOT NULL,
+    "amount" DECIMAL(10,2) NOT NULL,
+    "status" "PaymentStatus" DEFAULT 'PENDING',
+    "method" "PaymentMethod",
+    "transactionId" VARCHAR(255),
+    "billingName" VARCHAR(255),
+    "billingEmail" VARCHAR(255),
+    "billingPhone" VARCHAR(255),
+    "billingAddress" TEXT,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "paidAt" TIMESTAMP,
+    FOREIGN KEY ("rideId") REFERENCES "rides"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("customerId") REFERENCES "users"("id") ON DELETE RESTRICT
+);
+
+-- Create invoices table
+CREATE TABLE "invoices" (
+    "id" SERIAL PRIMARY KEY,
+    "rideId" INTEGER UNIQUE NOT NULL,
+    "invoiceNumber" VARCHAR(255) UNIQUE DEFAULT gen_random_uuid(),
+    "amount" DECIMAL(10,2) NOT NULL,
+    "tax" DECIMAL(10,2) DEFAULT 0.00,
+    "totalAmount" DECIMAL(10,2) NOT NULL,
+    "dueDate" TIMESTAMP NOT NULL,
+    "issuedDate" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "status" "InvoiceStatus" DEFAULT 'PENDING',
+    "pdfUrl" TEXT,
+    "notes" TEXT,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("rideId") REFERENCES "rides"("id") ON DELETE CASCADE
+);
+
+-- Create addresses table
+CREATE TABLE "addresses" (
+    "id" SERIAL PRIMARY KEY,
+    "userId" INTEGER NOT NULL,
+    "label" VARCHAR(100) NOT NULL,
+    "address" TEXT NOT NULL,
+    "city" VARCHAR(100) NOT NULL,
+    "state" VARCHAR(100) NOT NULL,
+    "zipCode" VARCHAR(20) NOT NULL,
+    "latitude" DECIMAL(10,7),
+    "longitude" DECIMAL(10,7),
+    "isDefault" BOOLEAN DEFAULT false,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE ("userId", "label"),
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+-- Create refresh_tokens table
+CREATE TABLE "refresh_tokens" (
+    "id" SERIAL PRIMARY KEY,
+    "token" VARCHAR(255) UNIQUE NOT NULL,
+    "userId" INTEGER UNIQUE NOT NULL,
+    "expiresAt" TIMESTAMP NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+-- Create service_areas table
+CREATE TABLE "service_areas" (
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR(255) NOT NULL,
+    "description" TEXT,
+    "polygon" JSONB,
+    "basePrice" DECIMAL(10,2) NOT NULL,
+    "pricePerMile" DECIMAL(10,2) NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create notifications table
+CREATE TABLE "notifications" (
+    "id" SERIAL PRIMARY KEY,
+    "userId" INTEGER NOT NULL,
+    "type" "NotificationType" NOT NULL,
+    "title" VARCHAR(255) NOT NULL,
+    "message" TEXT NOT NULL,
+    "isRead" BOOLEAN DEFAULT false,
+    "metadata" JSONB,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "readAt" TIMESTAMP,
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+-- Create driver_availabilities table
+CREATE TABLE "driver_availabilities" (
+    "id" SERIAL PRIMARY KEY,
+    "driverId" INTEGER NOT NULL,
+    "startTime" TIMESTAMP NOT NULL,
+    "endTime" TIMESTAMP NOT NULL,
+    "isAvailable" BOOLEAN DEFAULT true,
+    "reason" TEXT,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("driverId") REFERENCES "users"("id") ON DELETE CASCADE
+);
+
+-- Create document_categories table
+CREATE TABLE "document_categories" (
+    "id" SERIAL PRIMARY KEY,
+    "name" VARCHAR(255) UNIQUE NOT NULL,
+    "description" TEXT,
+    "color" VARCHAR(20) DEFAULT '#3B82F6',
+    "icon" VARCHAR(100) DEFAULT 'Tag',
+    "requiresRenewal" BOOLEAN DEFAULT true,
+    "renewalPeriodDays" INTEGER DEFAULT 365,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create document_trackings table
+CREATE TABLE "document_trackings" (
+    "id" SERIAL PRIMARY KEY,
+    "title" VARCHAR(255) NOT NULL,
+    "description" TEXT,
+    "documentNumber" VARCHAR(255) NOT NULL,
+    "documentType" VARCHAR(100),
+    "categoryId" INTEGER NOT NULL,
+    "issueDate" TIMESTAMP NOT NULL,
+    "expiryDate" TIMESTAMP NOT NULL,
+    "renewalDate" TIMESTAMP,
+    "lastReminderSent" TIMESTAMP,
+    "status" "DocumentStatus" DEFAULT 'VALID',
+    "priority" "Priority" DEFAULT 'MEDIUM',
+    "entityType" "EntityType" DEFAULT 'OTHER',
+    "entityId" INTEGER,
+    "entityName" VARCHAR(255),
+    "fileUrl" TEXT NOT NULL,
+    "fileName" VARCHAR(255) NOT NULL,
+    "fileSize" INTEGER NOT NULL,
+    "fileType" VARCHAR(100) NOT NULL,
+    "tags" TEXT[] DEFAULT '{}',
+    "notes" TEXT,
+    "reminderDays" INTEGER DEFAULT 30,
+    "createdById" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedById" INTEGER,
+    "userId" INTEGER,
+    FOREIGN KEY ("categoryId") REFERENCES "document_categories"("id") ON DELETE RESTRICT,
+    FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE RESTRICT,
+    FOREIGN KEY ("updatedById") REFERENCES "users"("id") ON DELETE SET NULL,
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL
+);
+
+-- Create document_renewals table
+CREATE TABLE "document_renewals" (
+    "id" SERIAL PRIMARY KEY,
+    "documentId" INTEGER NOT NULL,
+    "renewalDate" TIMESTAMP NOT NULL,
+    "expiryDate" TIMESTAMP NOT NULL,
+    "fileUrl" TEXT NOT NULL,
+    "fileName" VARCHAR(255) NOT NULL,
+    "notes" TEXT,
+    "createdById" INTEGER NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "userId" INTEGER,
+    FOREIGN KEY ("documentId") REFERENCES "document_trackings"("id") ON DELETE CASCADE,
+    FOREIGN KEY ("createdById") REFERENCES "users"("id") ON DELETE RESTRICT,
+    FOREIGN KEY ("userId") REFERENCES "users"("id") ON DELETE SET NULL
+);
+
+-- Create document_reminders table
+CREATE TABLE "document_reminders" (
+    "id" SERIAL PRIMARY KEY,
+    "documentId" INTEGER NOT NULL,
+    "reminderType" "ReminderType" DEFAULT 'IN_APP',
+    "sentAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "recipientEmail" VARCHAR(255),
+    "recipientPhone" VARCHAR(50),
+    "status" "ReminderStatus" DEFAULT 'SENT',
+    "message" TEXT,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY ("documentId") REFERENCES "document_trackings"("id") ON DELETE CASCADE
+);
+
+-- Create document_stats table
+CREATE TABLE "document_stats" (
+    "id" SERIAL PRIMARY KEY,
+    "totalDocuments" INTEGER DEFAULT 0,
+    "validDocuments" INTEGER DEFAULT 0,
+    "expiringSoonCount" INTEGER DEFAULT 0,
+    "expiredDocuments" INTEGER DEFAULT 0,
+    "renewalInProgress" INTEGER DEFAULT 0,
+    "lastUpdated" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create paginated_documents table
+CREATE TABLE "paginated_documents" (
+    "id" SERIAL PRIMARY KEY,
+    "page" INTEGER NOT NULL,
+    "pageSize" INTEGER NOT NULL,
+    "totalCount" INTEGER NOT NULL,
+    "documents" JSONB NOT NULL,
+    "createdAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create indexes for better performance
+CREATE INDEX "idx_users_email" ON "users"("email");
+CREATE INDEX "idx_users_role" ON "users"("role");
+CREATE INDEX "idx_rides_customer_id" ON "rides"("customerId");
+CREATE INDEX "idx_rides_driver_id" ON "rides"("driverId");
+CREATE INDEX "idx_rides_status" ON "rides"("status");
+CREATE INDEX "idx_rides_service_category_id" ON "rides"("serviceCategoryId");
+CREATE INDEX "idx_payments_ride_id" ON "payments"("rideId");
+CREATE INDEX "idx_payments_customer_id" ON "payments"("customerId");
+CREATE INDEX "idx_payments_status" ON "payments"("status");
+CREATE INDEX "idx_invoices_ride_id" ON "invoices"("rideId");
+CREATE INDEX "idx_invoices_status" ON "invoices"("status");
+CREATE INDEX "idx_vehicles_driver_id" ON "vehicles"("driverId");
+CREATE INDEX "idx_vehicles_status" ON "vehicles"("status");
+CREATE INDEX "idx_document_trackings_document_number" ON "document_trackings"("documentNumber");
+CREATE INDEX "idx_document_trackings_status" ON "document_trackings"("status");
+CREATE INDEX "idx_document_trackings_priority" ON "document_trackings"("priority");
+CREATE INDEX "idx_document_trackings_expiry_date" ON "document_trackings"("expiryDate");
+CREATE INDEX "idx_document_trackings_entity" ON "document_trackings"("entityType", "entityId");
+CREATE INDEX "idx_document_trackings_category_id" ON "document_trackings"("categoryId");
+CREATE INDEX "idx_document_renewals_document_id" ON "document_renewals"("documentId");
+CREATE INDEX "idx_document_reminders_document_id" ON "document_reminders"("documentId");
+CREATE INDEX "idx_document_reminders_sent_at" ON "document_reminders"("sentAt");
+CREATE INDEX "idx_notifications_user_id" ON "notifications"("userId");
+CREATE INDEX "idx_notifications_is_read" ON "notifications"("isRead");
+CREATE INDEX "idx_refresh_tokens_token" ON "refresh_tokens"("token");
+CREATE INDEX "idx_refresh_tokens_user_id" ON "refresh_tokens"("userId");
+CREATE INDEX "idx_driver_availabilities_driver_id" ON "driver_availabilities"("driverId");
+CREATE INDEX "idx_addresses_user_id" ON "addresses"("userId");
+
+-- Create function to update updatedAt timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW."updatedAt" = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Create triggers for updatedAt on all tables that have it
+CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON "users" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_service_categories_updated_at BEFORE UPDATE ON "service_categories" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_rides_updated_at BEFORE UPDATE ON "rides" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_driver_profiles_updated_at BEFORE UPDATE ON "driver_profiles" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_patient_profiles_updated_at BEFORE UPDATE ON "patient_profiles" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_vehicles_updated_at BEFORE UPDATE ON "vehicles" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON "payments" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON "invoices" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_addresses_updated_at BEFORE UPDATE ON "addresses" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_service_areas_updated_at BEFORE UPDATE ON "service_areas" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_notifications_updated_at BEFORE UPDATE ON "notifications" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_driver_availabilities_updated_at BEFORE UPDATE ON "driver_availabilities" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_document_categories_updated_at BEFORE UPDATE ON "document_categories" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_document_trackings_updated_at BEFORE UPDATE ON "document_trackings" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_paginated_documents_updated_at BEFORE UPDATE ON "paginated_documents" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+CREATE TRIGGER update_document_stats_updated_at BEFORE UPDATE ON "document_stats" FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Insert default service categories
+INSERT INTO "service_categories" ("name", "value", "description", "icon", "serviceType", "basePrice", "pricePerMile") VALUES
+    ('Standard Transport', 'standard', 'Basic medical transportation service', 'car', 'MEDICAL', 15.00, 1.50),
+    ('Wheelchair Transport', 'wheelchair', 'Transport for wheelchair-bound patients', 'wheelchair', 'MEDICAL', 25.00, 2.50),
+    ('Stretcher Transport', 'stretcher', 'Transport requiring stretcher services', 'bed', 'MEDICAL', 35.00, 3.50),
+    ('Emergency Transport', 'emergency', 'Urgent medical transportation', 'siren', 'MEDICAL', 50.00, 5.00),
+    ('General Transport', 'general', 'Non-medical transportation service', 'car', 'GENERAL', 12.00, 1.20);
+
+-- Insert default document categories
+INSERT INTO "document_categories" ("name", "description", "color", "icon", "renewalPeriodDays") VALUES
+    ('Driver License', 'Driver license and identification documents', '#10B981', 'UserCheck', 365),
+    ('Vehicle Registration', 'Vehicle registration documents', '#3B82F6', 'Car', 365),
+    ('Insurance', 'Insurance policies and certificates', '#EF4444', 'Shield', 365),
+    ('Medical Certification', 'Medical training and certification documents', '#8B5CF6', 'Stethoscope', 730),
+    ('Background Check', 'Criminal background check documents', '#F59E0B', 'FileCheck', 365);
+
+-- Create a test admin user (password will be hashed later in your app)
+INSERT INTO "users" ("email", "password", "name", "role", "isVerified", "isActive") VALUES
+    ('admin@medi-rides.com', '$2b$12$your-hashed-password-here', 'Admin User', 'ADMIN', true, true);
+
+-- Enable Row Level Security (RLS) for tables
+ALTER TABLE "users" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "rides" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "payments" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "invoices" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "vehicles" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "notifications" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "document_trackings" ENABLE ROW LEVEL SECURITY;
+ALTER TABLE "document_renewals" ENABLE ROW LEVEL SECURITY;
+
+-- Create basic RLS policies (customize these based on your app needs)
+CREATE POLICY "Users can view own profile" ON "users" FOR SELECT USING (auth.uid()::text = id::text);
+CREATE POLICY "Admins can manage all users" ON "users" FOR ALL USING (role = 'ADMIN');
+
+-- Grant necessary permissions
+GRANT ALL ON ALL TABLES IN SCHEMA public TO postgres;
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO postgres;
+
+COMMENT ON TABLE "users" IS 'User accounts for the Medi Rides platform';
+COMMENT ON TABLE "rides" IS 'Ride booking and tracking information';
+COMMENT ON TABLE "payments" IS 'Payment transactions for rides';
+COMMENT ON TABLE "invoices" IS 'Invoices generated for rides';
+COMMENT ON TABLE "document_trackings" IS 'Document tracking and management system';
+
+-- Rename tables to match Prisma model names
+ALTER TABLE "document_trackings" RENAME TO "DocumentTracking";
+ALTER TABLE "document_categories" RENAME TO "DocumentCategory";
+ALTER TABLE "document_renewals" RENAME TO "DocumentRenewal";
+ALTER TABLE "document_reminders" RENAME TO "DocumentReminder";
