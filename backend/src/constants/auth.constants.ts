@@ -21,5 +21,6 @@ export const AUTH_SUCCESS = {
   PROFILE_UPDATED: 'Your profile has been updated successfully.',
   EMAIL_VERIFIED: 'Your email has been verified successfully! You can now log in to your account.',
   VERIFICATION_EMAIL_SENT: 'Verification email sent! Please check your inbox to verify your email address.',
+  PASSWORD_RESET_EMAIL_SENT: 'If an account exists with this email, you will receive a password reset link.',
   PASSWORD_CHANGED: 'Your password has been changed successfully.',
 };

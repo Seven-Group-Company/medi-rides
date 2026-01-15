@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
+import { authService } from '@/services/auth.service';
 
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email) {
       setError('Email is required');
@@ -19,10 +20,14 @@ const ForgotPassword = () => {
       setError('Email is invalid');
       return;
     }
-    
+
     // Handle password reset logic here
-    console.log('Password reset requested for:', email);
-    setIsSubmitted(true);
+    try {
+      await authService.forgotPassword(email);
+      setIsSubmitted(true);
+    } catch (err: any) {
+      setError(err.response?.data?.message || 'Failed to send reset email. Please try again.');
+    }
   };
 
   if (isSubmitted) {
@@ -37,7 +42,7 @@ const ForgotPassword = () => {
               Check Your Email
             </h2>
             <p className="text-[#64748B] mb-6">
-              We've sent a password reset link to <strong>{email}</strong>. 
+              We've sent a password reset link to <strong>{email}</strong>.
               Please check your inbox and follow the instructions.
             </p>
             <div className="space-y-3">
@@ -107,9 +112,8 @@ const ForgotPassword = () => {
                     setEmail(e.target.value);
                     setError('');
                   }}
-                  className={`block w-full pl-10 pr-3 py-3 border ${
-                    error ? 'border-red-300' : 'border-[#E6EAF0]'
-                  } rounded-lg focus:ring-2 focus:ring-[#B0D6FF] focus:border-[#B0D6FF] transition-colors duration-200`}
+                  className={`block w-full pl-10 pr-3 py-3 border ${error ? 'border-red-300' : 'border-[#E6EAF0]'
+                    } rounded-lg focus:ring-2 focus:ring-[#B0D6FF] focus:border-[#B0D6FF] transition-colors duration-200`}
                   placeholder="Enter your email"
                 />
               </div>
