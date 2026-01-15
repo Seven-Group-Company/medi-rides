@@ -15,6 +15,8 @@ model User {
   name                     String
   emailVerificationToken   String?
   emailVerificationExpires DateTime?
+  passwordResetToken       String?
+  passwordResetExpires     DateTime?
   role                     UserRole     @default(CUSTOMER)
   phone                    String?
   avatar                   String?

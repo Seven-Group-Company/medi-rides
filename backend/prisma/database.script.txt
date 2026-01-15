@@ -24,6 +24,8 @@ CREATE TABLE "users" (
     "name" VARCHAR(255) NOT NULL,
     "emailVerificationToken" VARCHAR(255),
     "emailVerificationExpires" TIMESTAMP,
+    "passwordResetToken" VARCHAR(255),
+    "passwordResetExpires" TIMESTAMP,
     "role" "UserRole" DEFAULT 'CUSTOMER',
     "phone" VARCHAR(255),
     "avatar" VARCHAR(255),

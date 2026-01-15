@@ -298,7 +298,9 @@ export class AuthService {
     return this.mapUser(user);
   }
 
-  // Add to auth.service.ts
+  // -------------------------
+  // Change Password
+  // -------------------------
   async changePassword(userId: number, changePasswordDto: ChangePasswordDto): Promise<{ message: string }> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
@@ -322,6 +324,72 @@ export class AuthService {
     await this.prisma.user.update({
       where: { id: userId },
       data: { password: hashedPassword },
+    });
+
+    return { message: AUTH_SUCCESS.PASSWORD_CHANGED };
+  }
+
+  // -------------------------
+  // Forgot Password
+  // -------------------------
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findUnique({ where: { email } });
+
+    // security: do not reveal if user exists
+    if (!user) {
+      return { message: AUTH_SUCCESS.PASSWORD_RESET_EMAIL_SENT };
+    }
+
+    if (user.provider !== AuthProvider.LOCAL) {
+      // If user uses social login, they can't reset password.
+      // We might want to notify them, but for now just returning success to avoid enumeration
+      return { message: AUTH_SUCCESS.PASSWORD_RESET_EMAIL_SENT };
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+    const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: token,
+        passwordResetExpires: expires,
+      },
+    });
+
+    const resetUrl = `${this.configService.get('FRONTEND_URL')}/auth/reset-password?token=${token}`;
+
+    await this.emailService.sendPasswordResetEmail(user.email, user.name, resetUrl);
+
+    return { message: AUTH_SUCCESS.PASSWORD_RESET_EMAIL_SENT };
+  }
+
+  // -------------------------
+  // Reset Password
+  // -------------------------
+  async resetPassword(token: string, newPassword: string): Promise<{ message: string }> {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        passwordResetToken: token,
+        passwordResetExpires: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!user) {
+      throw new BadRequestException('Invalid or expired password reset token');
+    }
+
+    const hashedPassword = await this.hashData(newPassword);
+
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
     });
 
     return { message: AUTH_SUCCESS.PASSWORD_CHANGED };
