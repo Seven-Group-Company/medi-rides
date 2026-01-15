@@ -447,7 +447,7 @@ COMMENT ON TABLE "payments" IS 'Payment transactions for rides';
 COMMENT ON TABLE "invoices" IS 'Invoices generated for rides';
 COMMENT ON TABLE "document_trackings" IS 'Document tracking and management system';
 
--- Rename tables to match Prisma model names
+-- Rename tables to match Prisma model names.
 ALTER TABLE "document_trackings" RENAME TO "DocumentTracking";
 ALTER TABLE "document_categories" RENAME TO "DocumentCategory";
 ALTER TABLE "document_renewals" RENAME TO "DocumentRenewal";
