@@ -23,6 +23,8 @@ export type AuthResponse = {
     isVerified: boolean;
     tokens: Tokens;
     isActive: boolean;
+    passwordResetToken?: string;
+    passwordResetExpires?: Date;
     provider?: string;
     createdAt: Date;
     lastLoginAt?: Date;
