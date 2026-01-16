@@ -17,6 +17,21 @@ interface VehicleDetailsModalProps {
   onDelete: () => void;
 }
 
+// Helper function to parse images from string or array
+const parseImages = (images: string | string[] | null | undefined): string[] => {
+  if (!images) return [];
+  if (Array.isArray(images)) return images;
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export default function VehicleDetailsModal({
   vehicle,
   isOpen,
@@ -108,16 +123,16 @@ export default function VehicleDetailsModal({
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Main Image */}
             <div className="lg:col-span-2">
-              {vehicle.images && vehicle.images.length > 0 ? (
+              {parseImages(vehicle.images).length > 0 ? (
                 <div className="bg-gray-100 rounded-xl p-4">
                   <img
-                    src={vehicle.images[0]}
+                    src={parseImages(vehicle.images)[0]}
                     alt={`${vehicle.make} ${vehicle.model}`}
                     className="w-full h-64 object-cover rounded-lg"
                   />
-                  {vehicle.images.length > 1 && (
+                  {parseImages(vehicle.images).length > 1 && (
                     <div className="flex space-x-2 mt-4 overflow-x-auto">
-                      {vehicle.images.slice(1).map((image, index) => (
+                      {parseImages(vehicle.images).slice(1).map((image, index) => (
                         <img
                           key={index}
                           src={image}
