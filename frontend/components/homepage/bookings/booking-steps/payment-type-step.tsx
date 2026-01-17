@@ -1,25 +1,23 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, CreditCard, Shield, FileText, Users, Building } from 'lucide-react';
+import { ChevronLeft, ChevronRight, CreditCard, Shield } from 'lucide-react';
 import { BookingStepProps } from '@/types/guest-booking-types';
 
 const PAYMENT_TYPES = [
   {
     id: 'private',
     label: 'Private Pay',
-    description: 'Pay with your own funds',
+    description: 'Pay with own funds',
     icon: CreditCard,
     color: 'bg-blue-100 border-blue-200 text-blue-700',
-    hoverColor: 'hover:bg-blue-50 hover:border-blue-300'
   },
   {
     id: 'waiver',
-    label: 'Waivers/Vouchers',
-    description: 'ALI, APDD, IDD, ISW',
+    label: 'Waiver/Voucher',
+    description: 'ALI, APDD, IDD',
     icon: Shield,
     color: 'bg-green-100 border-green-200 text-green-700',
-    hoverColor: 'hover:bg-green-50 hover:border-green-300'
   },
 ];
 
@@ -35,16 +33,7 @@ export default function PaymentTypeStep({
   };
 
   const validateAndProceed = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.paymentType) {
-      newErrors.paymentType = 'Please select a payment type';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
-
+    if (!formData.paymentType) return;
     onNext();
   };
 
@@ -53,26 +42,24 @@ export default function PaymentTypeStep({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      className="space-y-4"
     >
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Payment Method</h2>
-        <p className="text-gray-600 text-sm">Select how you'll be paying for this ride</p>
+      <div className="text-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Payment</h2>
+        <p className="text-xs text-gray-600">Select payment method</p>
       </div>
 
-      {/* Error Message */}
       {errors.paymentType && (
         <motion.div
           initial={{ opacity: 0, height: 0 }}
           animate={{ opacity: 1, height: 'auto' }}
-          className="bg-red-50 border border-red-100 rounded-xl p-3 mb-4"
+          className="bg-red-50 border border-red-100 rounded-lg p-2 mb-3"
         >
-          <p className="text-red-700 text-sm text-center">{errors.paymentType}</p>
+          <p className="text-red-700 text-xs text-center">{errors.paymentType}</p>
         </motion.div>
       )}
 
-      {/* Payment Type Options */}
-      <div className="space-y-3">
+      <div className="space-y-2">
         {PAYMENT_TYPES.map((paymentType, index) => {
           const Icon = paymentType.icon;
           return (
@@ -82,23 +69,23 @@ export default function PaymentTypeStep({
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
               onClick={() => handlePaymentTypeSelect(paymentType.id as any)}
-              className={`w-full p-4 rounded-xl text-left transition-all duration-300 border-2 ${paymentType.color} ${paymentType.hoverColor} ${
+              className={`w-full p-3 rounded-lg text-left transition-all duration-200 border ${paymentType.color} ${
                 formData.paymentType === paymentType.id
-                  ? 'ring-2 ring-offset-2 ring-blue-500'
+                  ? 'ring-2 ring-offset-1 ring-blue-500'
                   : ''
               }`}
             >
-              <div className="flex items-center space-x-4">
-                <div className={`w-12 h-12 rounded-lg flex items-center justify-center ${paymentType.color.split(' ')[0]}`}>
-                  <Icon className="w-6 h-6" />
+              <div className="flex items-center space-x-3">
+                <div className={`w-10 h-10 rounded flex items-center justify-center ${paymentType.color.split(' ')[0]}`}>
+                  <Icon className="w-5 h-5" />
                 </div>
                 <div className="flex-1">
-                  <div className="font-semibold">{paymentType.label}</div>
-                  <div className="text-sm opacity-80 mt-1">{paymentType.description}</div>
+                  <div className="font-medium text-sm">{paymentType.label}</div>
+                  <div className="text-xs opacity-80 mt-0.5">{paymentType.description}</div>
                 </div>
                 {formData.paymentType === paymentType.id && (
-                  <div className="w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center">
-                    <div className="w-2 h-2 rounded-full bg-white"></div>
+                  <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
                   </div>
                 )}
               </div>
@@ -107,14 +94,13 @@ export default function PaymentTypeStep({
         })}
       </div>
 
-      {/* Navigation Buttons */}
-      <div className="flex gap-3 pt-4">
+      <div className="flex gap-2 pt-3">
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={onPrev}
-          className="flex-1 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl font-semibold hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 flex items-center justify-center"
+          className="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium text-sm hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center"
         >
-          <ChevronLeft className="w-5 h-5 mr-2" />
+          <ChevronLeft className="w-4 h-4 mr-1" />
           Back
         </motion.button>
         
@@ -122,10 +108,10 @@ export default function PaymentTypeStep({
           whileTap={{ scale: 0.98 }}
           onClick={validateAndProceed}
           disabled={!formData.paymentType}
-          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
+          className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm shadow hover:shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
         >
           Continue
-          <ChevronRight className="w-5 h-5 ml-2" />
+          <ChevronRight className="w-4 h-4 ml-1" />
         </motion.button>
       </div>
     </motion.div>

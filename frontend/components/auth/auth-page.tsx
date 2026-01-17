@@ -80,10 +80,6 @@ const AuthPage = () => {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="text-center text-blue-200 text-sm">
-            <p>Trusted by thousands of patients and caregivers</p>
-          </div>
         </div>
 
         {/* Right Column - Authentication Forms */}

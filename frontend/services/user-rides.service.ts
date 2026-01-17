@@ -1,3 +1,5 @@
+"use client";
+
 import axios from 'axios';
 import { CreateRideDto } from '@/types/booking.types';
 

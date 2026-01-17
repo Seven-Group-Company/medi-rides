@@ -27,9 +27,8 @@ export default function LocationStep({
       });
 
       if (response.rows[0].elements[0].status === 'OK') {
-        const distance = response.rows[0].elements[0].distance.value / 1000;
-        const duration = response.rows[0].elements[0].duration.value / 60;
         const distanceMiles = response.rows[0].elements[0].distance.value / 1609.34;
+        const duration = response.rows[0].elements[0].duration.value / 60;
 
         updateFormData({
           distanceMiles: parseFloat(distanceMiles.toFixed(1)),
@@ -37,7 +36,7 @@ export default function LocationStep({
         });
       }
     } catch (error) {
-      console.error('Error calculating route:', error);
+      console.error('Route calc error:', error);
     }
   }, [formData.pickup, formData.dropoff, updateFormData]);
 
@@ -58,20 +57,7 @@ export default function LocationStep({
   };
 
   const validateAndProceed = () => {
-    const newErrors: Record<string, string> = {};
-    
-    if (!formData.pickup) {
-      newErrors.pickup = 'Pickup location is required';
-    }
-    
-    if (!formData.dropoff) {
-      newErrors.dropoff = 'Drop-off location is required';
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
-
+    if (!formData.pickup || !formData.dropoff) return;
     onNext();
   };
 
@@ -80,77 +66,74 @@ export default function LocationStep({
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      className="space-y-4"
     >
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Where to?</h2>
-        <p className="text-gray-600 text-sm">Enter your pickup and drop-off locations</p>
+      <div className="text-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Where to?</h2>
+        <p className="text-xs text-gray-600">Enter pickup & drop-off</p>
       </div>
 
-      <div className="space-y-4">
-        {/* Location Inputs */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 flex items-center">
-              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-              Pickup Location *
+      <div className="space-y-3">
+        <div className="space-y-3">
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-700 flex items-center">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-1"></div>
+              Pickup *
             </label>
             <AutocompleteInput
-              placeholder="Enter pickup address"
+              placeholder="Pickup address"
               onPlaceSelected={(place) => handleLocationSelect('pickup', place)}
               className={errors.pickup ? 'border-red-500' : ''}
               error={!!errors.pickup}
             />
             {errors.pickup && (
-              <p className="mt-1 text-sm text-red-600">{errors.pickup}</p>
+              <p className="mt-1 text-xs text-red-600">{errors.pickup}</p>
             )}
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-gray-700 flex items-center">
-              <div className="w-2 h-2 bg-red-500 rounded-full mr-2"></div>
-              Drop-off Location *
+          <div className="space-y-1">
+            <label className="text-xs font-medium text-gray-700 flex items-center">
+              <div className="w-2 h-2 bg-red-500 rounded-full mr-1"></div>
+              Drop-off *
             </label>
             <AutocompleteInput
-              placeholder="Enter drop-off address"
+              placeholder="Destination"
               onPlaceSelected={(place) => handleLocationSelect('dropoff', place)}
               className={errors.dropoff ? 'border-red-500' : ''}
               error={!!errors.dropoff}
             />
             {errors.dropoff && (
-              <p className="mt-1 text-sm text-red-600">{errors.dropoff}</p>
+              <p className="mt-1 text-xs text-red-600">{errors.dropoff}</p>
             )}
           </div>
         </div>
 
-        {/* Route Preview */}
         <AnimatePresence>
           {formData.pickup && formData.dropoff && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="space-y-4"
+              className="space-y-3"
             >
               <RouteMap 
                 pickup={formData.pickup} 
                 dropoff={formData.dropoff} 
-                height="200px"
+                height="150px"
               />
               
-              {/* Distance & Time Info */}
               {formData.distanceMiles && formData.estimatedTime && (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className="grid grid-cols-2 gap-4"
+                  className="grid grid-cols-2 gap-2"
                 >
-                  <div className="flex items-center justify-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                    <Navigation className="w-4 h-4 mr-2 text-blue-600" />
-                    <span className="font-medium">{formData.distanceMiles} km</span>
+                  <div className="flex items-center justify-center text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                    <Navigation className="w-3 h-3 mr-1 text-blue-600" />
+                    <span className="font-medium">{formData.distanceMiles} mi</span>
                   </div>
-                  <div className="flex items-center justify-center text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
-                    <Clock className="w-4 h-4 mr-2 text-blue-600" />
+                  <div className="flex items-center justify-center text-xs text-gray-600 bg-blue-50 p-2 rounded">
+                    <Clock className="w-3 h-3 mr-1 text-blue-600" />
                     <span className="font-medium">~{formData.estimatedTime} min</span>
                   </div>
                 </motion.div>
@@ -159,14 +142,13 @@ export default function LocationStep({
           )}
         </AnimatePresence>
 
-        {/* Navigation Buttons */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-2 pt-2">
           <motion.button
             whileTap={{ scale: 0.98 }}
             onClick={onPrev}
-            className="flex-1 bg-white border border-gray-300 text-gray-700 py-3 rounded-xl font-semibold hover:border-blue-300 hover:bg-blue-50 transition-all duration-300 flex items-center justify-center"
+            className="flex-1 bg-white border border-gray-300 text-gray-700 py-2.5 rounded-lg font-medium text-sm hover:border-blue-300 hover:bg-blue-50 transition-all duration-200 flex items-center justify-center"
           >
-            <ChevronLeft className="w-5 h-5 mr-2" />
+            <ChevronLeft className="w-4 h-4 mr-1" />
             Back
           </motion.button>
           
@@ -174,10 +156,10 @@ export default function LocationStep({
             whileTap={{ scale: 0.98 }}
             onClick={validateAndProceed}
             disabled={!formData.pickup || !formData.dropoff}
-            className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3 rounded-xl font-semibold shadow-lg hover:shadow-xl disabled:from-gray-300 disabled:to-gray-400 disabled:cursor-not-allowed transition-all duration-300 flex items-center justify-center"
+            className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm shadow hover:shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
           >
             Continue
-            <ChevronRight className="w-5 h-5 ml-2" />
+            <ChevronRight className="w-4 h-4 ml-1" />
           </motion.button>
         </div>
       </div>

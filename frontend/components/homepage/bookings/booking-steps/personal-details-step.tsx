@@ -8,20 +8,15 @@ export default function PersonalDetailsStep({ formData, updateFormData, errors, 
   const validateAndProceed = () => {
     const newErrors: Record<string, string> = {};
     
-    if (!formData.passengerName.trim()) {
-      newErrors.passengerName = 'Name is required';
-    }
+    if (!formData.passengerName.trim()) newErrors.passengerName = 'Name required';
     
     if (!formData.passengerPhone.trim()) {
-      newErrors.passengerPhone = 'Phone number is required';
+      newErrors.passengerPhone = 'Phone required';
     } else if (!/^[\+]?[1-9][\d]{0,15}$/.test(formData.passengerPhone.replace(/\D/g, ''))) {
-      newErrors.passengerPhone = 'Please enter a valid phone number';
+      newErrors.passengerPhone = 'Invalid phone';
     }
 
-    if (Object.keys(newErrors).length > 0) {
-      return;
-    }
-
+    if (Object.keys(newErrors).length > 0) return;
     onNext();
   };
 
@@ -30,60 +25,57 @@ export default function PersonalDetailsStep({ formData, updateFormData, errors, 
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       exit={{ opacity: 0, x: -20 }}
-      className="space-y-6"
+      className="space-y-4"
     >
-      <div className="text-center mb-6">
-        <h2 className="text-2xl font-bold text-gray-900 mb-2">Your Details</h2>
-        <p className="text-gray-600 text-sm">We'll use this to confirm your ride</p>
+      <div className="text-center mb-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-1">Your Details</h2>
+        <p className="text-xs text-gray-600">For ride confirmation</p>
       </div>
 
-      <div className="space-y-4">
-        {/* Name Input */}
+      <div className="space-y-3">
         <div>
-          <div className={`flex items-center space-x-3 p-4 border-2 rounded-xl transition-colors ${
+          <div className={`flex items-center p-3 border rounded-lg transition-colors ${
             errors.passengerName ? 'border-red-500' : 'border-gray-200 hover:border-blue-400'
           }`}>
-            <User className="w-5 h-5 text-gray-400" />
+            <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
               type="text"
               placeholder="Full Name *"
               value={formData.passengerName}
               onChange={(e) => updateFormData({ passengerName: e.target.value })}
-              className="flex-1 bg-transparent border-none outline-none text-lg placeholder-gray-400"
+              className="flex-1 bg-transparent border-none outline-none text-sm ml-2 placeholder-gray-400"
             />
           </div>
           {errors.passengerName && (
-            <p className="mt-1 text-sm text-red-600">{errors.passengerName}</p>
+            <p className="mt-1 text-xs text-red-600">{errors.passengerName}</p>
           )}
         </div>
 
-        {/* Phone Input */}
         <div>
-          <div className={`flex items-center space-x-3 p-4 border-2 rounded-xl transition-colors ${
+          <div className={`flex items-center p-3 border rounded-lg transition-colors ${
             errors.passengerPhone ? 'border-red-500' : 'border-gray-200 hover:border-blue-400'
           }`}>
-            <Phone className="w-5 h-5 text-gray-400" />
+            <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
               type="tel"
-              placeholder="Mobile Number *"
+              placeholder="Mobile *"
               value={formData.passengerPhone}
               onChange={(e) => updateFormData({ passengerPhone: e.target.value })}
-              className="flex-1 bg-transparent border-none outline-none text-lg placeholder-gray-400"
+              className="flex-1 bg-transparent border-none outline-none text-sm ml-2 placeholder-gray-400"
             />
           </div>
           {errors.passengerPhone && (
-            <p className="mt-1 text-sm text-red-600">{errors.passengerPhone}</p>
+            <p className="mt-1 text-xs text-red-600">{errors.passengerPhone}</p>
           )}
         </div>
 
-        {/* Continue Button */}
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={validateAndProceed}
-          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-4 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium text-sm shadow hover:shadow-md transition-all duration-200 flex items-center justify-center"
         >
           Continue
-          <ChevronRight className="w-5 h-5 ml-2" />
+          <ChevronRight className="w-4 h-4 ml-1" />
         </motion.button>
       </div>
     </motion.div>
