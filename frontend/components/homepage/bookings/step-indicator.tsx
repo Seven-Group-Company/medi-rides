@@ -10,9 +10,10 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
   const steps = [
     { number: 1, label: 'You' },
     { number: 2, label: 'Where' },
-    { number: 3, label: 'Pay' },
-    { number: 4, label: 'When' },
-    { number: 5, label: 'Review' }
+    { number: 3, label: 'Ride' },
+    { number: 4, label: 'Pay' },
+    { number: 5, label: 'When' },
+    { number: 6, label: 'Review' }
   ];
 
   return (
@@ -38,7 +39,7 @@ export default function StepIndicator({ currentStep }: StepIndicatorProps) {
           }`}>
             {step.label}
           </span>
-          {step.number < 5 && (
+          {step.number < 6 && (
             <div className={`h-0.5 w-3 sm:w-4 ml-1 ${
               currentStep > step.number ? 'bg-blue-500' : 'bg-gray-200'
             }`} />
