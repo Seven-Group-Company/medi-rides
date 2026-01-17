@@ -29,10 +29,8 @@ import {
 } from './entities/document.entity';
 import {
   DocumentStatus,
-  Priority,
-  EntityType,
 } from '@prisma/client';
-import { subDays, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { subDays, addDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import * as ExcelJS from 'exceljs';
 import { createObjectCsvWriter } from 'csv-writer';
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
@@ -271,7 +269,6 @@ async updateDocument(
       }
     }
 
-    // Only upload new file if provided
     let fileUrl = existingDocument.fileUrl;
     let fileName = existingDocument.fileName;
     let fileSize = existingDocument.fileSize;
