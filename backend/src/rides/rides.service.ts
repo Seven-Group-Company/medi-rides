@@ -233,8 +233,6 @@ export class RidesService {
 
       console.log('✅ Guest ride created successfully:', ride.id);
 
-      await this.emailService.sendRideBookedEmail(ride, '');
-
       return {
         id: ride.id,
         pickup: ride.pickupAddress,

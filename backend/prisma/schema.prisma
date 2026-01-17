@@ -3,8 +3,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
+  relationMode = "prisma"
 }
 
 model User {
@@ -65,9 +66,9 @@ model Invoice {
   rideId        Int           @unique
   ride          Ride          @relation(fields: [rideId], references: [id])
   invoiceNumber String        @unique @default(cuid())
-  amount        Float
-  tax           Float         @default(0)
-  totalAmount   Float
+  amount        Decimal       @db.Decimal(10, 2)
+  tax           Decimal       @default(0) @db.Decimal(10, 2)
+  totalAmount   Decimal       @db.Decimal(10, 2)
   dueDate       DateTime
   issuedDate    DateTime      @default(now())
   status        InvoiceStatus @default(PENDING)
@@ -208,7 +209,7 @@ model Vehicle {
   registrationExpiry       DateTime
   liabilityInsuranceExpiry DateTime?
   status                   VehicleStatus  @default(AVAILABLE)
-  images                   String         @default("[]")
+  images                   String[]       @default([])
   createdAt                DateTime       @default(now())
   updatedAt                DateTime       @updatedAt
   driverProfileId          Int?
@@ -322,7 +323,7 @@ model DocumentTracking {
   fileType String
 
   // Metadata
-  tags         String   @default("[]") // Stored as JSON array
+  tags         String[] // Stored as JSON array
   notes        String?
   reminderDays Int      @default(30)
 

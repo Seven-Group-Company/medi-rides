@@ -48,7 +48,7 @@ export class VehiclesService {
           insuranceExpiry: new Date(createVehicleDto.insuranceExpiry),
           liabilityInsuranceExpiry: new Date(createVehicleDto.liabilityInsuranceExpiry),
           registrationExpiry: new Date(createVehicleDto.registrationExpiry),
-          images: JSON.stringify(imageUrls),
+          images: imageUrls,
           status: 'AVAILABLE',
         },
       });
@@ -124,12 +124,11 @@ export class VehiclesService {
         newImageUrls = uploadResults.map(result => result.url);
       }
 
-      const existingImages = typeof vehicle.images === 'string' ? JSON.parse(vehicle.images) : vehicle.images || [];
-      const updatedImages = [...existingImages];
+      const updatedImages = updateVehicleDto.images || vehicle.images || [];
       if (newImageUrls.length > 0) updatedImages.push(...newImageUrls);
 
       const updateData: any = { ...updateVehicleDto };
-      if (updatedImages.length > 0) updateData.images = JSON.stringify(updatedImages);
+      if (updatedImages.length > 0) updateData.images = updatedImages;
 
       if (updateVehicleDto.insuranceExpiry) {
         updateData.insuranceExpiry = new Date(updateVehicleDto.insuranceExpiry);
