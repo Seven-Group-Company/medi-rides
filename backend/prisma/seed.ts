@@ -29,6 +29,7 @@ async function main() {
         pricePerMile: 3.50,
       },
     ],
+    skipDuplicates: true,
   });
 
   // Create Admin User
@@ -180,6 +181,7 @@ async function main() {
         registrationExpiry: new Date('2024-11-30'),
       },
     ],
+    skipDuplicates: true,
   });
 
   // Create Sample Customer
@@ -259,6 +261,7 @@ async function main() {
         finalPrice: 78.50,
       },
     ],
+    skipDuplicates: true,
   });
 
   // Create Sample Payments
@@ -288,6 +291,7 @@ async function main() {
         billingEmail: 'john.patient@example.com',
       },
     ],
+    skipDuplicates: true,
   });
 
   // Create Driver Availability
@@ -310,6 +314,7 @@ async function main() {
         isAvailable: true,
       },
     ],
+    skipDuplicates: true,
   });
 
   console.log('✅ Database seed completed successfully!');

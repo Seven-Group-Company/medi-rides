@@ -41,7 +41,7 @@ export class DocumentCategory implements Partial<PrismaCategory> {
   documents?: DocumentTracking[];
 }
 
-export class DocumentTracking {
+export class DocumentTracking implements Partial<PrismaDocument> {
   @ApiProperty()
   id: number;
 
@@ -103,7 +103,7 @@ export class DocumentTracking {
   fileType: string;
 
   @ApiProperty({ type: [String] })
-  tags: string | string[];
+  tags: string[];
 
   @ApiPropertyOptional()
   notes?: string;

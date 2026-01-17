@@ -80,7 +80,7 @@ const AuthPage = () => {
             </div>
           </div>
 
-        </div>
+          </div>
 
         {/* Right Column - Authentication Forms */}
         <div className="flex-1 flex flex-col justify-center py-12 px-4 sm:px-6 lg:px-8 lg:flex-none">

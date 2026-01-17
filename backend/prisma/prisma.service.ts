@@ -6,7 +6,12 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
   constructor() {
     super({
       log: ['query', 'info', 'warn', 'error'],
-      errorFormat: 'colorless'
+      errorFormat: 'colorless',
+      datasources: {
+        db: {
+          url: (process.env.DATABASE_URL || '') + ((process.env.DATABASE_URL || '').includes('?') ? '&' : '?') + 'sslmode=require'
+        }
+      }
     });
   }
 
