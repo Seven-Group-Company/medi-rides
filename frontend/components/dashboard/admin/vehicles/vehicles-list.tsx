@@ -56,6 +56,20 @@ const getInsuranceStatus = (vehicle: Vehicle) => {
   return { status: 'safe', days: diffDays };
 };
 
+// Helper function to parse images from string or array
+const parseImages = (images: string | string[] | null | undefined): string[] => {
+  if (!images) return [];
+  if (Array.isArray(images)) return images;
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
 
 export default function VehiclesList({
   vehicles,
@@ -207,9 +221,9 @@ export default function VehiclesList({
                 <div className="flex-1">
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center space-x-4">
-                      {vehicle.images && vehicle.images.length > 0 ? (
+                      {parseImages(vehicle.images).length > 0 ? (
                         <img
-                          src={vehicle.images[0]}
+                          src={parseImages(vehicle.images)[0]}
                           alt={`${vehicle.make} ${vehicle.model}`}
                           className="w-16 h-16 rounded-lg object-cover"
                         />
@@ -371,11 +385,11 @@ export default function VehiclesList({
                   </div>
 
                   {/* Additional Images */}
-                  {vehicle.images && vehicle.images.length > 1 && (
+                  {parseImages(vehicle.images).length > 1 && (
                     <div className="mt-4">
                       <p className="text-sm font-medium text-gray-700 mb-2">Additional Images:</p>
                       <div className="flex space-x-2 overflow-x-auto">
-                        {vehicle.images.slice(1).map((image, index) => (
+                        {parseImages(vehicle.images).slice(1).map((image, index) => (
                           <img
                             key={index}
                             src={image}

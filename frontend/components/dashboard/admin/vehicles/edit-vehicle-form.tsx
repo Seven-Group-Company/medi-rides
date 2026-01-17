@@ -12,6 +12,21 @@ interface EditVehicleFormProps {
   loading: boolean;
 }
 
+// Helper function to parse images from string or array
+const parseImages = (images: string | string[] | null | undefined): string[] => {
+  if (!images) return [];
+  if (Array.isArray(images)) return images;
+  if (typeof images === 'string') {
+    try {
+      const parsed = JSON.parse(images);
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+  return [];
+};
+
 export default function EditVehicleForm({ 
   vehicle, 
   onSubmit, 
@@ -35,7 +50,7 @@ export default function EditVehicleForm({
     status: vehicle.status,
   });
 
-  const [existingImages, setExistingImages] = useState<string[]>(vehicle.images || []);
+  const [existingImages, setExistingImages] = useState<string[]>(parseImages(vehicle.images));
   const [imagesToRemove, setImagesToRemove] = useState<string[]>([]);
   const [newImages, setNewImages] = useState<File[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
