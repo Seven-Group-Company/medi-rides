@@ -9,7 +9,7 @@ export interface Driver {
   role: UserRole;
   createdAt: string;
   lastLoginAt?: string;
-  driverProfile: DriverProfile;
+  driverProfile: DriverProfile | null;
 }
 
 export interface DriverProfile {

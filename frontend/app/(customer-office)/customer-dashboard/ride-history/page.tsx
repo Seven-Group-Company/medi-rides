@@ -16,17 +16,12 @@ import {
   DollarSign, 
   Download, 
   Eye, 
-  MoreVertical,
-  ChevronRight,
-  TrendingUp,
   BarChart3,
   CheckCircle,
   XCircle,
   Clock as ClockIcon,
   Navigation,
   Shield,
-  Receipt,
-  CreditCard
 } from 'lucide-react';
 import { useRideHistory } from '@/hooks/useRideHistory';
 import RideHistoryFilters from '@/components/dashboard/customer/ride-history/ride-history-filters';
@@ -148,22 +143,19 @@ export default function RideHistoryPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex items-center justify-center min-h-[60vh]">
-            <div className="text-center space-y-4">
-              <div className="relative">
-                <div className="w-16 h-16 border-4 border-blue-100 rounded-full"></div>
-                <div className="absolute top-0 left-0 w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-              </div>
-              <div className="space-y-2">
-                <h3 className="text-lg font-medium text-gray-900">Loading ride history</h3>
-                <p className="text-sm text-gray-500">Fetching your journey details...</p>
-              </div>
-            </div>
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="min-h-screen bg-gradient-to-b from-gray-50 to-white flex items-center justify-center"
+        >
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading ride history...</p>
           </div>
-        </div>
-      </div>
+        </motion.div>
+      </AnimatePresence>
     );
   }
 

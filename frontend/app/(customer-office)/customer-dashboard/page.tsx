@@ -8,12 +8,12 @@ import { StatsCards } from '@/components/dashboard/customer/stats-cards';
 import { UpcomingRides } from '@/components/dashboard/customer/upcoming-rides';
 import { HealthTips } from '@/components/dashboard/customer/health-tips';
 import Link from 'next/link';
-import { Calendar, Clock, MapPin, PlusCircle } from 'lucide-react';
+import { Calendar, Clock, PlusCircle } from 'lucide-react';
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { upcomingRides, loading: ridesLoading, error: ridesError } = useUpcomingRides(3);
-  const { rides, loading: historyLoading } = useRideHistory();
+  const { rides } = useRideHistory();
 
   // Calculate stats from ride history
   const calculateStats = () => {

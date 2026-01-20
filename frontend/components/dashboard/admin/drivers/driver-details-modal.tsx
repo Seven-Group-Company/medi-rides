@@ -73,12 +73,12 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({ driver, onClose
               <div className="flex space-x-2 mt-2">
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                    driver.driverProfile.isAvailable
+                    driver.driverProfile?.isAvailable
                       ? 'bg-green-100 text-green-800'
                       : 'bg-red-100 text-red-800'
                   }`}
                 >
-                  {driver.driverProfile.isAvailable ? 'Available' : 'Unavailable'}
+                  {driver.driverProfile?.isAvailable ? 'Available' : 'Unavailable'}
                 </span>
                 <span
                   className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -134,29 +134,29 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({ driver, onClose
               <dl className="space-y-3">
                 <div>
                   <dt className="text-sm font-medium text-gray-500">License Number</dt>
-                  <dd className="text-sm text-gray-900">{driver.driverProfile.licenseNumber}</dd>
+                  <dd className="text-sm text-gray-900">{driver.driverProfile?.licenseNumber || 'N/A'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">License State</dt>
-                  <dd className="text-sm text-gray-900">{driver.driverProfile.licenseState}</dd>
+                  <dd className="text-sm text-gray-900">{driver.driverProfile?.licenseState || 'N/A'}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">License Expiry</dt>
                   <dd className="text-sm text-gray-900">
-                    {formatDate(driver.driverProfile.licenseExpiry)}
-                    {new Date(driver.driverProfile.licenseExpiry) < new Date() && (
+                    {driver.driverProfile?.licenseExpiry ? formatDate(driver.driverProfile.licenseExpiry) : 'N/A'}
+                    {driver.driverProfile?.licenseExpiry && new Date(driver.driverProfile.licenseExpiry) < new Date() && (
                       <span className="ml-2 text-red-600 font-medium">(Expired)</span>
                     )}
                   </dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Total Trips</dt>
-                  <dd className="text-sm text-gray-900">{driver.driverProfile.totalTrips}</dd>
+                  <dd className="text-sm text-gray-900">{driver.driverProfile?.totalTrips || 0}</dd>
                 </div>
                 <div>
                   <dt className="text-sm font-medium text-gray-500">Rating</dt>
                   <dd className="text-sm text-gray-900">
-                    {driver.driverProfile.rating ? (
+                    {driver.driverProfile?.rating ? (
                       <span className="flex items-center">
                         {driver.driverProfile.rating.toFixed(1)}
                         <span className="ml-1 text-yellow-400">⭐</span>
@@ -172,13 +172,13 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({ driver, onClose
             {/* Vehicle Information */}
             <div className="bg-white border border-gray-200 rounded-lg p-4 lg:col-span-2">
               <h4 className="text-lg font-medium text-gray-900 mb-4">
-                Assigned Vehicles ({driver.driverProfile.vehicles.length})
+                Assigned Vehicles ({driver.driverProfile?.vehicles?.length || 0})
               </h4>
-              {driver.driverProfile.vehicles.length === 0 ? (
+              {(driver.driverProfile?.vehicles?.length || 0) === 0 ? (
                 <p className="text-gray-500 text-sm">No vehicles assigned</p>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {driver.driverProfile.vehicles.map((vehicle) => (
+                  {driver.driverProfile?.vehicles?.map((vehicle) => (
                     <div
                       key={vehicle.id}
                       className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50"
@@ -228,17 +228,17 @@ const DriverDetailsModal: React.FC<DriverDetailsModalProps> = ({ driver, onClose
             </div>
 
             {/* Additional Information */}
-            {(driver.driverProfile.vehicleInfo || driver.driverProfile.insuranceInfo) && (
+            {(driver.driverProfile?.vehicleInfo || driver.driverProfile?.insuranceInfo) && (
               <div className="bg-white border border-gray-200 rounded-lg p-4 lg:col-span-2">
                 <h4 className="text-lg font-medium text-gray-900 mb-4">Additional Information</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {driver.driverProfile.vehicleInfo && (
+                  {driver.driverProfile?.vehicleInfo && (
                     <div>
                       <h5 className="text-sm font-medium text-gray-700 mb-2">Vehicle Info</h5>
                       <p className="text-sm text-gray-900">{driver.driverProfile.vehicleInfo}</p>
                     </div>
                   )}
-                  {driver.driverProfile.insuranceInfo && (
+                  {driver.driverProfile?.insuranceInfo && (
                     <div>
                       <h5 className="text-sm font-medium text-gray-700 mb-2">Insurance Info</h5>
                       <p className="text-sm text-gray-900">{driver.driverProfile.insuranceInfo}</p>

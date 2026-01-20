@@ -251,20 +251,20 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
                       
                       <div className="flex flex-wrap gap-2 mt-3">
                         <span className="px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
-                          License: {ride.driver.driverProfile.licenseNumber}
+                          License: {ride.driver.driverProfile?.licenseNumber || 'N/A'}
                         </span>
-                        <span className={`px-2 py-1 text-xs rounded-full ${ride.driver.driverProfile.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                          {ride.driver.driverProfile.isAvailable ? 'Available' : 'Busy'}
+                        <span className={`px-2 py-1 text-xs rounded-full ${ride.driver.driverProfile?.isAvailable ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+                          {ride.driver.driverProfile?.isAvailable ? 'Available' : 'Busy'}
                         </span>
                         <span className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full">
-                          {ride.driver.driverProfile.totalTrips} trips
+                          {ride.driver.driverProfile?.totalTrips || 0} trips
                         </span>
                       </div>
                     </div>
                   </div>
                   
                   {/* Vehicle Information */}
-                  {ride.driver.driverProfile.vehicles[0] && (
+                  {ride.driver.driverProfile?.vehicles?.[0] && (
                     <div className="pt-4 border-t border-gray-200">
                       <div className="flex items-center gap-3">
                         <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -294,17 +294,17 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
                                 Oxygen
                               </span>
                             )}
-{ride.driver?.driverProfile?.vehicles?.[0]?.status && (
-  <span className={`px-2 py-1 text-xs rounded-full ${
-    ride.driver.driverProfile.vehicles[0].status === 'AVAILABLE' 
-      ? 'bg-green-100 text-green-800'
-      : ride.driver.driverProfile.vehicles[0].status === 'IN_USE'
-      ? 'bg-yellow-100 text-yellow-800'
-      : 'bg-red-100 text-red-800'
-  }`}>
-    {ride.driver.driverProfile.vehicles[0].status.replace('_', ' ')}
-  </span>
-)}
+                            {ride.driver.driverProfile.vehicles[0].status && (
+                              <span className={`px-2 py-1 text-xs rounded-full ${
+                                ride.driver.driverProfile.vehicles[0].status === 'AVAILABLE' 
+                                  ? 'bg-green-100 text-green-800'
+                                  : ride.driver.driverProfile.vehicles[0].status === 'IN_USE'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-red-100 text-red-800'
+                              }`}>
+                                {ride.driver.driverProfile.vehicles[0].status.replace('_', ' ')}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>

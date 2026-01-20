@@ -24,7 +24,7 @@ const AssignVehiclesModal: React.FC<AssignVehiclesModalProps> = ({ driver, onClo
 
   useEffect(() => {
     // Initialize selected vehicles with currently assigned vehicles
-    const assignedVehicleIds = driver.driverProfile.vehicles.map(v => v.id);
+    const assignedVehicleIds = driver.driverProfile?.vehicles?.map(v => v.id) || [];
     setSelectedVehicleIds(assignedVehicleIds);
     setInternalLoading(false);
   }, [driver]);
@@ -101,7 +101,7 @@ const AssignVehiclesModal: React.FC<AssignVehiclesModalProps> = ({ driver, onClo
 
   // Get available vehicles (not currently assigned to this driver)
   const availableVehicles = filteredVehicles.filter(vehicle => 
-    !driver.driverProfile.vehicles.some(assignedVehicle => assignedVehicle.id === vehicle.id)
+    !driver.driverProfile?.vehicles?.some(assignedVehicle => assignedVehicle.id === vehicle.id)
   );
 
   if (loading || internalLoading) {
@@ -126,7 +126,7 @@ const AssignVehiclesModal: React.FC<AssignVehiclesModalProps> = ({ driver, onClo
               Assign Vehicles to {driver.name}
             </h2>
             <p className="text-gray-600 mt-1">
-              Currently assigned: {driver.driverProfile.vehicles.length} vehicles
+              Currently assigned: {driver.driverProfile?.vehicles?.length || 0} vehicles
             </p>
           </div>
           <button
@@ -295,13 +295,13 @@ const AssignVehiclesModal: React.FC<AssignVehiclesModalProps> = ({ driver, onClo
           </div>
 
           {/* Currently Assigned Vehicles */}
-          {driver.driverProfile.vehicles.length > 0 && (
+          {(driver.driverProfile?.vehicles?.length || 0) > 0 && (
             <div className="mb-6">
               <h4 className="text-lg font-medium text-gray-900 mb-4">
-                Currently Assigned Vehicles ({driver.driverProfile.vehicles.length})
+                Currently Assigned Vehicles ({driver.driverProfile?.vehicles?.length || 0})
               </h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {driver.driverProfile.vehicles.map((vehicle) => (
+                {driver.driverProfile?.vehicles?.map((vehicle) => (
                   <div
                     key={vehicle.id}
                     className="border border-gray-200 rounded-lg p-4 bg-gray-50"

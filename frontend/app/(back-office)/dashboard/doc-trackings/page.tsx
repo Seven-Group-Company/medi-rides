@@ -1,36 +1,20 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   FileText, 
   AlertTriangle, 
-  CheckCircle, 
-  Clock, 
-  RefreshCw,
   Plus,
   Download,
-  Filter,
-  Search,
-  Calendar,
-  BarChart3,
   Users,
   Car,
   Building,
   Tag,
-  Eye,
-  Edit,
-  Trash2,
-  MoreVertical,
-  ChevronDown,
-  ChevronUp,
-  ExternalLink,
-  Bell,
-  FileCheck,
   ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDocumentTrackings } from '@/hooks/useDocumentTrackings';
-import DocumentStatsCards from '@/components/dashboard/admin/document-trackings/document-stats-cards';
+// import DocumentStatsCards from '@/components/dashboard/admin/document-trackings/document-stats-cards';
 import DocumentList from '@/components/dashboard/admin/document-trackings/document-list';
 import AddDocumentForm from '@/components/dashboard/admin/document-trackings/add-document-form';
 import DocumentFilters from '@/components/dashboard/admin/document-trackings/document-filters';
@@ -252,7 +236,7 @@ export default function DocTrackingsDashboardPage() {
         </motion.div>
 
         {/* Stats Cards */}
-        {stats && activeView === 'list' && (
+        {/* {stats && activeView === 'list' && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -260,7 +244,7 @@ export default function DocTrackingsDashboardPage() {
           >
             <DocumentStatsCards stats={stats} urgentCount={urgentDocuments.length} />
           </motion.div>
-        )}
+        )} */}
 
         {/* View Tabs */}
         <motion.div

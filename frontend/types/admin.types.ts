@@ -83,7 +83,7 @@ export interface Driver {
     rating?: number;
     totalTrips: number;
     vehicles: Vehicle[];
-  };
+  } | null;
 }
 
 export interface Vehicle {

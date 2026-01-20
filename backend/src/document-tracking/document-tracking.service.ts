@@ -290,7 +290,7 @@ async updateDocument(
         )
       : existingDocument.status;
 
-    // Update document
+      // Update document
     const updatedDocument = await this.prisma.documentTracking.update({
       where: { id },
       data: {
@@ -308,7 +308,9 @@ async updateDocument(
         fileName,
         fileSize,
         fileType,
-        tags: updateDocumentDto.tags || existingDocument.tags,
+        tags: Array.isArray(updateDocumentDto.tags)
+          ? updateDocumentDto.tags
+          : existingDocument.tags,
         status,
         updatedById: userId,
       },

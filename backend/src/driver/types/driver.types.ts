@@ -28,7 +28,7 @@ export type DriverWithProfile = {
       type: string;
       status: string;
     }>;
-  };
+  } | null;
 };
 
 export type DriverStats = {

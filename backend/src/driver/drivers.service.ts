@@ -6,7 +6,7 @@ import {
   InternalServerErrorException,
 } from '@nestjs/common';
 import { PrismaService } from 'prisma/prisma.service';
-import { UserRole, Prisma } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 import { CreateDriverDto, UpdateDriverDto, AssignVehiclesDto, UpdateDriverStatusDto } from './dto/create-driver.dto';
 import { DriverWithProfile, DriverStats } from './types/driver.types';
@@ -632,7 +632,7 @@ export class DriversService {
       role: driver.role,
       createdAt: driver.createdAt,
       lastLoginAt: driver.lastLoginAt,
-      driverProfile: {
+      driverProfile: driver.driverProfile ? {
         id: driver.driverProfile.id,
         licenseNumber: driver.driverProfile.licenseNumber,
         licenseState: driver.driverProfile.licenseState,
@@ -643,7 +643,7 @@ export class DriversService {
         rating: driver.driverProfile.rating,
         totalTrips: driver.driverProfile.totalTrips,
         vehicles: driver.driverProfile.vehicles || [],
-      },
+      } : null,
     };
   }
 }

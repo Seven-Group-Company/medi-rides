@@ -25,14 +25,16 @@ export default function AutocompleteInput({
   const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState(value);
+  const isInitializedRef = useRef(false);
 
+  // Update input value when external value prop changes
   useEffect(() => {
     setInputValue(value);
   }, [value]);
 
   useEffect(() => {
     const initAutocomplete = async () => {
-      if (!inputRef.current) return;
+      if (!inputRef.current || isInitializedRef.current) return;
 
       try {
         setLoading(true);
@@ -52,7 +54,7 @@ export default function AutocompleteInput({
           types: ['geocode']
         });
 
-        autocompleteRef.current.addListener('place_changed', () => {
+        const handlePlaceChanged = () => {
           const place = autocompleteRef.current?.getPlace();
           if (place && place.geometry && place.formatted_address) {
             onPlaceSelected(place);
@@ -61,7 +63,9 @@ export default function AutocompleteInput({
               onChange(place.formatted_address);
             }
           }
-        });
+        };
+
+        autocompleteRef.current.addListener('place_changed', handlePlaceChanged);
 
         // Prevent form submission on enter
         inputRef.current.addEventListener('keydown', (e) => {
@@ -69,6 +73,8 @@ export default function AutocompleteInput({
             e.preventDefault();
           }
         });
+
+        isInitializedRef.current = true;
 
       } catch (error) {
         console.error('Error initializing autocomplete:', error);
@@ -81,17 +87,27 @@ export default function AutocompleteInput({
 
     // Cleanup
     return () => {
-      if (autocompleteRef.current) {
+      if (autocompleteRef.current && isInitializedRef.current) {
         google.maps.event.clearInstanceListeners(autocompleteRef.current);
       }
     };
-  }, [onPlaceSelected, onChange]);
+  }, []);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setInputValue(value);
     if (onChange) {
       onChange(value);
+    }
+  };
+
+  const handleInputFocus = () => {
+    // Clear the input on focus to allow re-selection
+    if (inputRef.current && inputValue) {
+      // Optional: Allow users to clear and re-select
+      
+      // Uncomment the next line if you want the input cleared on focus
+      // setInputValue('');
     }
   };
 
@@ -106,6 +122,7 @@ export default function AutocompleteInput({
         type="text"
         value={inputValue}
         onChange={handleInputChange}
+        onFocus={handleInputFocus}
         placeholder={loading ? "Loading maps..." : placeholder}
         disabled={loading}
         className={`pl-10 w-full p-3 border-2 ${borderColor} rounded-lg ${focusRing} transition-colors ${

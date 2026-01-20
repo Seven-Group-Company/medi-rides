@@ -11,12 +11,12 @@ const EditDriverModal: React.FC<EditDriverModalProps> = ({ driver, onClose, onSu
   const [formData, setFormData] = useState<UpdateDriverData>({
     name: driver.name,
     phone: driver.phone,
-    licenseNumber: driver.driverProfile.licenseNumber,
-    licenseState: driver.driverProfile.licenseState,
-    licenseExpiry: driver.driverProfile.licenseExpiry.split('T')[0],
-    vehicleInfo: driver.driverProfile.vehicleInfo || '',
-    insuranceInfo: driver.driverProfile.insuranceInfo || '',
-    isAvailable: driver.driverProfile.isAvailable,
+    licenseNumber: driver.driverProfile?.licenseNumber || '',
+    licenseState: driver.driverProfile?.licenseState || '',
+    licenseExpiry: driver.driverProfile?.licenseExpiry ? driver.driverProfile.licenseExpiry.split('T')[0] : '',
+    vehicleInfo: driver.driverProfile?.vehicleInfo || '',
+    insuranceInfo: driver.driverProfile?.insuranceInfo || '',
+    isAvailable: driver.driverProfile?.isAvailable ?? true,
     avatar: driver.avatar,
   });
 
@@ -24,12 +24,12 @@ const EditDriverModal: React.FC<EditDriverModalProps> = ({ driver, onClose, onSu
     setFormData({
       name: driver.name,
       phone: driver.phone,
-      licenseNumber: driver.driverProfile.licenseNumber,
-      licenseState: driver.driverProfile.licenseState,
-      licenseExpiry: driver.driverProfile.licenseExpiry.split('T')[0],
-      vehicleInfo: driver.driverProfile.vehicleInfo || '',
-      insuranceInfo: driver.driverProfile.insuranceInfo || '',
-      isAvailable: driver.driverProfile.isAvailable,
+      licenseNumber: driver.driverProfile?.licenseNumber || '',
+      licenseState: driver.driverProfile?.licenseState || '',
+      licenseExpiry: driver.driverProfile?.licenseExpiry ? driver.driverProfile.licenseExpiry.split('T')[0] : '',
+      vehicleInfo: driver.driverProfile?.vehicleInfo || '',
+      insuranceInfo: driver.driverProfile?.insuranceInfo || '',
+      isAvailable: driver.driverProfile?.isAvailable ?? true,
       avatar: driver.avatar,
     });
   }, [driver]);

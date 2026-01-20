@@ -104,22 +104,22 @@ const DriverTable: React.FC<DriverTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {driver.driverProfile.licenseNumber}
+                    {driver.driverProfile?.licenseNumber || 'N/A'}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {driver.driverProfile.licenseState} • Expires {new Date(driver.driverProfile.licenseExpiry).toLocaleDateString()}
+                    {driver.driverProfile?.licenseState || 'N/A'} • Expires {driver.driverProfile?.licenseExpiry ? new Date(driver.driverProfile.licenseExpiry).toLocaleDateString() : 'N/A'}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-2">
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        driver.driverProfile.isAvailable
+                        driver.driverProfile?.isAvailable
                           ? 'bg-green-100 text-green-800'
                           : 'bg-red-100 text-red-800'
                       }`}
                     >
-                      {driver.driverProfile.isAvailable ? 'Available' : 'Unavailable'}
+                      {driver.driverProfile?.isAvailable ? 'Available' : 'Unavailable'}
                     </span>
                     <span
                       className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
@@ -134,19 +134,19 @@ const DriverTable: React.FC<DriverTableProps> = ({
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm text-gray-900">
-                    {driver.driverProfile.vehicles.length} assigned
+                    {driver.driverProfile?.vehicles?.length || 0} assigned
                   </div>
                   <div className="text-sm text-gray-500">
-                    {driver.driverProfile.vehicles.slice(0, 2).map(v => v.licensePlate).join(', ')}
-                    {driver.driverProfile.vehicles.length > 2 && '...'}
+                    {driver.driverProfile?.vehicles?.slice(0, 2).map(v => v.licensePlate).join(', ') || 'None'}
+                    {(driver.driverProfile?.vehicles?.length || 0) > 2 && '...'}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center">
                     <span className="text-sm text-gray-900">
-                      {driver.driverProfile.rating?.toFixed(1) || 'N/A'}
+                      {driver.driverProfile?.rating?.toFixed(1) || 'N/A'}
                     </span>
-                    {driver.driverProfile.rating && (
+                    {driver.driverProfile?.rating && (
                       <span className="ml-1 text-yellow-400">⭐</span>
                     )}
                   </div>
@@ -174,16 +174,16 @@ const DriverTable: React.FC<DriverTableProps> = ({
                     <button
                       onClick={() => onStatusChange(
                         driver.id, 
-                        !driver.driverProfile.isAvailable,
+                        !driver.driverProfile?.isAvailable,
                         'Manual status update'
                       )}
                       className={`${
-                        driver.driverProfile.isAvailable
+                        driver.driverProfile?.isAvailable
                           ? 'text-orange-600 hover:text-orange-900'
                           : 'text-green-600 hover:text-green-900'
                       }`}
                     >
-                      {driver.driverProfile.isAvailable ? 'Deactivate' : 'Activate'}
+                      {driver.driverProfile?.isAvailable ? 'Deactivate' : 'Activate'}
                     </button>
                     <button
                       onClick={() => onDelete(driver.id)}
