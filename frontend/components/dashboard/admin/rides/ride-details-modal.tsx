@@ -5,12 +5,11 @@ import {
   X, User, Car, MapPin, Clock, Calendar, DollarSign, 
   FileText, Phone, Shield, Ruler, Users,
   CheckCircle, XCircle, AlertCircle, Navigation, Package,
-  Stethoscope, Ambulance, Heart, Loader2,
+  Stethoscope, Ambulance, Heart,
   Mail,
   FerrisWheel
 } from 'lucide-react';
 import { RideRequest } from '@/types/admin.types';
-import { useState } from 'react';
 
 interface RideDetailsModalProps {
   isOpen: boolean;
@@ -21,49 +20,6 @@ interface RideDetailsModalProps {
 
 const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModalProps) => {
   if (!isOpen || !ride) return null;
-  const [generatingInvoice, setGeneratingInvoice] = useState(false);
-
-  const handleGenerateInvoice = async (rideId: number) => {
-  if (!rideId) return;
-  
-  setGeneratingInvoice(true);
-  try {
-    const token = localStorage.getItem('access_token');
-    const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_URL}/invoices/ride/${rideId}/generate`,
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to generate invoice');
-    }
-
-    const data = await response.json();
-    
-    if (data.data?.pdfUrl) {
-      const fullUrl = data.data.pdfUrl.startsWith('http')
-        ? data.data.pdfUrl
-        : `${process.env.NEXT_PUBLIC_API_URL}${data.data.pdfUrl}`;
-      
-      window.open(fullUrl, '_blank');
-      alert('Invoice generated successfully!');
-      
-      // Refresh the ride data (you might need to implement a refetch function)
-      // onRideUpdated?.(data.data.rideId);
-    }
-  } catch (error) {
-    console.error('Error generating invoice:', error);
-    alert('Failed to generate invoice. Please try again.');
-  } finally {
-    setGeneratingInvoice(false);
-  }
-};
 
   const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('en-US', {
@@ -338,7 +294,6 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
                                 Oxygen
                               </span>
                             )}
-<<<<<<< HEAD
                             {ride.driver.driverProfile.vehicles[0].status && (
                               <span className={`px-2 py-1 text-xs rounded-full ${
                                 ride.driver.driverProfile.vehicles[0].status === 'AVAILABLE' 
@@ -350,19 +305,6 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
                                 {ride.driver.driverProfile.vehicles[0].status.replace('_', ' ')}
                               </span>
                             )}
-=======
-{ride.driver?.driverProfile?.vehicles?.[0]?.status && (
-  <span className={`px-2 py-1 text-xs rounded-full ${
-    ride.driver.driverProfile.vehicles[0].status === 'AVAILABLE' 
-      ? 'bg-green-100 text-green-800'
-      : ride.driver.driverProfile.vehicles[0].status === 'IN_USE'
-      ? 'bg-yellow-100 text-yellow-800'
-      : 'bg-red-100 text-red-800'
-  }`}>
-    {ride.driver.driverProfile.vehicles[0].status.replace('_', ' ')}
-  </span>
-)}
->>>>>>> 98e8358 (updates|)
                           </div>
                         </div>
                       </div>
@@ -641,25 +583,6 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
           >
             Close
           </button>
-          {ride.status === 'COMPLETED' && !ride.invoice && (
-          <button
-            onClick={() => handleGenerateInvoice(ride.id)}
-            disabled={generatingInvoice}
-            className="px-6 py-3 bg-purple-600 text-white hover:bg-purple-700 rounded-xl font-medium transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {generatingInvoice ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <FileText className="w-4 h-4" />
-                Generate Invoice
-              </>
-            )}
-          </button>
-        )}
           {ride.invoice?.pdfUrl && (
             <a
               href={ride.invoice.pdfUrl.startsWith('http')

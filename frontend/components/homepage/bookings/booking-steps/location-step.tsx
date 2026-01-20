@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Navigation, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Navigation, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BookingStepProps } from '@/types/guest-booking-types';
 import AutocompleteInput from '../autocomplete-input';
 import RouteMap from '@/components/dashboard/customer/booking/route-map';
@@ -38,7 +38,7 @@ export default function LocationStep({
     } catch (error) {
       console.error('Route calc error:', error);
     }
-  }, [formData.pickup, formData.dropoff, updateFormData]);
+  }, [updateFormData]);
 
   useEffect(() => {
     if (formData.pickup && formData.dropoff) {
@@ -57,7 +57,9 @@ export default function LocationStep({
   };
 
   const validateAndProceed = () => {
-    if (!formData.pickup || !formData.dropoff) return;
+    if (!formData.pickup || !formData.dropoff) {
+      return;
+    }
     onNext();
   };
 
@@ -83,6 +85,7 @@ export default function LocationStep({
             <AutocompleteInput
               placeholder="Pickup address"
               onPlaceSelected={(place) => handleLocationSelect('pickup', place)}
+              value={formData.pickup?.address || ''}
               className={errors.pickup ? 'border-red-500' : ''}
               error={!!errors.pickup}
             />
@@ -99,6 +102,7 @@ export default function LocationStep({
             <AutocompleteInput
               placeholder="Destination"
               onPlaceSelected={(place) => handleLocationSelect('dropoff', place)}
+              value={formData.dropoff?.address || ''}
               className={errors.dropoff ? 'border-red-500' : ''}
               error={!!errors.dropoff}
             />
