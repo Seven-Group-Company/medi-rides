@@ -682,10 +682,10 @@ export default function RideManagement({
                 >
                   <option value="">Choose a driver</option>
                   {drivers.filter(driver => 
-                    driver.driverProfile.isAvailable && driver.isActive
+                    driver.driverProfile?.isAvailable && driver.isActive
                   ).map(driver => (
                     <option key={driver.id} value={driver.id}>
-                      {driver.name} - {driver.driverProfile.licenseNumber}
+                      {driver.name} - {driver.driverProfile?.licenseNumber}
                     </option>
                   ))}
                 </select>
