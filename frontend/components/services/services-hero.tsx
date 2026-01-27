@@ -2,8 +2,19 @@
 
 import { motion } from 'framer-motion';
 import { Calendar, Clock, FerrisWheelIcon, Shield } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
+import BoltBookingModal from '../homepage/bookings/bolt-booking-modal';
 
 const ServicesHero = () => {
+
+    const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+  
+    const handleBookingSuccess = (bookingData: any) => {
+      console.log('Booking successful:', bookingData);
+      alert(`Booking confirmed! Your booking ID is: ${bookingData.id}`);
+    };
+
   return (
     <section className="w-full bg-white border-b border-[#E6EAF0]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
@@ -59,6 +70,7 @@ const ServicesHero = () => {
             <motion.button
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
+              onClick={() => setIsBookingModalOpen(true)}
               className="bg-[#B0D6FF] text-[#0A2342] px-8 py-4 font-semibold text-lg border-0 hover:bg-[#9BC9FF] transition-colors duration-200 flex items-center space-x-3"
             >
               <Calendar className="w-5 h-5" />
@@ -73,20 +85,39 @@ const ServicesHero = () => {
             transition={{ duration: 0.6, delay: 0.2, ease: "easeOut" }}
             className="relative"
           >
-            <div className="bg-[#F5F7FA] border border-[#E6EAF0] p-8">
-              <div className="w-full h-80 bg-gradient-to-br from-[#B0D6FF] to-[#0A2342] flex items-center justify-center">
-                <div className="text-center text-white">
-                  <div className="w-20 h-20 bg-white bg-opacity-20 flex items-center justify-center mx-auto mb-4">
-                    <FerrisWheelIcon className="w-10 h-10" />
-                  </div>
-                  <p className="text-xl font-semibold">Compassionate Care</p>
-                  <p className="text-sm opacity-90 mt-2">Professional Medical Transportation</p>
-                </div>
+            <div className="rounded-lg overflow-hidden">
+              {/* Replace this path with your actual image path */}
+              <Image
+                src="/wcu/30191.jpg" // Update this path
+                alt="Professional medical transportation service"
+                width={600}
+                height={400}
+                className="w-full h-auto object-cover"
+                priority
+              />
+              <div className="p-6 bg-white">
+                <h3 className="text-xl font-semibold text-[#0A2342] mb-2">
+                  Professional Medical Transport
+                </h3>
+                <p className="text-[#0A2342] opacity-80">
+                  Our trained staff ensures safe, comfortable transportation for all medical appointments and procedures.
+                </p>
               </div>
             </div>
+            
+            {/* Optional decorative elements */}
+            <div className="absolute -top-4 -right-4 w-24 h-24 bg-[#B0D6FF] rounded-full opacity-20 -z-10"></div>
+            <div className="absolute -bottom-4 -left-4 w-16 h-16 bg-[#B0D6FF] rounded-full opacity-20 -z-10"></div>
           </motion.div>
         </div>
       </div>
+
+      {/* Booking Modal */}
+      <BoltBookingModal
+        isOpen={isBookingModalOpen}
+        onClose={() => setIsBookingModalOpen(false)}
+        onBookingSuccess={handleBookingSuccess}
+      />
     </section>
   );
 };

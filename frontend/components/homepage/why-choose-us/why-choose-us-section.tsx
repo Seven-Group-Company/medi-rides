@@ -9,19 +9,19 @@ const WhyChooseUsSection = () => {
       icon: Shield,
       title: "Safety First",
       description: "Our vehicles undergo rigorous safety inspections and our drivers are trained in patient care and emergency procedures.",
-      image: "https://images.unsplash.com/photo-1581093458791-8a6b6d47d0b9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/wcu/2148999625.jpg"
     },
     {
       icon: Clock,
       title: "Reliable & On Time",
       description: "We understand medical appointments can't be missed. Our punctuality record ensures you arrive stress-free and on schedule.",
-      image: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/wcu/30191.jpg"
     },
     {
       icon: UserCheck,
       title: "Professional, Certified Drivers",
       description: "All our drivers are certified, background-checked, and trained in patient assistance and mobility support.",
-      image: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2071&q=80"
+      image: "/wcu/2149908165.jpg"
     }
   ];
 

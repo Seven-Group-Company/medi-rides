@@ -12,6 +12,7 @@ import {
   ShoppingCart,
   BookOpen
 } from 'lucide-react';
+import Link from 'next/link';
 
 const NonMedicalTransportWithImage = () => {
   const nonMedicalServices = [
@@ -192,15 +193,11 @@ const NonMedicalTransportWithImage = () => {
                 Need a ride for your next event or trip?
               </h3>
             </div>
-            <motion.button
-              initial={{ scale: 1.05, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              whileHover={{ backgroundColor: "#F5F7FA" }}
+            <Link href="/auth" passHref
               className="bg-white text-[#0A2342] px-8 py-3 font-semibold text-lg border-0 hover:bg-[#F5F7FA] transition-colors duration-200"
             >
               Book Your Ride
-            </motion.button>
+            </Link>
           </div>
         </div>
       </motion.div>

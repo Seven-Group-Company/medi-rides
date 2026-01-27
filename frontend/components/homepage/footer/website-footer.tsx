@@ -11,7 +11,6 @@ import {
   Twitter,
   Linkedin,
   ArrowUp,
-  Heart
 } from 'lucide-react';
 
 const WebsiteFooter = () => {
@@ -67,7 +66,7 @@ const WebsiteFooter = () => {
                   <Phone className="w-4 h-4 text-[#0077B6]" />
                 </div>
                 <div>
-                  <p className="text-[#1E293B] font-medium">(555) 123-4567</p>
+                  <p className="text-[#1E293B] font-medium">+1 (907) 414-7664</p>
                   <p className="text-sm text-[#64748B]">24/7 Dispatch</p>
                 </div>
               </div>
@@ -77,7 +76,7 @@ const WebsiteFooter = () => {
                   <Mail className="w-4 h-4 text-[#0077B6]" />
                 </div>
                 <div>
-                  <p className="text-[#1E293B] font-medium">rides@compassionatemedi.com</p>
+                  <p className="text-[#1E293B] font-medium">rcompassionate@gmail.com</p>
                   <p className="text-sm text-[#64748B]">Quick Response</p>
                 </div>
               </div>
@@ -87,8 +86,8 @@ const WebsiteFooter = () => {
                   <MapPin className="w-4 h-4 text-[#0077B6]" />
                 </div>
                 <div>
-                  <p className="text-[#1E293B] font-medium">123 Care Street</p>
-                  <p className="text-sm text-[#64748B]">Medical District, CA 90210</p>
+                  <p className="text-[#1E293B] font-medium">Wasilla</p>
+                  <p className="text-sm text-[#64748B]">Alaska </p>
                 </div>
               </div>
 
@@ -116,11 +115,8 @@ const WebsiteFooter = () => {
             </h4>
             <nav className="space-y-2">
               {[
-                { name: 'Medical Transport', href: '/medical' },
-                { name: 'Non-Medical Rides', href: '/non-medical' },
-                { name: 'Wheelchair Services', href: '/accessibility' },
-                { name: 'About Our Fleet', href: '/fleet' },
-                { name: 'Service Areas', href: '/coverage' },
+                { name: 'Medical Transport', href: '/services' },
+                { name: 'Non-Medical Rides', href: '/services' },
                 { name: 'Contact Us', href: '/contact' }
               ].map((link) => (
                 <a
@@ -203,9 +199,6 @@ const WebsiteFooter = () => {
               </a>
               <a href="/terms" className="text-[#64748B] hover:text-[#0077B6] transition-colors duration-200">
                 Terms of Service
-              </a>
-              <a href="/accessibility" className="text-[#64748B] hover:text-[#0077B6] transition-colors duration-200">
-                Accessibility
               </a>
             </div>
           </div>

@@ -53,7 +53,7 @@ const HeroSection = () => {
               className="mb-8"
             >
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-tight mb-6 drop-shadow-lg">
-                Transportation Services include <span className='text-[#9BC9FF]'>Private, ALI, APDD, IDD, ISW Waivers</span>
+                Transportation Services include <span className='text-[#9BC9FF]'>Taxi, and non emergency medical transportation.</span>
               </h2>
 
 

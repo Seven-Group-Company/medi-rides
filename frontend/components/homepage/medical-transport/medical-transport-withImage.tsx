@@ -12,6 +12,7 @@ import {
   Heart,
   Calendar
 } from 'lucide-react';
+import Link from 'next/link';
 
 const MedicalTransportWithImage = () => {
   const medicalServices = [
@@ -168,14 +169,12 @@ const MedicalTransportWithImage = () => {
                 Need safe transport for your next medical appointment?
               </h3>
             </div>
-            <motion.button
-              whileHover={{ backgroundColor: "#F5F7FA" }}
-              transition={{ duration: 0.2 }}
+            <Link href="/auth" passHref
               className="bg-white text-[#0A2342] px-8 py-3 font-semibold text-lg border-0 hover:bg-[#F5F7FA] transition-colors duration-200 flex items-center space-x-2"
             >
               <Calendar className="w-5 h-5" />
               <span>Schedule Your Ride</span>
-            </motion.button>
+            </Link>
           </div>
         </div>
       </motion.div>

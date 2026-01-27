@@ -15,9 +15,6 @@ export default function ServicesPage() {
     <MedicalTransportWithImage />
     <NonMedicalTransportWithImage />
     <EligibilitySection />
-    {/* <PricingSection /> */}
-    {/* <InsuranceSection /> */}
-    {/* <RideExpectations /> */}
     <FAQSection />
     <ServicesCTASection />
     <WebsiteFooter />

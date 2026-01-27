@@ -23,7 +23,7 @@ export default function Home() {
       <NonMedicalTransportOverview />
       <WhyChooseUsSection />
       <FleetAccessibilityShowcase />
-      <TestimonialsSection />
+      {/* <TestimonialsSection /> */}
       <ServiceAreaMapSection />
       <CTABanner />
       <WebsiteFooter />

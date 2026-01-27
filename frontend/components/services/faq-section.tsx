@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 import { ChevronDown, ChevronUp } from 'lucide-react';
+import Link from 'next/link';
 
 const FAQSection = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
@@ -138,15 +139,13 @@ const FAQSection = () => {
               whileTap={{ scale: 0.95 }}
               className="bg-[#B0D6FF] text-[#0A2342] px-6 py-3 font-semibold border-0 hover:bg-[#9BC9FF] transition-colors duration-200"
             >
-              Call Now: (555) 123-4567
+              Call Now: +1 (907) 414-7664
             </motion.button>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+            <Link href="/contact" passHref
               className="bg-white text-[#0A2342] px-6 py-3 font-semibold border border-[#E6EAF0] hover:border-[#B0D6FF] transition-colors duration-200"
             >
               Send us a Message
-            </motion.button>
+            </Link>
           </div>
         </motion.div>
       </div>

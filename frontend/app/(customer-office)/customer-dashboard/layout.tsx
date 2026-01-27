@@ -29,14 +29,7 @@ export default function CustomerDashboardLayout({
         {/* Desktop Sidebar */}
         <div className="sticky top-0 hidden h-screen lg:flex lg:w-64 lg:flex-col bg-white">
           {/* Logo */}
-          <div className="flex items-center space-x-3 h-16 px-6 bg-[#F0F9FF]">
-            <div className="w-8 h-8 bg-[#B0D6FF] flex items-center justify-center">
-              <MapPin className="w-5 h-5 text-[#0A2342]" />
-            </div>
-            <span className="text-lg font-semibold text-[#0A2342]">
-              Medi Rides
-            </span>
-          </div>
+              <img src="/logos/medi.png" alt="Logo" className='object-contain' />
 
           {/* User Info */}
           <div className="px-6 py-4 bg-[#F0F9FF]">
@@ -92,10 +85,7 @@ export default function CustomerDashboardLayout({
             </button>
             
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-[#B0D6FF] flex items-center justify-center">
-                <MapPin className="w-4 h-4 text-white" />
-              </div>
-              <span className="font-semibold text-[#0A2342]">Medi Rides</span>
+              <img src="/logos/medi.png" alt="Logo" className='object-contain w-16 h-16' />
             </div>
 
             <div className="w-8 h-8 bg-[#F0F9FF] flex items-center justify-center">
@@ -116,10 +106,7 @@ export default function CustomerDashboardLayout({
                   {/* Mobile Menu Header */}
                   <div className="flex items-center justify-between h-16 px-4 bg-[#F0F9FF]">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-[#B0D6FF] flex items-center justify-center">
-                        <MapPin className="w-4 h-4 text-white" />
-                      </div>
-                      <span className="font-semibold text-[#0A2342]">Medi Rides</span>
+                      <img src="/logos/medi.png" alt="Logo" className='object-contain w-16 h-16' />
                     </div>
                     <button
                       onClick={() => setIsMobileMenuOpen(false)}

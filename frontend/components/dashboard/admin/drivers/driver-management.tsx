@@ -15,6 +15,14 @@ import EditDriverModal from './edit-driver-modal';
 import DriverDetailsModal from './driver-details-modal';
 import AssignVehiclesModal from './assign-vehicles-modal';
 import { toast } from 'react-hot-toast';
+import {
+  Plus,
+  Download,
+  Upload,
+  Filter,
+  Search,
+  Users,
+} from 'lucide-react';
 
 const DriverManagement: React.FC = () => {
   const [drivers, setDrivers] = useState<Driver[]>([]);
@@ -154,36 +162,71 @@ const DriverManagement: React.FC = () => {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
+  const handleExport = () => {
+    toast.success('Exporting driver data...');
+    // Implement export functionality
+  };
+
+  const handleImport = () => {
+    toast.success('Import functionality coming soon');
+    // Implement import functionality
+  };
+
   return (
-    <div className="p-6 space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 p-6 space-y-6">
       {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Driver Management</h1>
-          <p className="text-gray-600">Manage your fleet drivers and their assignments</p>
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div>
+            <div className="flex items-center space-x-3 mb-2">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <Users className="w-6 h-6 text-blue-600" />
+              </div>
+              <h1 className="text-3xl font-bold text-gray-900">Driver Management</h1>
+            </div>
+            <p className="text-gray-600">Manage your fleet drivers, assignments, and monitor performance</p>
+          </div>
+          
+          <div className="flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowCreateModal(true)}
+              className="flex items-center px-5 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl font-semibold hover:from-blue-700 hover:to-blue-800 transition-all shadow-lg hover:shadow-xl"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Add New Driver
+            </button>
+          </div>
         </div>
-        <button
-          onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 flex items-center space-x-2"
-        >
-          <span>+ Add Driver</span>
-        </button>
       </div>
 
       {/* Statistics */}
       {stats && <DriverStatsCards stats={stats} />}
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow p-4">
-        <div className="flex space-x-4">
-          <div className="flex-1">
+      <div className="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex-1 relative">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search drivers by name, email, or phone..."
+              placeholder="Search drivers by name, email, phone, or license..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full pl-12 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-gray-50/50"
             />
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <button className="flex items-center px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+              <Filter className="w-4 h-4 mr-2" />
+              Filters
+            </button>
+            <select className="px-4 py-3 border border-gray-300 rounded-xl text-sm font-medium text-gray-700 bg-white focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <option value="all">All Status</option>
+              <option value="active">Active Only</option>
+              <option value="inactive">Inactive</option>
+              <option value="available">Available Now</option>
+            </select>
           </div>
         </div>
       </div>
