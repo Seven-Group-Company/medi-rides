@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import ContactHeader from '@/components/contact/header';
 import ContactInfo from '@/components/contact/contact-info';
 import ContactForm from '@/components/contact/contact-form';
@@ -5,6 +6,19 @@ import Navigation from '@/components/homepage/navigation';
 import WebsiteFooter from '@/components/homepage/footer/website-footer';
 import EligibilitySection from '@/components/services/eligibility-section';
 import FAQSection from '@/components/services/faq-section';
+import { generatePageMetadata } from '@/lib/seo.config';
+
+export const metadata: Metadata = generatePageMetadata({
+  title: 'Contact Us',
+  description: 'Get in touch with Compassionate Medi Rides for medical and non-medical transportation services. Schedule a ride, ask questions, or learn more about our compassionate care.',
+  path: '/contact',
+  keywords: [
+    'contact medical transportation',
+    'schedule ride',
+    'book transportation',
+    'medical transport contact',
+  ],
+});
 
 export default function ContactPage() {
     return (
