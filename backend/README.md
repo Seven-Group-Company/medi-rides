@@ -1,557 +1,1321 @@
 # Medi Rides Backend API
 
-[![NestJS](https://img.shields.io/badge/NestJS-E0234E?style=for-the-badge&logo=nestjs&logoColor=white)](https://nestjs.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
-[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)](https://www.postgresql.org/)
-[![Prisma](https://img.shields.io/badge/Prisma-2D3748?style=for-the-badge&logo=prisma&logoColor=white)](https://www.prisma.io/)
-[![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+**NestJS REST API for Medical Transportation Platform**
 
-## 📋 Overview
+Enterprise-grade backend service powering the Compassionate Medi Rides platform with authentication, ride management, fleet tracking, and document compliance.
 
-Medi Rides Backend is a comprehensive medical transportation management system API built with NestJS. It provides secure, scalable, and reliable services for managing patient transportation, driver coordination, vehicle tracking, and administrative oversight for healthcare transportation needs.
+---
 
-### 🎯 Key Features
+## Table of Contents
 
-- **Patient Ride Management**: Book, track, and manage medical transportation requests
-- **Driver Coordination**: Match patients with available drivers and vehicles
-- **Real-time Tracking**: Monitor ride status and location updates
-- **Automated Scheduling**: Intelligent scheduling system for recurring medical appointments
-- **Document Management**: Secure handling of medical documents and compliance paperwork
-- **Billing & Invoicing**: Automated invoice generation and payment tracking
-- **Multi-role Authentication**: Secure access for patients, drivers, and administrators
-- **Email Notifications**: Automated updates for ride status changes and reminders
-- **Admin Dashboard**: Comprehensive analytics and system management tools
+1. [Overview](#overview)
+2. [Architecture](#architecture)
+3. [Module Breakdown](#module-breakdown)
+4. [API Endpoints](#api-endpoints)
+5. [Database Schema](#database-schema)
+6. [Authentication](#authentication)
+7. [Business Logic](#business-logic)
+8. [DTOs & Validation](#dtos--validation)
+9. [Error Handling](#error-handling)
+10. [Setup & Development](#setup--development)
 
-## 🏗️ Architecture
+---
 
-```mermaid
-graph TB
-    A[Client Applications] --> B[API Gateway]
-    B --> C[Authentication Service]
-    B --> D[Ride Management Service]
-    B --> E[Driver Service]
-    B --> F[Admin Service]
-    C --> G[PostgreSQL Database]
-    D --> G
-    E --> G
-    F --> G
-    D --> H[External Services]
-    H --> I[Email Service]
-    H --> J[Cloud Storage]
-    H --> K[PDF Generation]
+## Overview
+
+### Tech Stack
+
+- **Framework**: NestJS 11.x (TypeScript)
+- **ORM**: Prisma 6.x
+- **Database**: PostgreSQL
+- **Authentication**: Passport (JWT + Google OAuth)
+- **File Storage**: Cloudinary
+- **Email**: Nodemailer + Resend
+- **Validation**: class-validator
+- **Documentation**: Swagger/OpenAPI
+
+### Core Capabilities
+
+- 🔐 **Multi-strategy Authentication** (Local + OAuth2)
+- 🚗 **Ride Booking & Management** (Customer & Driver)
+- 📋 **Document Compliance Tracking** (Licenses, Insurance)
+- 🚙 **Fleet Management** (Vehicles, Availability)
+- 💰 **Payment Processing** (Multiple payment methods)
+- 📊 **Analytics Dashboard** (Business metrics)
+- 📧 **Email Notifications** (Verification, Alerts)
+- 📄 **Invoice Generation** (PDF creation)
+
+---
+
+## Architecture
+
+### Design Pattern
+
+**Modular Monolith** with clear separation of concerns:
+
+```
+Controller → Service → Prisma → Database
+   ↓          ↓
+  DTOs      Business
+Validation   Logic
 ```
 
-## 🚀 Quick Start
+### Layers
+
+1. **Controllers**: HTTP request handling, validation
+2. **Services**: Business logic, data manipulation
+3. **Prisma Service**: Database access layer
+4. **Guards**: Authentication & authorization
+5. **Filters**: Global exception handling
+6. **Pipes**: Data transformation & validation
+
+### Module Structure
+
+```
+src/
+├── auth/              # Authentication & user management
+├── rides/             # Ride booking system
+├── driver/            # Driver operations
+├── admin/             # Admin operations
+├── vehicles/          # Fleet management
+├── document-tracking/ # Compliance documents
+├── invoice/           # Billing & invoicing
+├── dashboard/         # Analytics
+├── service-categories/# Service types
+├── cloudinary/        # File uploads
+├── mail/              # Email service
+├── public/            # Public endpoints
+└── common/            # Shared utilities
+    ├── decorators/
+    ├── filters/
+    ├── guards/
+    └── types/
+```
+
+---
+
+## Module Breakdown
+
+### Auth Module (`src/auth/`)
+
+**Purpose**: User authentication, registration, and profile management
+
+**Controllers**:
+- `AuthController` - Auth endpoints
+
+**Services**:
+- `AuthService` - Core auth logic
+- `JwtStrategy` - JWT validation
+- `GoogleStrategy` - OAuth integration
+- `LocalStrategy` - Email/password login
+
+**Key Features**:
+- User registration with email verification
+- Login (local + Google OAuth)
+- Password reset flow
+- Token refresh mechanism
+- Profile management
+
+**Guards**:
+- `JwtAuthGuard` - Protect routes with JWT
+- `RolesGuard` - Role-based access control
+- `GoogleOAuthGuard` - OAuth flow
+
+---
+
+### Rides Module (`src/rides/`)
+
+**Purpose**: Ride booking and management
+
+**Controllers**:
+- `RidesController` - Customer ride operations
+- `AdminRidesController` - Admin ride management
+
+**Services**:
+- `RidesService` - Ride CRUD operations
+- `AdminRidesService` - Admin-specific operations
+
+**Key Features**:
+- Guest ride booking (no auth required)
+- Authenticated user bookings
+- Ride status tracking
+- Service category management
+- Distance/duration calculation
+- Ride history retrieval
+
+**DTOs**:
+- `CreateRideDto` - Booking validation
+- `CreateGuestRideDto` - Guest booking
+- `UpdateRideStatusDto` - Status changes
+
+---
+
+### Driver Module (`src/driver/`)
+
+**Purpose**: Driver-specific operations
+
+**Components**:
+- `DriversModule` - Driver management
+- `DriverDashboardModule` - Dashboard data
+- `DriverRidesModule` - Assigned rides
+
+**Key Features**:
+- Driver registration
+- Availability management
+- Assigned ride retrieval
+- Ride status updates
+- Profile management
+
+---
+
+### Vehicles Module (`src/vehicles/`)
+
+**Purpose**: Fleet management
+
+**Key Features**:
+- Vehicle registration
+- Maintenance tracking
+- Availability status
+- Wheelchair/oxygen support flags
+- Insurance expiry tracking
+- Assignment to drivers
+
+---
+
+### Document Tracking Module (`src/document-tracking/`)
+
+**Purpose**: Compliance document management
+
+**Key Features**:
+- Document upload (licenses, insurance, registrations)
+- Expiry tracking with auto-reminders
+- Renewal workflow
+- Multi-entity support (Vehicle, Driver, Company)
+- Priority levels (LOW, MEDIUM, HIGH, CRITICAL)
+- Email notifications for expiring documents
+
+**Document Status Flow**:
+```
+VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
+```
+
+---
+
+### Invoice Module (`src/invoice/`)
+
+**Purpose**: Billing and invoice generation
+
+**Key Features**:
+- PDF invoice creation
+- Linked to completed rides
+- Tax calculation
+- Due date management
+- Invoice number generation
+- PDF storage (local + Cloudinary)
+
+---
+
+### Dashboard Module (`src/dashboard/`)
+
+**Purpose**: Analytics and reporting
+
+**Components**:
+- `DashboardModule` - Core dashboard
+- `AnalyticsModule` - Business metrics
+
+**Metrics**:
+- Total rides (pending, completed, cancelled)
+- Revenue analytics
+- Driver performance
+- Vehicle utilization
+- Document compliance status
+
+---
+
+### Service Categories Module (`src/service-categories/`)
+
+**Purpose**: Service type management
+
+**Categories**:
+- Medical Transportation
+- Non-Medical Transportation
+- Emergency Transport
+- Wheelchair Services
+- Dialysis Transport
+
+**Pricing**:
+- Base price per service
+- Price per mile
+- Custom pricing rules
+
+---
+
+### Mail Module (`src/mail/`)
+
+**Purpose**: Email delivery
+
+**Providers**:
+- Nodemailer (SMTP)
+- Resend (alternative)
+
+**Email Types**:
+- Email verification
+- Password reset
+- Ride confirmations
+- Document expiry alerts
+
+---
+
+### Cloudinary Module (`src/cloudinary/`)
+
+**Purpose**: File upload and storage
+
+**Supported Files**:
+- User avatars
+- Vehicle images
+- Document PDFs
+- Invoice PDFs
+
+**Features**:
+- Auto-optimization
+- CDN delivery
+- Secure URLs
+
+---
+
+## API Endpoints
+
+### Base URL
+
+```
+http://localhost:1000
+```
+
+### Authentication Endpoints
+
+#### POST `/auth/register`
+
+Register a new user
+
+**Request**:
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "name": "John Doe",
+  "phone": "+1234567890",
+  "role": "CUSTOMER"
+}
+```
+
+**Response** (201):
+```json
+{
+  "success": true,
+  "message": "Registration successful. Please check your email.",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "CUSTOMER"
+  }
+}
+```
+
+#### POST `/auth/login`
+
+Login with credentials
+
+**Request**:
+```json
+{
+  "email": "user@example.com",
+  "password": "SecurePass123!"
+}
+```
+
+**Response** (200):
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1...",
+  "refresh_token": "eyJhbGciOiJIUzI1...",
+  "user": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "John Doe",
+    "role": "CUSTOMER"
+  }
+}
+```
+
+#### GET `/auth/verify-email?token={token}`
+
+Verify email address
+
+**Response** (200):
+```json
+{
+  "success": true,
+  "message": "Email verified successfully"
+}
+```
+
+#### POST `/auth/forgot-password`
+
+Request password reset
+
+**Request**:
+```json
+{
+  "email": "user@example.com"
+}
+```
+
+#### POST `/auth/reset-password`
+
+Reset password with token
+
+**Request**:
+```json
+{
+  "token": "reset-token-here",
+  "newPassword": "NewSecurePass123!"
+}
+```
+
+#### POST `/auth/refresh`
+
+Refresh access token
+
+**Request**:
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1..."
+}
+```
+
+#### GET `/auth/profile` 🔒
+
+Get current user profile
+
+**Headers**: `Authorization: Bearer {token}`
+
+**Response** (200):
+```json
+{
+  "id": 1,
+  "email": "user@example.com",
+  "name": "John Doe",
+  "role": "CUSTOMER",
+  "phone": "+1234567890",
+  "isVerified": true
+}
+```
+
+---
+
+### Ride Endpoints
+
+#### POST `/rides/guest`
+
+Create guest ride booking (no auth)
+
+**Request**:
+```json
+{
+  "passengerName": "Jane Smith",
+  "passengerPhone": "+1234567890",
+  "pickupAddress": "123 Main St, City, State",
+  "dropoffAddress": "456 Oak Ave, City, State",
+  "serviceCategoryId": 1,
+  "scheduledAt": "2024-01-20T10:00:00Z",
+  "specialNeeds": "Wheelchair accessible",
+  "paymentType": "private"
+}
+```
+
+**Response** (201):
+```json
+{
+  "success": true,
+  "message": "Ride booking created successfully",
+  "data": {
+    "id": 42,
+    "status": "PENDING",
+    "basePrice": 45.00,
+    "scheduledAt": "2024-01-20T10:00:00Z"
+  }
+}
+```
+
+#### POST `/rides` 🔒
+
+Create authenticated ride booking
+
+**Headers**: `Authorization: Bearer {token}`
+
+**Request**:
+```json
+{
+  "pickupAddress": "123 Main St",
+  "pickupLatitude": 40.7128,
+  "pickupLongitude": -74.0060,
+  "dropoffAddress": "456 Oak Ave",
+  "dropoffLatitude": 40.7589,
+  "dropoffLongitude": -73.9851,
+  "serviceCategoryId": 1,
+  "serviceType": "MEDICAL",
+  "scheduledAt": "2024-01-20T10:00:00Z",
+  "distance": 5.2,
+  "duration": 15,
+  "specialNeeds": "Oxygen support needed"
+}
+```
+
+#### GET `/rides` 🔒
+
+Get user's ride history
+
+**Response** (200):
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 42,
+      "pickupAddress": "123 Main St",
+      "dropoffAddress": "456 Oak Ave",
+      "status": "COMPLETED",
+      "scheduledAt": "2024-01-20T10:00:00Z",
+      "driver": {
+        "name": "John Driver",
+        "phone": "+1234567890"
+      },
+      "basePrice": 45.00,
+      "finalPrice": 48.50
+    }
+  ]
+}
+```
+
+#### GET `/rides/upcoming` 🔒
+
+Get upcoming rides (limit = 3 by default)
+
+**Query Params**:
+- `limit` (optional): Number of rides to return
+
+#### GET `/rides/:id` 🔒
+
+Get ride details
+
+**Response** (200):
+```json
+{
+  "success": true,
+  "data": {
+    "id": 42,
+    "pickupAddress": "123 Main St",
+    "dropoffAddress": "456 Oak Ave",
+    "status": "IN_PROGRESS",
+    "customer": { ... },
+    "driver": { ... },
+    "serviceCategory": { ... }
+  }
+}
+```
+
+---
+
+### Admin Ride Endpoints
+
+#### GET `/admin/rides` 🔒
+
+**Role**: ADMIN, DISPATCHER
+
+Get all rides with filters
+
+**Query Params**:
+- `status`: Filter by status
+- `startDate`, `endDate`: Date range
+- `page`, `limit`: Pagination
+
+**Response** (200):
+```json
+{
+  "data": [...],
+  "total": 150,
+  "page": 1,
+  "totalPages": 15
+}
+```
+
+#### PATCH `/admin/rides/:id/assign` 🔒
+
+**Role**: ADMIN, DISPATCHER
+
+Assign driver to ride
+
+**Request**:
+```json
+{
+  "driverId": 5
+}
+```
+
+#### PATCH `/admin/rides/:id/status` 🔒
+
+**Role**: ADMIN, DISPATCHER
+
+Update ride status
+
+**Request**:
+```json
+{
+  "status": "CONFIRMED"
+}
+```
+
+---
+
+### Driver Endpoints
+
+#### GET `/driver/rides` 🔒
+
+**Role**: DRIVER
+
+Get assigned rides
+
+**Response** (200):
+```json
+{
+  "data": [
+    {
+      "id": 42,
+      "customer": {
+        "name": "Jane Doe",
+        "phone": "+1234567890"
+      },
+      "pickupAddress": "123 Main St",
+      "status": "ASSIGNED",
+      "scheduledAt": "2024-01-20T10:00:00Z"
+    }
+  ]
+}
+```
+
+#### PATCH `/driver/rides/:id/status` 🔒
+
+**Role**: DRIVER
+
+Update ride status (DRIVER_EN_ROUTE, PICKUP_ARRIVED, IN_PROGRESS, COMPLETED)
+
+**Request**:
+```json
+{
+  "status": "IN_PROGRESS",
+  "actualPickupAt": "2024-01-20T10:05:00Z"
+}
+```
+
+#### GET `/driver/availability` 🔒
+
+**Role**: DRIVER
+
+Get availability schedule
+
+#### POST `/driver/availability` 🔒
+
+**Role**: DRIVER
+
+Set availability
+
+**Request**:
+```json
+{
+  "startTime": "2024-01-20T08:00:00Z",
+  "endTime": "2024-01-20T18:00:00Z",
+  "isAvailable": true
+}
+```
+
+---
+
+### Vehicle Endpoints
+
+#### POST `/vehicles` 🔒
+
+**Role**: ADMIN
+
+Register new vehicle
+
+**Request**:
+```json
+{
+  "make": "Toyota",
+  "model": "Sienna",
+  "year": 2023,
+  "color": "White",
+  "licensePlate": "ABC123",
+  "vin": "1HGBH41JXMN109186",
+  "type": "WHEELCHAIR_VAN",
+  "capacity": 4,
+  "hasWheelchairAccess": true,
+  "hasOxygenSupport": true,
+  "insuranceExpiry": "2025-12-31",
+  "registrationExpiry": "2025-06-30"
+}
+```
+
+#### GET `/vehicles` 🔒
+
+**Role**: ADMIN, DISPATCHER
+
+List all vehicles
+
+#### GET `/vehicles/:id` 🔒
+
+Get vehicle details
+
+#### PATCH `/vehicles/:id` 🔒
+
+**Role**: ADMIN
+
+Update vehicle
+
+#### DELETE `/vehicles/:id` 🔒
+
+**Role**: ADMIN
+
+Delete vehicle
+
+---
+
+### Document Tracking Endpoints
+
+#### POST `/document-tracking` 🔒
+
+**Role**: ADMIN
+
+Upload document
+
+**Request** (multipart/form-data):
+```json
+{
+  "title": "Driver License - John Doe",
+  "documentNumber": "DL123456789",
+  "categoryId": 1,
+  "issueDate": "2020-01-15",
+  "expiryDate": "2025-01-15",
+  "entityType": "DRIVER",
+  "entityId": 5,
+  "priority": "HIGH",
+  "file": "<PDF file>"
+}
+```
+
+#### GET `/document-tracking` 🔒
+
+**Role**: ADMIN
+
+Get all documents with filters
+
+**Query Params**:
+- `status`: VALID, EXPIRING_SOON, EXPIRED
+- `priority`: LOW, MEDIUM, HIGH, CRITICAL
+- `entityType`: VEHICLE, DRIVER, COMPANY
+
+#### GET `/document-tracking/expiring-soon` 🔒
+
+**Role**: ADMIN
+
+Get documents expiring within 30 days
+
+#### POST `/document-tracking/:id/renew` 🔒
+
+**Role**: ADMIN
+
+Renew document
+
+---
+
+### Service Categories Endpoints
+
+#### GET `/service-categories`
+
+Get all active service categories (public)
+
+**Response** (200):
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "name": "Medical Transportation",
+      "value": "MEDICAL_TRANSPORT",
+      "description": "Non-emergency medical transport",
+      "basePrice": 15.00,
+      "pricePerMile": 1.50,
+      "serviceType": "MEDICAL"
+    }
+  ]
+}
+```
+
+---
+
+### Invoice Endpoints
+
+#### POST `/invoices/generate/:rideId` 🔒
+
+**Role**: ADMIN
+
+Generate invoice for ride
+
+**Response** (201):
+```json
+{
+  "id": 10,
+  "invoiceNumber": "INV-2024-00010",
+  "rideId": 42,
+  "amount": 45.00,
+  "tax": 3.50,
+  "totalAmount": 48.50,
+  "pdfUrl": "https://cloudinary.com/invoices/INV-2024-00010.pdf",
+  "status": "PENDING"
+}
+```
+
+#### GET `/invoices/:id` 🔒
+
+Get invoice details
+
+#### GET `/invoices/ride/:rideId` 🔒
+
+Get invoice for specific ride
+
+---
+
+## Database Schema
+
+### Core Models
+
+#### User
+```prisma
+model User {
+  id                       Int
+  email                    String @unique
+  password                 String?
+  name                     String
+  role                     UserRole @default(CUSTOMER)
+  phone                    String?
+  isVerified               Boolean @default(false)
+  provider                 AuthProvider @default(LOCAL)
+  
+  // Relations
+  customerRides     Ride[] @relation("CustomerRides")
+  driverRides       Ride[] @relation("DriverRides")
+  driverProfile     DriverProfile?
+  payments          Payment[]
+  documentTrackings DocumentTracking[]
+}
+```
+
+#### Ride
+```prisma
+model Ride {
+  id                Int
+  customerId        Int?
+  driverId          Int?
+  pickupAddress     String
+  dropoffAddress    String
+  serviceCategoryId Int
+  serviceType       ServiceType
+  status            RideStatus @default(PENDING)
+  scheduledAt       DateTime
+  isGuest           Boolean @default(false)
+  passengerName     String?
+  basePrice         Float
+  finalPrice        Float?
+  
+  // Relations
+  customer          User? @relation("CustomerRides")
+  driver            User? @relation("DriverRides")
+  serviceCategory   ServiceCategory
+  payment           Payment?
+  invoice           Invoice?
+}
+```
+
+#### Vehicle
+```prisma
+model Vehicle {
+  id                     Int
+  make                   String
+  model                  String
+  year                   Int
+  licensePlate           String @unique
+  type                   VehicleType
+  capacity               Int
+  hasWheelchairAccess    Boolean @default(false)
+  hasOxygenSupport       Boolean @default(false)
+  insuranceExpiry        DateTime
+  registrationExpiry     DateTime
+  status                 VehicleStatus @default(AVAILABLE)
+}
+```
+
+#### DocumentTracking
+```prisma
+model DocumentTracking {
+  id             Int
+  title          String
+  documentNumber String
+  categoryId     Int
+  issueDate      DateTime
+  expiryDate     DateTime
+  status         DocumentStatus @default(VALID)
+  priority       Priority @default(MEDIUM)
+  entityType     EntityType
+  entityId       Int?
+  fileUrl        String
+  
+  // Relations
+  category       DocumentCategory
+  renewals       DocumentRenewal[]
+  reminders      DocumentReminder[]
+}
+```
+
+### Enums
+
+```prisma
+enum UserRole {
+  CUSTOMER
+  DRIVER
+  ADMIN
+  DISPATCHER
+}
+
+enum RideStatus {
+  PENDING
+  ASSIGNED
+  CONFIRMED
+  DRIVER_EN_ROUTE
+  PICKUP_ARRIVED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum VehicleType {
+  SEDAN
+  SUV
+  VAN
+  WHEELCHAIR_VAN
+  STRETCHER_VAN
+}
+
+enum DocumentStatus {
+  VALID
+  EXPIRING_SOON  // Within 30 days
+  EXPIRED
+  RENEWAL_IN_PROGRESS
+}
+```
+
+---
+
+## Authentication
+
+### JWT Strategy
+
+**Token Payload**:
+```json
+{
+  "sub": 123,           // User ID
+  "email": "user@example.com",
+  "role": "CUSTOMER",
+  "iat": 1234567890,
+  "exp": 1234998765
+}
+```
+
+**Token Lifetimes**:
+- Access Token: 7 days
+- Refresh Token: 30 days
+
+### Password Security
+
+- Hashing: bcrypt with 12 salt rounds
+- Password requirements enforced via DTOs
+- Reset tokens expire after 1 hour
+
+### OAuth Flow
+
+1. User clicks "Login with Google"
+2. Redirect to Google consent screen
+3. Google callback with user info
+4. Create/update user in database
+5. Issue JWT tokens
+6. Redirect to frontend with tokens
+
+### Role-Based Access
+
+```typescript
+// Protect endpoint
+@UseGuards(JwtAuthGuard)
+@Get('profile')
+getProfile() { }
+
+// Restrict by role
+@Roles('ADMIN', 'DISPATCHER')
+@UseGuards(JwtAuthGuard, RolesGuard)
+@Post('assign-driver')
+assignDriver() { }
+```
+
+---
+
+## Business Logic
+
+### Ride Booking Flow
+
+1. **Customer Creates Booking**
+   - Validate service category exists
+   - Calculate distance via Google Maps
+   - Calculate base price
+   - Check for scheduling conflicts
+   - Create ride with PENDING status
+
+2. **Admin/Dispatcher Assigns Driver**
+   - Check driver availability
+   - Update ride status to ASSIGNED
+   - Notify driver via email/app
+
+3. **Driver Accepts/Updates**
+   - ASSIGNED → CONFIRMED → DRIVER_EN_ROUTE
+   - → PICKUP_ARRIVED → IN_PROGRESS → COMPLETED
+
+4. **Invoice Generation**
+   - Calculate final price (base + mileage)
+   - Apply tax
+   - Generate PDF
+   - Link to ride
+   - Mark as PENDING
+
+### Document Expiry Tracking
+
+**Automated Process**:
+```
+Daily Cron Job:
+  1. Query documents expiring within 30 days
+  2. Update status to EXPIRING_SOON
+  3. Send email reminders
+  4. Query expired documents
+  5. Update status to EXPIRED
+  6. Send urgent notifications
+```
+
+**Renewal Workflow**:
+1. Admin uploads new document
+2. System creates DocumentRenewal record
+3. Updates parent document expiry date
+4. Changes status to VALID
+5. Archives old document
+
+---
+
+## DTOs & Validation
+
+### Example: CreateRideDto
+
+```typescript
+import { IsNotEmpty, IsString, IsInt, IsDate, IsOptional, IsEnum } from 'class-validator';
+import { Type } from 'class-transformer';
+import { ServiceType } from '@prisma/client';
+
+export class CreateRideDto {
+  @IsNotEmpty()
+  @IsString()
+  pickupAddress: string;
+
+  @IsOptional()
+  @IsNumber()
+  pickupLatitude?: number;
+
+  @IsOptional()
+  @IsNumber()
+  pickupLongitude?: number;
+
+  @IsNotEmpty()
+  @IsString()
+  dropoffAddress: string;
+
+  @IsNotEmpty()
+  @IsInt()
+  serviceCategoryId: number;
+
+  @IsNotEmpty()
+  @IsEnum(ServiceType)
+  serviceType: ServiceType;
+
+  @IsNotEmpty()
+  @Type(() => Date)
+  @IsDate()
+  scheduledAt: Date;
+
+  @IsOptional()
+  @IsString()
+  specialNeeds?: string;
+}
+```
+
+### Global Validation Pipe
+
+```typescript
+// app.module.ts
+{
+  provide: APP_PIPE,
+  useClass: ValidationPipe,
+}
+```
+
+---
+
+## Error Handling
+
+### Global Exception Filter
+
+```typescript
+// common/filters/all-exceptions.filter.ts
+@Catch()
+export class AllExceptionsFilter implements ExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost) {
+    const ctx = host.switchToHttp();
+    const response = ctx.getResponse();
+    const request = ctx.getRequest();
+
+    const status = exception instanceof HttpException
+      ? exception.getStatus()
+      : HttpStatus.INTERNAL_SERVER_ERROR;
+
+    const message = exception instanceof HttpException
+      ? exception.message
+      : 'Internal server error';
+
+    response.status(status).json({
+      statusCode: status,
+      timestamp: new Date().toISOString(),
+      path: request.url,
+      message,
+    });
+  }
+}
+```
+
+### Custom Exceptions
+
+```typescript
+throw new NotFoundException('Ride not found');
+throw new UnauthorizedException('Invalid credentials');
+throw new ConflictException('Ride already exists for this time slot');
+```
+
+---
+
+## Setup & Development
 
 ### Prerequisites
 
-- **Node.js**: v18.x or higher
-- **PostgreSQL**: v14 or higher
-- **npm**: v9.x or higher (or pnpm/yarn)
-- **Docker** (optional, for containerized deployment)
+- Node.js 18+
+- PostgreSQL 14+
+- npm or yarn
 
 ### Installation
 
-1. **Clone and navigate to backend directory:**
 ```bash
-git clone <repository-url>
-cd medi-rides/backend
-```
-
-2. **Install dependencies:**
-```bash
+# Install dependencies
 npm install
-# or
-pnpm install
-```
 
-3. **Configure environment:**
-```bash
-cp .env.example .env
-# Edit .env with your configuration
-```
-
-4. **Database setup:**
-```bash
 # Generate Prisma client
 npx prisma generate
 
 # Run migrations
-npx prisma migrate deploy
+npx prisma migrate dev
 
-# Seed initial data (optional)
+# Seed database (optional)
 npm run prisma:seed
 ```
 
-5. **Start development server:**
-```bash
-npm run start:dev
-```
-
-The API will be available at `http://localhost:3000`
-
-## ⚙️ Configuration
-
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+Create `.env` file (see main README for all variables)
 
-```env
-# ====================
-# Application Settings
-# ====================
-NODE_ENV=development
-PORT=3000
-FRONTEND_URL=http://localhost:3001
-API_PREFIX=/api
-CORS_ORIGINS=http://localhost:3001,http://localhost:3000
+### Development
 
-# ====================
-# Database
-# ====================
-DATABASE_URL="postgresql://user:password@localhost:5432/medirides?schema=public"
-DATABASE_SSL=false
-
-# ====================
-# Authentication
-# ====================
-JWT_SECRET="your-super-secure-jwt-secret-minimum-32-chars"
-JWT_EXPIRATION="7d"
-REFRESH_TOKEN_SECRET="your-refresh-token-secret"
-REFRESH_TOKEN_EXPIRATION="30d"
-
-# ====================
-# OAuth Providers
-# ====================
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
-GOOGLE_CALLBACK_URL="http://localhost:3000/api/auth/google/callback"
-
-# ====================
-# File Storage (Cloudinary)
-# ====================
-CLOUDINARY_CLOUD_NAME="your-cloud-name"
-CLOUDINARY_API_KEY="your-api-key"
-CLOUDINARY_API_SECRET="your-api-secret"
-
-# ====================
-# Email Service
-# ====================
-EMAIL_PROVIDER=resend  # or 'nodemailer'
-RESEND_API_KEY="your-resend-api-key"
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT=587
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
-EMAIL_FROM_ADDRESS="noreply@medirides.com"
-ADMIN_EMAIL="admin@medirides.com"
-
-# ====================
-# Rate Limiting
-# ====================
-RATE_LIMIT_TTL=60
-RATE_LIMIT_MAX=100
-
-# ====================
-# Security
-# ====================
-BCRYPT_SALT_ROUNDS=12
-SESSION_SECRET="session-secret"
-```
-
-### Database Configuration
-
-The application uses Prisma ORM with PostgreSQL. Key database models include:
-
-- **Users**: Patient, driver, and admin accounts
-- **Rides**: Transportation requests and scheduling
-- **Vehicles**: Fleet management
-- **Invoices**: Billing and payment records
-- **Documents**: Compliance and medical documentation
-
-## 🏃‍♂️ Running the Application
-
-### Development Mode
 ```bash
+# Start dev server (hot reload)
 npm run start:dev
-```
-- Auto-reload on changes
-- Detailed error messages
-- Access Swagger docs at `/api`
 
-### Production Build
-```bash
-# Build the application
+# Build for production
 npm run build
 
-# Run in production mode
+# Start production
 npm run start:prod
 ```
 
-### Docker Deployment
+### Database Commands
+
 ```bash
-# Build and run with Docker Compose
-docker-compose up --build
+# Create migration
+npx prisma migrate dev --name add_new_field
 
-# Or using individual containers
-docker build -t medi-rides-backend .
-docker run -p 3000:3000 --env-file .env medi-rides-backend
+# Reset database
+npx prisma migrate reset
+
+# Open Prisma Studio (GUI)
+npx prisma studio
+
+# Generate Prisma client
+npx prisma generate
 ```
 
-### PM2 Process Management (Production)
-```bash
-# Install PM2 globally
-npm install -g pm2
+### Testing
 
-# Start application with PM2
-pm2 start dist/main.js --name medi-rides-api
-
-# Monitor application
-pm2 monit
-
-# View logs
-pm2 logs medi-rides-api
-```
-
-## 📚 API Documentation
-
-### Interactive Documentation
-Once the server is running, access the auto-generated Swagger documentation:
-
-👉 **http://localhost:3000/api**
-
-### API Structure
-
-| Endpoint Group | Base Path | Description |
-|----------------|-----------|-------------|
-| Authentication | `/api/auth` | User registration, login, OAuth, token refresh |
-| Rides | `/api/rides` | Ride booking, status updates, history |
-| Drivers | `/api/drivers` | Driver profiles, availability, assignments |
-| Patients | `/api/patients` | Patient profiles, medical information |
-| Vehicles | `/api/vehicles` | Fleet management, maintenance tracking |
-| Admin | `/api/admin` | System management, analytics, user management |
-| Invoices | `/api/invoices` | Billing, PDF generation, payment tracking |
-| Dashboard | `/api/dashboard` | Analytics and reporting |
-
-### Authentication Flow
-
-```typescript
-// Sample authentication request
-POST /api/auth/login
-Content-Type: application/json
-
-{
-  "email": "user@example.com",
-  "password": "securePassword123"
-}
-
-// Response
-{
-  "access_token": "eyJhbGciOiJIUzI1NiIs...",
-  "refresh_token": "eyJhbGciOiJIUzI1NiIs...",
-  "user": {
-    "id": "uuid",
-    "email": "user@example.com",
-    "role": "patient",
-    "firstName": "John",
-    "lastName": "Doe"
-  }
-}
-```
-
-### WebSocket Events (Real-time Updates)
-
-The application provides real-time updates via WebSocket for:
-- Ride status changes
-- Driver location updates
-- New ride assignments
-- System notifications
-
-## 🧪 Testing
-
-### Running Tests
 ```bash
 # Unit tests
-npm run test
+npm test
 
 # E2E tests
 npm run test:e2e
 
-# Test coverage
+# Coverage
 npm run test:cov
-
-# Specific test file
-npm run test -- rides.service.spec
 ```
-
-### Test Environment
-Tests run with a dedicated test database. Configure in `test.env`:
-```env
-DATABASE_URL="postgresql://test:test@localhost:5433/medirides_test"
-NODE_ENV=test
-```
-
-### Mock Services
-- **Database**: Test containers with isolated PostgreSQL instance
-- **External APIs**: Nock for HTTP mocking
-- **File Storage**: Memory storage for uploads
-- **Email**: In-memory email capture
-
-## 🔧 Development
-
-### Code Style & Quality
-```bash
-# Lint code
-npm run lint
-
-# Format code
-npm run format
-
-# Type checking
-npm run type-check
-```
-
-### Git Hooks
-Pre-commit hooks automatically:
-- Run linting
-- Execute tests
-- Check commit message format
-
-### Commit Convention
-We follow [Conventional Commits](https://www.conventionalcommits.org/):
-- `feat:` New features
-- `fix:` Bug fixes
-- `docs:` Documentation changes
-- `style:` Code style changes
-- `refactor:` Code refactoring
-- `test:` Test changes
-- `chore:` Maintenance tasks
-
-## 📦 Deployment
-
-### Production Checklist
-- [ ] Update all environment variables for production
-- [ ] Set up SSL/TLS certificates
-- [ ] Configure firewall rules
-- [ ] Set up database backups
-- [ ] Configure logging and monitoring
-- [ ] Set up CI/CD pipeline
-- [ ] Perform security audit
-- [ ] Load testing completed
-
-### Cloud Deployment (AWS Example)
-```yaml
-# AWS ECS Task Definition
-version: '3'
-services:
-  api:
-    image: medi-rides-backend:latest
-    ports:
-      - "3000:3000"
-    environment:
-      - NODE_ENV=production
-      - DATABASE_URL=${DATABASE_URL}
-      - JWT_SECRET=${JWT_SECRET}
-    secrets:
-      - db_password
-```
-
-### Environment-Specific Configurations
-
-#### Development
-```typescript
-// config/development.ts
-export default {
-  database: {
-    logging: true,
-    synchronize: false,
-  },
-  security: {
-    cors: {
-      origin: ['http://localhost:3001'],
-    },
-  },
-};
-```
-
-#### Production
-```typescript
-// config/production.ts
-export default {
-  database: {
-    logging: false,
-    ssl: true,
-    poolSize: 10,
-  },
-  security: {
-    rateLimit: {
-      windowMs: 15 * 60 * 1000, // 15 minutes
-      max: 100, // limit each IP to 100 requests per windowMs
-    },
-  },
-};
-```
-
-## 🔒 Security
-
-### Implemented Security Measures
-- **JWT Authentication**: Stateless token-based authentication
-- **Role-Based Access Control (RBAC)**: Granular permissions
-- **Input Validation**: DTO validation with class-validator
-- **SQL Injection Protection**: Prisma ORM with parameterized queries
-- **CORS Configuration**: Restrictive CORS policies
-- **Rate Limiting**: Protect against brute force attacks
-- **Helmet.js**: Secure HTTP headers
-- **BCrypt**: Password hashing with salt rounds
-- **XSS Protection**: Input sanitization
-
-### Security Audit
-```bash
-# Run security audit
-npm audit
-
-# Check for vulnerabilities in dependencies
-npx snyk test
-
-# Dependency updates
-npm run audit:fix
-```
-
-## 📊 Monitoring & Logging
-
-### Logging Configuration
-```typescript
-// Winston logger configuration
-const logger = WinstonModule.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json(),
-  ),
-  transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
-  ],
-});
-```
-
-### Health Checks
-```bash
-# Health check endpoint
-GET /api/health
-
-# Response
-{
-  "status": "ok",
-  "timestamp": "2024-01-20T10:30:00.000Z",
-  "services": {
-    "database": "connected",
-    "storage": "available",
-    "email": "operational"
-  }
-}
-```
-
-### Performance Monitoring
-- **New Relic** or **Datadog** for APM
-- **Prometheus** for metrics collection
-- **Grafana** for dashboards
-
-## 🤝 Contributing
-
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
-
-### Development Workflow
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'feat: add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
-
-### Pull Request Template
-```markdown
-## Description
-Brief description of the changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] E2E tests added/updated
-
-## Checklist
-- [ ] Code follows project style guidelines
-- [ ] Self-review completed
-- [ ] Comments added for complex logic
-- [ ] Documentation updated
-- [ ] No new warnings introduced
-```
-
-## 🆘 Support
-
-### Getting Help
-- **Documentation**: Check the [Wiki](../../wiki) for detailed guides
-- **Issues**: [GitHub Issues](../../issues) for bug reports and feature requests
-- **Discussions**: [GitHub Discussions](../../discussions) for questions and ideas
-- **Email**: support@medirides.com
-
-### Common Issues & Solutions
-
-#### Database Connection Issues
-```bash
-# Check if PostgreSQL is running
-sudo systemctl status postgresql
-
-# Test database connection
-npx prisma db execute --stdin <<< "SELECT 1"
-```
-
-#### Migration Problems
-```bash
-# Reset database (development only)
-npx prisma migrate reset
-
-# Check migration status
-npx prisma migrate status
-
-# Create new migration
-npx prisma migrate dev --name migration_name
-```
-
-## 📄 License
-
-This project is proprietary and confidential. All rights reserved.
-
-### Third-Party Licenses
-```bash
-# Generate licenses report
-npx license-checker --summary
-
-# List all dependencies with licenses
-npm run licenses
-```
-
-## 🔗 Related Projects
-
-- **[Frontend](../frontend/)**: React-based web application
-- **[Mobile App](../mobile/)**: React Native mobile application
-- **[Admin Dashboard](../admin-dashboard/)**: Administrative interface
-
-## 📈 Performance Metrics
-
-| Metric | Target | Current |
-|--------|---------|---------|
-| API Response Time | < 200ms | 150ms |
-| Database Query Time | < 50ms | 35ms |
-| Uptime | 99.9% | 99.95% |
-| Error Rate | < 0.1% | 0.05% |
 
 ---
 
+## Swagger Documentation
 
-*For emergency support or critical issues, contact the on-call engineer at +233-53-406-5652
+Access interactive API docs at:
+
+```
+http://localhost:1000/api/docs
+```
+
+Swagger UI provides:
+- All endpoint documentation
+- Request/response schemas
+- Try-it-out functionality
+- Authentication integration
+
+---
+
+## Performance Considerations
+
+### Database Optimization
+
+- **Indexes**: Applied on frequently queried fields
+  - `users.email`
+  - `rides.status`, `rides.customerId`, `rides.driverId`
+  - `document_tracking.expiryDate`, `document_tracking.status`
+
+- **Pagination**: Implemented for list endpoints
+
+- **Select Fields**: Only fetch needed columns
+
+### Caching Strategy
+
+- Service categories (rarely change)
+- User profiles (invalidate on update)
+- Document statistics (refresh daily)
+
+---
+
+## Security Measures
+
+✅ **Input Validation**: All DTOs validated with `class-validator`  
+✅ **SQL Injection**: Prevented by Prisma parameterized queries  
+✅ **CORS**: Configured for frontend domain only  
+✅ **Helmet**: Security headers enabled  
+✅ **Rate Limiting**: Throttler on auth endpoints  
+✅ **Password Hashing**: bcrypt with 12 rounds  
+✅ **JWT Expiry**: Short-lived tokens  
+✅ **Environment Secrets**: Never committed to git  
+
+---
+
+## Deployment
+
+### Build
+
+```bash
+npm run build
+```
+
+### Production Start
+
+```bash
+npm run start:prod
+```
+
+### Process Manager (PM2)
+
+```bash
+pm2 start dist/src/main.js --name medi-rides-api
+pm2 save
+pm2 startup
+```
+
+### Docker
+
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+RUN npx prisma generate
+RUN npm run build
+CMD ["npm", "run", "start:prod"]
+```
+
+---
+
+## Monitoring
+
+### Logging
+
+NestJS built-in logger used throughout:
+
+```typescript
+this.logger.log('Ride created', { rideId: 42 });
+this.logger.error('Payment failed', error);
+```
+
+### Health Check
+
+```bash
+GET /health
+```
+
+---
+
+## Future Enhancements
+
+- [ ] WebSocket for real-time updates
+- [ ] Redis caching layer
+- [ ] Message queue (RabbitMQ)
+- [ ] GraphQL API
+- [ ] Microservices split
+- [ ] Advanced search (Elasticsearch)
+- [ ] API rate limiting per user
+- [ ] Audit logging
+
+---
+
+**Version**: 1.0.0  
+**Last Updated**: January 2024

@@ -8,6 +8,7 @@ export default function LandingPage() {
     <>
       <nav className="w-full flex items-center justify-between px-8 py-4 border-b border-neutral-200 bg-white">
         <h1 className="text-2xl font-semibold tracking-tight">NovaLink</h1>
+
         <div className="flex gap-6 text-neutral-700 text-sm">
           <a href="#features" className="hover:text-black transition">Features</a>
           <a href="#pricing" className="hover:text-black transition">Pricing</a>
