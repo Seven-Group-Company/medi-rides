@@ -23,7 +23,7 @@ const ContactHeader = () => {
             </motion.div>
 
             {/* Content */}
-            <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full text-center">
+            <div className="relative md:flex items-end justify-end z-10 max-w-7xl mx-auto px-4 sm:px-6 md:px-0 w-full text-left">
                 <motion.div
                     initial={{ y: 30, opacity: 0 }}
                     animate={{ y: 0, opacity: 1 }}
