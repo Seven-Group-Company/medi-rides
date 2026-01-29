@@ -42,7 +42,7 @@ export class AdminRidesController {
     @Query('include') include?: string, // Add include parameter
   ) {
     const pageNum = parseInt(page || '1') || 1;
-    const limitNum = parseInt(limit || '10') || 10;
+    const limitNum = parseInt(limit || '1000') || 1000;
     
     const result = await this.adminRidesService.getAllRides(
       pageNum,

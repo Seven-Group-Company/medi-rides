@@ -30,26 +30,26 @@ graph TB
     A[Next.js 14 App Router] --> B[Middleware Layer]
     B --> C[Layout Components]
     C --> D[Role-Based Pages]
-    
+
     D --> E[Patient Features]
     D --> F[Driver Features]
     D --> G[Admin Features]
-    
+
     E --> H[Ride Booking]
     E --> I[Ride History]
     E --> J[Medical Profile]
-    
+
     F --> K[Dashboard]
     F --> L[Availability]
     F --> M[Earnings]
-    
+
     G --> N[Analytics]
     G --> O[User Management]
     G --> P[System Config]
-    
+
     Q[State Management] --> R[React Context]
     R --> S[Zustand Stores]
-    
+
     T[API Layer] --> U[Axios Client]
     U --> V[Backend API]
     U --> W[External Services]
@@ -66,12 +66,14 @@ graph TB
 ### Installation
 
 1. **Clone and navigate to frontend directory:**
+
 ```bash
 git clone <repository-url>
 cd medi-rides/frontend
 ```
 
 2. **Install dependencies:**
+
 ```bash
 npm install
 # or
@@ -81,12 +83,14 @@ yarn install
 ```
 
 3. **Configure environment:**
+
 ```bash
 cp .env.example .env.local
 # Edit .env.local with your configuration
 ```
 
 4. **Start development server:**
+
 ```bash
 npm run dev
 ```
@@ -97,65 +101,31 @@ The application will be available at `http://localhost:3000`
 
 ### Environment Variables
 
+A `.env.example` template is provided in the repository. Copy it to `.env.local` and fill in your values:
+
+```bash
+cp .env.example .env.local
+# then edit `.env.local` and provide real values
+```
+
 Create a `.env.local` file in the root directory:
 
 ```env
-# ====================
-# Application Settings
-# ====================
-NEXT_PUBLIC_APP_NAME="Medi Rides"
-NEXT_PUBLIC_APP_VERSION=1.0.0
-NEXT_PUBLIC_APP_ENV=development
-NEXT_PUBLIC_MAINTENANCE_MODE=false
+
+> **Security note:** Do **not** commit `.env.local` to version control. If you accidentally commit secrets, rotate/revoke them immediately.
 
 # ====================
 # API Configuration
 # ====================
 NEXT_PUBLIC_API_URL=http://localhost:3001/api
-NEXT_PUBLIC_API_TIMEOUT=30000
-NEXT_PUBLIC_WS_URL=ws://localhost:3001
-
-# ====================
-# Authentication
-# ====================
-NEXT_PUBLIC_JWT_STORAGE_KEY=medirides_auth_token
-NEXT_PUBLIC_REFRESH_TOKEN_KEY=medirides_refresh_token
-NEXT_PUBLIC_TOKEN_REFRESH_INTERVAL=840000 # 14 minutes
 
 # ====================
 # Map Services
 # ====================
-NEXT_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_token
 NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_key
-NEXT_PUBLIC_DEFAULT_MAP_PROVIDER=mapbox # or 'google'
-
-# ====================
-# Feature Flags
-# ====================
-NEXT_PUBLIC_ENABLE_PWA=true
-NEXT_PUBLIC_ENABLE_OFFLINE_MODE=true
-NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS=false
-NEXT_PUBLIC_ENABLE_ANALYTICS=false
-
-# ====================
-# External Services
-# ====================
-NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME=your_cloud_name
-NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn
-NEXT_PUBLIC_GA_MEASUREMENT_ID=your_ga_id
 ```
 
 ### Feature Flags
-
-Control feature availability via environment variables:
-
-| Feature | Environment Variable | Default |
-|---------|---------------------|---------|
-| PWA Support | `NEXT_PUBLIC_ENABLE_PWA` | `true` |
-| Offline Mode | `NEXT_PUBLIC_ENABLE_OFFLINE_MODE` | `true` |
-| Analytics | `NEXT_PUBLIC_ENABLE_ANALYTICS` | `false` |
-| Push Notifications | `NEXT_PUBLIC_ENABLE_PUSH_NOTIFICATIONS` | `false` |
-| Maintenance Mode | `NEXT_PUBLIC_MAINTENANCE_MODE` | `false` |
 
 ## 📁 Project Structure
 
@@ -224,14 +194,17 @@ frontend/
 ## 🏃‍♂️ Running the Application
 
 ### Development Mode
+
 ```bash
 npm run dev
 ```
+
 - Hot reload on changes
 - Development tools enabled
 - Access at `http://localhost:3000`
 
 ### Production Build
+
 ```bash
 # Build the application
 npm run build
@@ -244,6 +217,7 @@ npm run start:standalone
 ```
 
 ### Docker Deployment
+
 ```bash
 # Build Docker image
 docker build -t medi-rides-frontend .
@@ -258,6 +232,7 @@ docker-compose up
 ```
 
 ### Vercel Deployment (Recommended)
+
 ```bash
 # Install Vercel CLI
 npm i -g vercel
@@ -272,6 +247,7 @@ vercel --prod
 ## 🎨 Design System
 
 ### Theme Configuration
+
 The application uses a custom design system with Tailwind CSS:
 
 ```typescript
@@ -281,32 +257,33 @@ export default {
     extend: {
       colors: {
         primary: {
-          50: '#eff6ff',
-          100: '#dbeafe',
-          500: '#3b82f6',
-          600: '#2563eb',
-          700: '#1d4ed8',
+          50: "#eff6ff",
+          100: "#dbeafe",
+          500: "#3b82f6",
+          600: "#2563eb",
+          700: "#1d4ed8",
         },
         medical: {
-          blue: '#1e40af',
-          teal: '#0d9488',
-          amber: '#f59e0b',
-        }
+          blue: "#1e40af",
+          teal: "#0d9488",
+          amber: "#f59e0b",
+        },
       },
       fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        sans: ["Inter", "system-ui", "sans-serif"],
       },
     },
   },
-}
+};
 ```
 
 ### Component Library
+
 The application includes a comprehensive component library:
 
 ```tsx
 // Example of a reusable Button component
-import { Button } from '@/components/ui/Button';
+import { Button } from "@/components/ui/Button";
 
 export function PrimaryButton({ children, ...props }) {
   return (
@@ -325,77 +302,13 @@ export function PrimaryButton({ children, ...props }) {
 ## 🔌 API Integration
 
 ### API Client Configuration
-```typescript
-// lib/api/client.ts
-import axios from 'axios';
-
-const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  timeout: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || '30000'),
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
-
-// Request interceptor for adding auth token
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('medirides_auth_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
-
-// Response interceptor for handling errors
-apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    if (error.response?.status === 401) {
-      // Handle token refresh
-      await refreshToken();
-      return apiClient(error.config);
-    }
-    return Promise.reject(error);
-  }
-);
-```
 
 ### Example API Service
-```typescript
-// lib/api/rides.ts
-export const ridesService = {
-  // Book a new ride
-  async bookRide(rideData: RideRequest): Promise<Ride> {
-    const response = await apiClient.post('/rides', rideData);
-    return response.data;
-  },
-
-  // Get ride history
-  async getRideHistory(params?: PaginationParams): Promise<Ride[]> {
-    const response = await apiClient.get('/rides/history', { params });
-    return response.data;
-  },
-
-  // Cancel a ride
-  async cancelRide(rideId: string, reason: string): Promise<void> {
-    await apiClient.patch(`/rides/${rideId}/cancel`, { reason });
-  },
-
-  // Real-time ride updates via WebSocket
-  subscribeToRideUpdates(rideId: string, callback: (ride: Ride) => void) {
-    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}/rides/${rideId}`);
-    ws.onmessage = (event) => {
-      const ride = JSON.parse(event.data);
-      callback(ride);
-    };
-    return () => ws.close();
-  },
-};
-```
 
 ## 🧪 Testing
 
 ### Test Configuration
+
 ```bash
 # Run all tests
 npm test
@@ -411,6 +324,7 @@ npm run test:watch
 ```
 
 ### Example Test
+
 ```typescript
 // __tests__/components/Button.test.tsx
 import { render, screen, fireEvent } from '@testing-library/react';
@@ -432,6 +346,7 @@ describe('Button Component', () => {
 ```
 
 ### E2E Testing with Cypress
+
 ```bash
 # Open Cypress Test Runner
 npm run cypress:open
@@ -446,20 +361,21 @@ npm run cypress:run -- --spec cypress/e2e/rides.cy.ts
 ## 📱 PWA Configuration
 
 ### Service Worker Setup
+
 ```typescript
 // app/service-worker.ts
-import { register } from 'next-pwa';
+import { register } from "next-pwa";
 
 register({
-  dest: 'public',
+  dest: "public",
   register: true,
   skipWaiting: true,
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/api\.medirides\.com\/api/,
-      handler: 'NetworkFirst',
+      handler: "NetworkFirst",
       options: {
-        cacheName: 'api-cache',
+        cacheName: "api-cache",
         expiration: {
           maxEntries: 100,
           maxAgeSeconds: 24 * 60 * 60, // 24 hours
@@ -468,9 +384,9 @@ register({
     },
     {
       urlPattern: /\.(png|jpg|jpeg|svg|gif)$/,
-      handler: 'CacheFirst',
+      handler: "CacheFirst",
       options: {
-        cacheName: 'image-cache',
+        cacheName: "image-cache",
         expiration: {
           maxEntries: 200,
           maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
@@ -482,6 +398,7 @@ register({
 ```
 
 ### Manifest Configuration
+
 ```json
 {
   "name": "Medi Rides",
@@ -517,65 +434,78 @@ register({
 ## 🔒 Security
 
 ### Security Headers
+
 ```typescript
 // middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
 
   // Security headers
-  response.headers.set('X-DNS-Prefetch-Control', 'on');
-  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
-  response.headers.set('X-Frame-Options', 'SAMEORIGIN');
-  response.headers.set('X-Content-Type-Options', 'nosniff');
-  response.headers.set('Referrer-Policy', 'origin-when-cross-origin');
-  response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
-  response.headers.set('Content-Security-Policy', `
+  response.headers.set("X-DNS-Prefetch-Control", "on");
+  response.headers.set(
+    "Strict-Transport-Security",
+    "max-age=63072000; includeSubDomains; preload",
+  );
+  response.headers.set("X-Frame-Options", "SAMEORIGIN");
+  response.headers.set("X-Content-Type-Options", "nosniff");
+  response.headers.set("Referrer-Policy", "origin-when-cross-origin");
+  response.headers.set(
+    "Permissions-Policy",
+    "camera=(), microphone=(), geolocation=()",
+  );
+  response.headers.set(
+    "Content-Security-Policy",
+    `
     default-src 'self';
     script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com;
     style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
     img-src 'self' data: https:;
     font-src 'self' https://fonts.gstatic.com;
     connect-src 'self' https://api.medirides.com wss://api.medirides.com;
-  `.replace(/\s+/g, ' '));
+  `.replace(/\s+/g, " "),
+  );
 
   return response;
 }
 ```
 
 ### Authentication Flow
+
 ```typescript
 // lib/auth.ts
 export const authService = {
   // Login user
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await apiClient.post('/auth/login', credentials);
+    const response = await apiClient.post("/auth/login", credentials);
     const { token, refreshToken, user } = response.data;
-    
+
     // Store tokens securely
-    localStorage.setItem('medirides_auth_token', token);
-    localStorage.setItem('medirides_refresh_token', refreshToken);
-    
+    localStorage.setItem("medirides_auth_token", token);
+    localStorage.setItem("medirides_refresh_token", refreshToken);
+
     // Set up auto-refresh
     this.setupTokenRefresh(refreshToken);
-    
+
     return { user, token };
   },
 
   // Auto-refresh token
   setupTokenRefresh(refreshToken: string) {
     const refreshInterval = parseInt(
-      process.env.NEXT_PUBLIC_TOKEN_REFRESH_INTERVAL || '840000'
+      process.env.NEXT_PUBLIC_TOKEN_REFRESH_INTERVAL || "840000",
     );
-    
+
     setInterval(async () => {
       try {
-        const response = await apiClient.post('/auth/refresh', { refreshToken });
-        localStorage.setItem('medirides_auth_token', response.data.token);
+        const response = await apiClient.post("/auth/refresh", {
+          refreshToken,
+        });
+        localStorage.setItem("medirides_auth_token", response.data.token);
       } catch (error) {
-        console.error('Token refresh failed:', error);
+        console.error("Token refresh failed:", error);
         this.logout();
       }
     }, refreshInterval);
@@ -583,11 +513,11 @@ export const authService = {
 
   // Check authentication status
   isAuthenticated(): boolean {
-    const token = localStorage.getItem('medirides_auth_token');
+    const token = localStorage.getItem("medirides_auth_token");
     if (!token) return false;
-    
+
     // Verify token is not expired
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     return payload.exp * 1000 > Date.now();
   },
 };
@@ -596,6 +526,7 @@ export const authService = {
 ## 📊 Analytics & Monitoring
 
 ### Error Tracking with Sentry
+
 ```typescript
 // lib/monitoring.ts
 import * as Sentry from '@sentry/nextjs';
@@ -626,6 +557,7 @@ export function ErrorBoundary({ children }: { children: React.ReactNode }) {
 ```
 
 ### Performance Monitoring
+
 ```typescript
 // app/layout.tsx
 import { SpeedInsights } from '@vercel/speed-insights/next';
@@ -647,6 +579,7 @@ export default function RootLayout({ children }) {
 ## 🚀 Deployment
 
 ### Vercel Deployment (Recommended)
+
 1. **Connect Repository**: Link your GitHub repository to Vercel
 2. **Configure Environment Variables**: Add all required environment variables
 3. **Set Build Command**: `npm run build`
@@ -654,6 +587,7 @@ export default function RootLayout({ children }) {
 5. **Configure Domains**: Add custom domain if needed
 
 ### Environment-Specific Builds
+
 ```bash
 # Development build
 npm run build:dev
@@ -666,6 +600,7 @@ npm run build:prod
 ```
 
 ### Deployment Checklist
+
 - [ ] All environment variables configured
 - [ ] Build passes without errors
 - [ ] SSL certificate configured
@@ -678,34 +613,36 @@ npm run build:prod
 ## 📱 Mobile Responsive Design
 
 ### Breakpoints Configuration
+
 ```typescript
 // tailwind.config.ts
 export default {
   theme: {
     screens: {
-      xs: '375px',
-      sm: '640px',
-      md: '768px',
-      lg: '1024px',
-      xl: '1280px',
-      '2xl': '1536px',
+      xs: "375px",
+      sm: "640px",
+      md: "768px",
+      lg: "1024px",
+      xl: "1280px",
+      "2xl": "1536px",
     },
   },
-}
+};
 ```
 
 ### Responsive Components Example
+
 ```tsx
 // components/layout/ResponsiveSidebar.tsx
-import { useMediaQuery } from '@/lib/hooks/useMediaQuery';
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 
 export function ResponsiveSidebar() {
-  const isMobile = useMediaQuery('(max-width: 768px)');
-  
+  const isMobile = useMediaQuery("(max-width: 768px)");
+
   if (isMobile) {
     return <MobileSidebar />;
   }
-  
+
   return <DesktopSidebar />;
 }
 ```
@@ -713,10 +650,11 @@ export function ResponsiveSidebar() {
 ## 🔄 State Management
 
 ### Zustand Store Example
+
 ```typescript
 // store/rides.store.ts
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 interface RideStore {
   rides: Ride[];
@@ -734,7 +672,7 @@ export const useRideStore = create<RideStore>()(
       rides: [],
       loading: false,
       error: null,
-      
+
       fetchRides: async () => {
         set({ loading: true });
         try {
@@ -744,51 +682,52 @@ export const useRideStore = create<RideStore>()(
           set({ error: error.message, loading: false });
         }
       },
-      
+
       addRide: (ride) => {
         set((state) => ({ rides: [ride, ...state.rides] }));
       },
-      
+
       updateRide: (rideId, updates) => {
         set((state) => ({
           rides: state.rides.map((ride) =>
-            ride.id === rideId ? { ...ride, ...updates } : ride
+            ride.id === rideId ? { ...ride, ...updates } : ride,
           ),
         }));
       },
     }),
     {
-      name: 'ride-storage',
-    }
-  )
+      name: "ride-storage",
+    },
+  ),
 );
 ```
 
 ## 🌍 Internationalization (i18n)
 
 ### Multi-language Support
+
 ```typescript
 // lib/i18n.ts
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
 
 const resources = {
   en: {
     translation: {
       common: {
-        welcome: 'Welcome to Medi Rides',
-        bookRide: 'Book a Ride',
-        cancel: 'Cancel',
-        save: 'Save',
+        welcome: "Welcome to Medi Rides",
+        bookRide: "Book a Ride",
+        cancel: "Cancel",
+        save: "Save",
       },
       rides: {
-        title: 'Medical Transportation',
+        title: "Medical Transportation",
         status: {
-          pending: 'Pending',
-          assigned: 'Assigned',
-          enRoute: 'En Route',
-          completed: 'Completed',
-          cancelled: 'Cancelled',
+          pending: "Pending",
+          assigned: "Assigned",
+          enRoute: "En Route",
+          completed: "Completed",
+          cancelled: "Cancelled",
         },
       },
     },
@@ -796,10 +735,10 @@ const resources = {
   es: {
     translation: {
       common: {
-        welcome: 'Bienvenido a Medi Rides',
-        bookRide: 'Reservar un Viaje',
-        cancel: 'Cancelar',
-        save: 'Guardar',
+        welcome: "Bienvenido a Medi Rides",
+        bookRide: "Reservar un Viaje",
+        cancel: "Cancelar",
+        save: "Guardar",
       },
     },
   },
@@ -807,8 +746,8 @@ const resources = {
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'en',
-  fallbackLng: 'en',
+  lng: "en",
+  fallbackLng: "en",
   interpolation: {
     escapeValue: false,
   },
@@ -818,6 +757,7 @@ i18n.use(initReactI18next).init({
 ## 🤝 Contributing
 
 ### Development Workflow
+
 1. **Fork the repository**
 2. **Create a feature branch**
    ```bash
@@ -834,6 +774,7 @@ i18n.use(initReactI18next).init({
 5. **Open a Pull Request**
 
 ### Code Style Guidelines
+
 - Use TypeScript strict mode
 - Follow the established folder structure
 - Write meaningful component and variable names
@@ -841,6 +782,7 @@ i18n.use(initReactI18next).init({
 - Ensure all code passes ESLint and Prettier checks
 
 ### Pull Request Checklist
+
 - [ ] All tests pass
 - [ ] Code follows project conventions
 - [ ] Documentation updated
@@ -852,6 +794,7 @@ i18n.use(initReactI18next).init({
 ## 🆘 Support
 
 ### Getting Help
+
 - **Documentation**: Check the [Wiki](../../wiki) for detailed guides
 - **Issues**: [GitHub Issues](../../issues) for bug reports
 - **Discussions**: [GitHub Discussions](../../discussions) for questions
@@ -860,6 +803,7 @@ i18n.use(initReactI18next).init({
 ### Common Issues & Solutions
 
 #### Build Errors
+
 ```bash
 # Clear Next.js cache
 rm -rf .next
@@ -873,6 +817,7 @@ npm run type-check
 ```
 
 #### Performance Issues
+
 ```bash
 # Analyze bundle size
 npm run analyze
@@ -886,6 +831,7 @@ npm run lighthouse
 This project is proprietary and confidential. All rights reserved.
 
 ### Third-Party Dependencies
+
 ```bash
 # Generate license report
 npm run licenses:report
@@ -902,25 +848,26 @@ npm audit
 
 ## 📈 Performance Metrics
 
-| Metric | Target | Current |
-|--------|---------|---------|
-| First Contentful Paint | < 1.5s | 1.2s |
-| Largest Contentful Paint | < 2.5s | 2.1s |
-| Time to Interactive | < 3.5s | 2.8s |
-| Cumulative Layout Shift | < 0.1 | 0.05 |
-| Bundle Size | < 500kb | 450kb |
+| Metric                   | Target  | Current |
+| ------------------------ | ------- | ------- |
+| First Contentful Paint   | < 1.5s  | 1.2s    |
+| Largest Contentful Paint | < 2.5s  | 2.1s    |
+| Time to Interactive      | < 3.5s  | 2.8s    |
+| Cumulative Layout Shift  | < 0.1   | 0.05    |
+| Bundle Size              | < 500kb | 450kb   |
 
 ---
 
 **Built with ❤️ for Compassionate Medi Rides**
 
-*For emergency support or critical issues, contact the frontend lead at +1-XXX-XXX-XXXX*
+_For emergency support or critical issues, contact the frontend lead at +1-XXX-XXX-XXXX_
 
 ---
 
 ## 🚀 Getting Started (Quick Reference)
 
 ### Development
+
 ```bash
 # Install dependencies
 npm install
@@ -933,6 +880,7 @@ npm run dev -- -p 3001
 ```
 
 ### Production
+
 ```bash
 # Build for production
 npm run build
@@ -945,6 +893,7 @@ vercel --prod
 ```
 
 ### Testing
+
 ```bash
 # Run all tests
 npm test

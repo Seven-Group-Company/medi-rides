@@ -408,24 +408,7 @@ async acceptRide(driverId: number, rideId: number, acceptRideDto: AcceptRideDto)
         },
       });
     } else if (ride.isGuest) {
-      // Guest ride - log notification but don't associate with user
-      await this.prisma.notification.create({
-        data: {
-          userId: 0, // Use placeholder userId for guest rides
-          type: 'RIDE_UPDATED',
-          title: 'Driver Accepted Your Ride',
-          message: `Your driver will arrive in approximately ${acceptRideDto.estimatedArrivalMinutes} minutes.`,
-          metadata: {
-            rideId: ride.id,
-            passengerPhone: ride.passengerPhone,
-            passengerName: ride.passengerName,
-            estimatedArrival: acceptRideDto.estimatedArrivalMinutes,
-          },
-        },
-      });
-      
-      // For guest rides, we might want to send an SMS or email
-      // This would require additional SMS/email service integration
+
       console.log(`Guest ride ${ride.id} accepted. Passenger: ${ride.passengerName}, Phone: ${ride.passengerPhone}`);
     }
 

@@ -43,11 +43,6 @@ export class PDFService {
           resolve(pdfData);
         });
 
-        // Add watermark for paid invoices
-        if (invoice.status === 'PAID') {
-          this.addPaidWatermark(doc);
-        }
-
         // Professional Header Section
         this.createHeader(doc);
 
@@ -62,12 +57,6 @@ export class PDFService {
 
         // Items Table (Professional Layout)
         this.createProfessionalTable(doc, invoice);
-
-        // Payment & Notes Section
-        this.createPaymentNotesSection(doc, invoice);
-
-        // Footer Section
-        this.createFooter(doc);
 
         doc.end();
       } catch (error) {
@@ -429,115 +418,6 @@ export class PDFService {
           oblique: true 
         });
     }
-  }
-
-  private createPaymentNotesSection(doc: InstanceType<typeof PDFDocument>, invoice: any) {
-    const notesY = 680;
-    
-    // Payment Instructions
-    doc
-      .fillColor('#0A2342')
-      .fontSize(12)
-      .font('Helvetica-Bold')
-      .text('PAYMENT INSTRUCTIONS', 50, notesY);
-
-    const instructions = [
-      '• Payment is due upon receipt of this invoice',
-      '• Make checks payable to: Compassionate Medi Rides',
-      '• For bank transfers, please contact us for account details',
-      '• Credit/Debit card payments accepted over the phone',
-      '• Please reference invoice number when making payment'
-    ];
-
-    instructions.forEach((instruction, index) => {
-      doc
-        .fillColor('#475569')
-        .fontSize(10)
-        .font('Helvetica')
-        .text(instruction, 50, notesY + 25 + (index * 15));
-    });
-
-    // Notes section
-    const notesX = 300;
-    doc
-      .fillColor('#0A2342')
-      .fontSize(12)
-      .font('Helvetica-Bold')
-      .text('NOTES', notesX, notesY);
-
-    doc
-      .fillColor('#475569')
-      .fontSize(10)
-      .font('Helvetica')
-      .text('Thank you for choosing Compassionate Medi Rides.', notesX, notesY + 25)
-      .text('We appreciate your business and look forward to serving you again.', notesX, notesY + 40);
-
-    if (invoice.notes) {
-      doc
-        .fillColor('#F59E0B')
-        .fontSize(10)
-        .font('Helvetica-Bold')
-        .text('Additional Notes:', notesX, notesY + 60)
-        .fillColor('#92400E')
-        .font('Helvetica')
-        .text(invoice.notes, notesX, notesY + 75, { width: 200 });
-    }
-  }
-
-  private createFooter(doc: InstanceType<typeof PDFDocument>) {
-    const footerY = 780;
-    
-    // Footer separator
-    doc
-      .moveTo(50, footerY)
-      .lineTo(550, footerY)
-      .lineWidth(0.5)
-      .strokeColor('#E2E8F0')
-      .stroke();
-
-    // Contact information
-    doc
-      .fillColor('#64748B')
-      .fontSize(8)
-      .font('Helvetica')
-      .text('For questions about this invoice, please contact:', 50, footerY + 15)
-      .font('Helvetica-Bold')
-      .text(this.BUSINESS_INFO.phone, 50, footerY + 30)
-      .font('Helvetica')
-      .text(`or email ${this.BUSINESS_INFO.email}`, 50, footerY + 40);
-
-    // Terms
-    doc
-      .fillColor('#94A3B8')
-      .fontSize(7)
-      .font('Helvetica')
-      .text('All services subject to terms and conditions. Payment terms: Net 30.', 50, footerY + 60, { width: 500 });
-
-    // Page number
-    doc
-      .fillColor('#94A3B8')
-      .fontSize(7)
-      .font('Helvetica')
-      .text(`Page 1 of 1 | Generated: ${moment().format('MMMM DD, YYYY hh:mm A')}`, 50, footerY + 75, { 
-        width: 500,
-        align: 'center' 
-      });
-  }
-
-  private addPaidWatermark(doc: InstanceType<typeof PDFDocument>) {
-    doc.save();
-    doc.translate(300, 400);
-    doc.rotate(-45);
-    
-    doc
-      .fillColor('#10B981')
-      .fontSize(72)
-      .font('Helvetica-Bold')
-      .text('PAID', -100, 0, {
-        opacity: 0.1
-      });
-    
-    doc.restore();
   }
 
   private getStatusColor(status: string) {
