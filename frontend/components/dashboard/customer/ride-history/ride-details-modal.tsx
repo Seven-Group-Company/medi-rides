@@ -11,16 +11,27 @@ import {
   CreditCard, 
   Navigation,
   Phone,
-  Mail,
-  FileText
+  FileText,
+  Download,
+  AlertCircle
 } from 'lucide-react';
 import { RideHistory } from '@/types/ride-history.types';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface RideDetailsModalProps {
   ride: RideHistory | null;
   isOpen: boolean;
   onClose: () => void;
+}
+
+interface InvoiceDetails {
+  id: number;
+  pdfUrl?: string;
+  invoiceNumber?: string;
+  status?: string;
+  amount?: number;
+  totalAmount?: number;
+  dueDate?: string;
 }
 
 const statusConfig = {
@@ -37,6 +48,50 @@ const statusConfig = {
 
 export default function RideDetailsModal({ ride, isOpen, onClose }: RideDetailsModalProps) {
   const [downloading, setDownloading] = useState(false);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
+  const [invoiceDetails, setInvoiceDetails] = useState<InvoiceDetails | null>(null);
+  const [loadingInvoice, setLoadingInvoice] = useState(false);
+
+  useEffect(() => {
+    if (isOpen && ride?.id) {
+      checkForInvoice();
+    }
+  }, [isOpen, ride]);
+
+  const checkForInvoice = async () => {
+    if (!ride?.id) return;
+
+    // First check if invoice is already in ride data
+    if (ride.invoice) {
+      setInvoiceDetails(ride.invoice as InvoiceDetails);
+      return;
+    }
+
+    // If not, fetch invoice from backend
+    setLoadingInvoice(true);
+    try {
+      const token = localStorage.getItem('access_token');
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/rides/${ride.id}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.data?.invoice) {
+          setInvoiceDetails(data.data.invoice);
+        }
+      }
+    } catch (error) {
+      console.error('Error checking for invoice:', error);
+    } finally {
+      setLoadingInvoice(false);
+    }
+  };
 
   if (!isOpen || !ride) return null;
 
@@ -56,131 +111,43 @@ export default function RideDetailsModal({ ride, isOpen, onClose }: RideDetailsM
     };
   };
 
+  // Check if we have invoice details
+  const hasInvoice = (): boolean => {
+    return !!invoiceDetails && typeof invoiceDetails === 'object' && 'id' in invoiceDetails;
+  };
+
   const downloadInvoice = async () => {
-    if (!ride.invoice?.id) {
-      await generateAndDownloadInvoice();
+    if (!invoiceDetails || !invoiceDetails.id) {
+      setInvoiceError('No invoice available for this ride. Please contact support.');
       return;
     }
 
     try {
       setDownloading(true);
-      const token = localStorage.getItem('access_token');
+      setInvoiceError(null);
       
-      const invoiceResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/invoices/${ride.invoice.id}`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (!invoiceResponse.ok) {
-        throw new Error('Failed to fetch invoice details');
+      // Use the public download endpoint
+      const downloadUrl = `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceDetails.id}/download`;
+      
+      // Open in new tab
+      const newWindow = window.open(downloadUrl, '_blank');
+      
+      // If popup was blocked, show a message
+      if (!newWindow || newWindow.closed || typeof newWindow.closed === 'undefined') {
+        setInvoiceError('Popup blocked. Please allow popups to download the invoice, or copy this URL: ' + downloadUrl);
       }
-
-      const invoiceData = await invoiceResponse.json();
-      const pdfUrl = invoiceData.data?.pdfUrl;
-
-      if (pdfUrl) {
-        const fullUrl = pdfUrl.startsWith('http')
-          ? pdfUrl
-          : `${process.env.NEXT_PUBLIC_API_URL}${pdfUrl}`;
-        window.open(fullUrl, '_blank');
-      } else {
-        await regenerateAndDownloadInvoice(ride.invoice.id);
-      }
+      
     } catch (error) {
       console.error('Error downloading invoice:', error);
-      alert('Failed to download invoice. Please try again or contact support.');
+      setInvoiceError('Failed to download invoice. Please try again or contact support.');
     } finally {
       setDownloading(false);
-    }
-  };
-
-  const generateAndDownloadInvoice = async () => {
-    try {
-      setDownloading(true);
-      const token = localStorage.getItem('access_token');
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/invoices/ride/${ride.id}/generate`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to generate invoice');
-      }
-
-      const data = await response.json();
-      
-      if (data.data.pdfUrl) {
-        const fullUrl = data.data.pdfUrl.startsWith('http')
-          ? data.data.pdfUrl
-          : `${process.env.NEXT_PUBLIC_API_URL}${data.data.pdfUrl}`;
-        window.open(fullUrl, '_blank');
-      } else {
-        window.open(
-          `${process.env.NEXT_PUBLIC_API_URL}/invoices/${data.data.id}/download`,
-          '_blank'
-        );
-      }
-    } catch (error) {
-      console.error('Error generating invoice:', error);
-      const message = error instanceof Error ? error.message : 'Unknown error';
-      alert(`Failed to generate invoice: ${message}`);
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const regenerateAndDownloadInvoice = async (invoiceId: number) => {
-    try {
-      const token = localStorage.getItem('access_token');
-      
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceId}/regenerate-pdf`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error('Failed to regenerate PDF');
-      }
-
-      const data = await response.json();
-      
-      if (data.data.pdfUrl) {
-        const fullUrl = data.data.pdfUrl.startsWith('http')
-          ? data.data.pdfUrl
-          : `${process.env.NEXT_PUBLIC_API_URL}${data.data.pdfUrl}`;
-        window.open(fullUrl, '_blank');
-      } else {
-        window.open(
-          `${process.env.NEXT_PUBLIC_API_URL}/invoices/${invoiceId}/download`,
-          '_blank'
-        );
-      }
-    } catch (error) {
-      console.error('Error regenerating invoice:', error);
-      throw error;
     }
   };
 
   const { date, time } = formatDateTime(ride.scheduledAt);
   const status = statusConfig[ride.status] || statusConfig.PENDING;
+  const showDownloadButton = ride.status === 'COMPLETED' && hasInvoice();
 
   return (
     <motion.div
@@ -309,22 +276,24 @@ export default function RideDetailsModal({ ride, isOpen, onClose }: RideDetailsM
                   <span className="text-gray-600">Vehicle:</span>
                   <span className="font-medium">{ride.driver.vehicle}</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-600">Phone:</span>
-                  <a 
-                    href={`tel:${ride.driver.phone}`}
-                    className="font-medium text-blue-600 hover:text-blue-700 flex items-center"
-                  >
-                    <Phone className="w-4 h-4 mr-1" />
-                    {ride.driver.phone}
-                  </a>
-                </div>
+                {ride.driver.phone && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600">Phone:</span>
+                    <a 
+                      href={`tel:${ride.driver.phone}`}
+                      className="font-medium text-blue-600 hover:text-blue-700 flex items-center"
+                    >
+                      <Phone className="w-4 h-4 mr-1" />
+                      {ride.driver.phone}
+                    </a>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
           {/* Payment Information */}
-          {ride.payment && (
+          {(ride.payment || ride.finalPrice) && (
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
                 <CreditCard className="w-5 h-5 mr-2" />
@@ -335,26 +304,28 @@ export default function RideDetailsModal({ ride, isOpen, onClose }: RideDetailsM
                 <div className="flex justify-between">
                   <span className="text-gray-600">Amount:</span>
                   <span className="font-medium text-lg">
-                    ${ride.payment.amount?.toFixed(2) || ride.finalPrice?.toFixed(2) || '0.00'}
+                    ${ride.payment?.amount?.toFixed(2) || ride.finalPrice?.toFixed(2) || '0.00'}
                   </span>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                    ride.payment.status === 'COMPLETED' 
-                      ? 'bg-green-100 text-green-800'
-                      : ride.payment.status === 'PENDING'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {ride.payment.status.toLowerCase()}
-                  </span>
-                </div>
+                {ride.payment?.status && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600">Status:</span>
+                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      ride.payment.status === 'COMPLETED' 
+                        ? 'bg-green-100 text-green-800'
+                        : ride.payment.status === 'PENDING'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {ride.payment.status.toLowerCase()}
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* Invoice Information */}
+          {/* Invoice Information - Only show if ride is COMPLETED */}
           {ride.status === 'COMPLETED' && (
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
@@ -363,47 +334,121 @@ export default function RideDetailsModal({ ride, isOpen, onClose }: RideDetailsM
               </h3>
               
               <div className="space-y-3">
-                {ride.invoice ? (
+                {loadingInvoice ? (
+                  <div className="text-center py-4">
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+                    <p className="text-gray-600">Checking for invoice...</p>
+                  </div>
+                ) : hasInvoice() ? (
                   <>
                     <div className="flex items-center justify-between">
                       <span className="text-gray-600">Invoice Number:</span>
-                      <span className="font-medium">{ride.invoice.invoiceNumber || `INV-${ride.invoice.id}`}</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-gray-600">Status:</span>
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        Available
+                      <span className="font-medium">
+                        {invoiceDetails?.invoiceNumber || `INV-${invoiceDetails?.id}`}
                       </span>
+                    </div>
+                    
+                    {invoiceDetails?.status && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Status:</span>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          invoiceDetails.status === 'PAID' 
+                            ? 'bg-green-100 text-green-800'
+                            : invoiceDetails.status === 'PENDING'
+                            ? 'bg-yellow-100 text-yellow-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {invoiceDetails.status}
+                        </span>
+                      </div>
+                    )}
+                    
+                    {(invoiceDetails?.amount || invoiceDetails?.totalAmount) && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Invoice Amount:</span>
+                        <span className="font-medium text-lg">
+                        </span>
+                      </div>
+                    )}
+                    
+                    {invoiceDetails?.dueDate && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-600">Due Date:</span>
+                        <span className="font-medium">
+                          {new Date(invoiceDetails.dueDate).toLocaleDateString()}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <div className="pt-2">
+                      <p className="text-sm text-gray-600 mb-2">
+                        Invoice is ready for download. The PDF includes detailed billing information.
+                      </p>
                     </div>
                   </>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="text-gray-600 mb-3">No invoice generated yet for this ride.</p>
+                    <div className="mb-4">
+                      <FileText className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-600 mb-2">No invoice available for this ride.</p>
+                      <p className="text-sm text-gray-500">
+                        Invoices are generated by the admin after ride completion. 
+                        Please contact support if you need an invoice.
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
             </div>
           )}
 
+          {/* Error Message */}
+          {invoiceError && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+              <div className="flex items-center text-red-700">
+                <AlertCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+                <span className="text-sm font-medium">{invoiceError}</span>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
-          <div className="flex justify-end space-x-3 pt-4 border-t border-gray-200">
-            <button
-              onClick={onClose}
-              className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors duration-200"
-            >
-              Close
-            </button>
+          <div className="flex justify-between items-center pt-4 border-t border-gray-200">
+            <div className="text-sm text-gray-600">
+              {ride.status === 'COMPLETED' && !hasInvoice() && !loadingInvoice && (
+                <p>Invoice will be available once generated by admin.</p>
+              )}
+            </div>
             
-            {ride.status === 'COMPLETED' && (
+            <div className="flex space-x-3">
               <button
-                onClick={downloadInvoice}
-                disabled={downloading}
-                className="px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={onClose}
+                className="px-6 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl font-medium transition-colors duration-200"
               >
-                <FileText className="w-4 h-4 mr-2" />
-                {downloading ? 'Downloading...' : (ride.invoice ? 'Download Invoice' : 'Generate Invoice')}
+                Close
               </button>
-            )}
+              
+              {/* Show download button if ride is completed AND has a valid invoice */}
+              {showDownloadButton && (
+                <button
+                  onClick={downloadInvoice}
+                  disabled={downloading}
+                  className="px-6 py-3 bg-blue-600 text-white hover:bg-blue-700 rounded-xl font-medium transition-colors duration-200 flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {downloading ? (
+                    <>
+                      <div className="w-4 h-4 mr-2 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Downloading...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="w-4 h-4 mr-2" />
+                      Download Invoice
+                    </>
+                  )}
+                </button>
+              )}
+            </div>
           </div>
         </div>
       </motion.div>

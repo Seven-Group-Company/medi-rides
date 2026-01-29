@@ -17,6 +17,10 @@ export interface RideHistory {
   distance: number | null;
   duration: number | null;
   finalPrice: number | null;
+  passengerName?: string;
+  customer?: string;
+  basePrice?: number;
+  name?: string;
 
   customerId?: number;
 

@@ -296,7 +296,7 @@ function InsuranceAlertBanner({ vehicles }: { vehicles: Vehicle[] }) {
   if (expiringVehicles.length === 0 && expiredVehicles.length === 0) return null;
 
   return (
-    <div className={`mb-6 rounded-xl p-4 ${
+    <div className={`my-6 px-4 lg:px-8 rounded-xl p-4 max-w-7xl mx-auto ${
       expiredVehicles.length > 0 ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'
     } border`}>
       <div className="flex items-center">

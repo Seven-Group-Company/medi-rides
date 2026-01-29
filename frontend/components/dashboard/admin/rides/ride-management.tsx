@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Search, Filter, Clock, User, Car, DollarSign, 
-  CheckCircle, XCircle, CheckCheck, Loader2,
+  Search, Filter, Clock, User, Car, DollarSign,
+  CheckCircle, XCircle, CheckCheck, Loader2, FileText,
   ChevronLeft, ChevronRight, Eye, ArrowUpDown, Calendar,
 } from 'lucide-react';
 import { RideRequest, Driver, Vehicle } from '@/types/admin.types';
@@ -52,6 +52,8 @@ export default function RideManagement({
   const [selectedVehicle, setSelectedVehicle] = useState('');
   const [loading, setLoading] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'decline' | 'assign' | 'complete' | null>(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [invoiceLoading, setInvoiceLoading] = useState(false);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -103,6 +105,65 @@ export default function RideManagement({
       return aValue < bValue ? 1 : -1;
     }
   });
+
+  const handleGenerateInvoice = async (rideId: number) => {
+  if (!rideId) return;
+  
+  setInvoiceLoading(true);
+  try {
+    const token = localStorage.getItem('access_token');
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_URL}/invoices/ride/${rideId}/generate`,
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to generate invoice');
+    }
+
+    const data = await response.json();
+    
+    // Open the generated invoice in new tab
+    if (data.data?.pdfUrl) {
+      const fullUrl = data.data.pdfUrl.startsWith('http')
+        ? data.data.pdfUrl
+        : `${process.env.NEXT_PUBLIC_API_URL}${data.data.pdfUrl}`;
+      
+      window.open(fullUrl, '_blank');
+      alert('Invoice generated successfully!');
+    } else {
+      // Try to get download URL if pdfUrl not directly available
+      const downloadResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/invoices/${data.data.id}/download-url`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (downloadResponse.ok) {
+        const downloadData = await downloadResponse.json();
+        window.open(downloadData.data.downloadUrl, '_blank');
+        alert('Invoice generated successfully!');
+      } else {
+        throw new Error('Could not retrieve invoice URL');
+      }
+    }
+  } catch (error) {
+    console.error('Error generating invoice:', error);
+    alert('Failed to generate invoice. Please try again.');
+  } finally {
+    setInvoiceLoading(false);
+    setShowInvoiceModal(false);
+  }
+};
 
   // Pagination calculations
   const totalPages = Math.ceil(sortedRides.length / itemsPerPage);
@@ -438,6 +499,43 @@ export default function RideManagement({
                           Complete
                         </button>
                       )}
+
+                      {ride.status === 'COMPLETED' && !ride.invoice && (
+                        <button
+                          onClick={async () => {
+                            setSelectedRide(ride);
+                            await handleGenerateInvoice(ride.id);
+                          }}
+                          disabled={invoiceLoading}
+                          className="px-3 py-1.5 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+                          title="Generate Invoice"
+                        >
+                          {invoiceLoading && selectedRide?.id === ride.id ? (
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <FileText className="w-4 h-4" />
+                          )}
+                          Invoice
+                        </button>
+                      )}
+
+                      {ride.status === 'COMPLETED' && ride.invoice && (
+                        <button
+                          onClick={() => {
+                            if (ride.invoice?.pdfUrl) {
+                              const fullUrl = ride.invoice.pdfUrl.startsWith('http')
+                                ? ride.invoice.pdfUrl
+                                : `${process.env.NEXT_PUBLIC_API_URL}${ride.invoice.pdfUrl}`;
+                              window.open(fullUrl, '_blank');
+                            }
+                          }}
+                          className="px-3 py-1.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                          title="View Invoice"
+                        >
+                          <FileText className="w-4 h-4" />
+                          View Invoice
+                        </button>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -657,6 +755,66 @@ export default function RideManagement({
           </motion.div>
         </div>
       )}
+
+      {showInvoiceModal && selectedRide && (
+  <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+    <motion.div
+      initial={{ opacity: 0, scale: 0.9 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="bg-white rounded-xl p-6 w-full max-w-md"
+    >
+      <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        Generate Invoice for Ride #{selectedRide.id}
+      </h3>
+      
+      <div className="space-y-4 mb-6">
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <p className="text-sm text-gray-600">Customer:</p>
+          <p className="font-medium">{selectedRide.customer?.name || selectedRide.passengerName || 'Guest'}</p>
+        </div>
+        
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <p className="text-sm text-gray-600">Amount:</p>
+          <p className="text-xl font-bold text-gray-900">${selectedRide.finalPrice || selectedRide.basePrice}</p>
+        </div>
+        
+        <div className="bg-gray-50 p-4 rounded-lg">
+          <p className="text-sm text-gray-600">Service:</p>
+          <p className="font-medium">{selectedRide.serviceType}</p>
+          <p className="text-sm text-gray-600 mt-1">
+            {selectedRide.pickupAddress} → {selectedRide.dropoffAddress}
+          </p>
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <button
+          onClick={() => setShowInvoiceModal(false)}
+          className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          disabled={invoiceLoading}
+        >
+          Cancel
+        </button>
+        <button
+          onClick={async () => {
+            await handleGenerateInvoice(selectedRide.id);
+          }}
+          disabled={invoiceLoading}
+          className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+        >
+          {invoiceLoading ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            'Generate Invoice'
+          )}
+        </button>
+      </div>
+    </motion.div>
+  </div>
+)}
 
       {/* Assign Modal */}
       {showAssignModal && selectedRide && (

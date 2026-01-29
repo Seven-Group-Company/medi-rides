@@ -101,15 +101,18 @@ src/
 **Purpose**: User authentication, registration, and profile management
 
 **Controllers**:
+
 - `AuthController` - Auth endpoints
 
 **Services**:
+
 - `AuthService` - Core auth logic
 - `JwtStrategy` - JWT validation
 - `GoogleStrategy` - OAuth integration
 - `LocalStrategy` - Email/password login
 
 **Key Features**:
+
 - User registration with email verification
 - Login (local + Google OAuth)
 - Password reset flow
@@ -117,6 +120,7 @@ src/
 - Profile management
 
 **Guards**:
+
 - `JwtAuthGuard` - Protect routes with JWT
 - `RolesGuard` - Role-based access control
 - `GoogleOAuthGuard` - OAuth flow
@@ -128,14 +132,17 @@ src/
 **Purpose**: Ride booking and management
 
 **Controllers**:
+
 - `RidesController` - Customer ride operations
 - `AdminRidesController` - Admin ride management
 
 **Services**:
+
 - `RidesService` - Ride CRUD operations
 - `AdminRidesService` - Admin-specific operations
 
 **Key Features**:
+
 - Guest ride booking (no auth required)
 - Authenticated user bookings
 - Ride status tracking
@@ -144,6 +151,7 @@ src/
 - Ride history retrieval
 
 **DTOs**:
+
 - `CreateRideDto` - Booking validation
 - `CreateGuestRideDto` - Guest booking
 - `UpdateRideStatusDto` - Status changes
@@ -155,11 +163,13 @@ src/
 **Purpose**: Driver-specific operations
 
 **Components**:
+
 - `DriversModule` - Driver management
 - `DriverDashboardModule` - Dashboard data
 - `DriverRidesModule` - Assigned rides
 
 **Key Features**:
+
 - Driver registration
 - Availability management
 - Assigned ride retrieval
@@ -173,6 +183,7 @@ src/
 **Purpose**: Fleet management
 
 **Key Features**:
+
 - Vehicle registration
 - Maintenance tracking
 - Availability status
@@ -187,6 +198,7 @@ src/
 **Purpose**: Compliance document management
 
 **Key Features**:
+
 - Document upload (licenses, insurance, registrations)
 - Expiry tracking with auto-reminders
 - Renewal workflow
@@ -195,6 +207,7 @@ src/
 - Email notifications for expiring documents
 
 **Document Status Flow**:
+
 ```
 VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
 ```
@@ -206,6 +219,7 @@ VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
 **Purpose**: Billing and invoice generation
 
 **Key Features**:
+
 - PDF invoice creation
 - Linked to completed rides
 - Tax calculation
@@ -220,10 +234,12 @@ VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
 **Purpose**: Analytics and reporting
 
 **Components**:
+
 - `DashboardModule` - Core dashboard
 - `AnalyticsModule` - Business metrics
 
 **Metrics**:
+
 - Total rides (pending, completed, cancelled)
 - Revenue analytics
 - Driver performance
@@ -237,6 +253,7 @@ VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
 **Purpose**: Service type management
 
 **Categories**:
+
 - Medical Transportation
 - Non-Medical Transportation
 - Emergency Transport
@@ -244,6 +261,7 @@ VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
 - Dialysis Transport
 
 **Pricing**:
+
 - Base price per service
 - Price per mile
 - Custom pricing rules
@@ -255,10 +273,12 @@ VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
 **Purpose**: Email delivery
 
 **Providers**:
+
 - Nodemailer (SMTP)
 - Resend (alternative)
 
 **Email Types**:
+
 - Email verification
 - Password reset
 - Ride confirmations
@@ -271,12 +291,14 @@ VALID → EXPIRING_SOON (30 days) → EXPIRED → RENEWAL_IN_PROGRESS
 **Purpose**: File upload and storage
 
 **Supported Files**:
+
 - User avatars
 - Vehicle images
 - Document PDFs
 - Invoice PDFs
 
 **Features**:
+
 - Auto-optimization
 - CDN delivery
 - Secure URLs
@@ -298,6 +320,7 @@ http://localhost:1000
 Register a new user
 
 **Request**:
+
 ```json
 {
   "email": "user@example.com",
@@ -309,6 +332,7 @@ Register a new user
 ```
 
 **Response** (201):
+
 ```json
 {
   "success": true,
@@ -327,6 +351,7 @@ Register a new user
 Login with credentials
 
 **Request**:
+
 ```json
 {
   "email": "user@example.com",
@@ -335,6 +360,7 @@ Login with credentials
 ```
 
 **Response** (200):
+
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1...",
@@ -353,6 +379,7 @@ Login with credentials
 Verify email address
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -365,6 +392,7 @@ Verify email address
 Request password reset
 
 **Request**:
+
 ```json
 {
   "email": "user@example.com"
@@ -376,6 +404,7 @@ Request password reset
 Reset password with token
 
 **Request**:
+
 ```json
 {
   "token": "reset-token-here",
@@ -388,6 +417,7 @@ Reset password with token
 Refresh access token
 
 **Request**:
+
 ```json
 {
   "refreshToken": "eyJhbGciOiJIUzI1..."
@@ -401,6 +431,7 @@ Get current user profile
 **Headers**: `Authorization: Bearer {token}`
 
 **Response** (200):
+
 ```json
 {
   "id": 1,
@@ -421,6 +452,7 @@ Get current user profile
 Create guest ride booking (no auth)
 
 **Request**:
+
 ```json
 {
   "passengerName": "Jane Smith",
@@ -435,6 +467,7 @@ Create guest ride booking (no auth)
 ```
 
 **Response** (201):
+
 ```json
 {
   "success": true,
@@ -442,7 +475,7 @@ Create guest ride booking (no auth)
   "data": {
     "id": 42,
     "status": "PENDING",
-    "basePrice": 45.00,
+    "basePrice": 45.0,
     "scheduledAt": "2024-01-20T10:00:00Z"
   }
 }
@@ -455,11 +488,12 @@ Create authenticated ride booking
 **Headers**: `Authorization: Bearer {token}`
 
 **Request**:
+
 ```json
 {
   "pickupAddress": "123 Main St",
   "pickupLatitude": 40.7128,
-  "pickupLongitude": -74.0060,
+  "pickupLongitude": -74.006,
   "dropoffAddress": "456 Oak Ave",
   "dropoffLatitude": 40.7589,
   "dropoffLongitude": -73.9851,
@@ -477,6 +511,7 @@ Create authenticated ride booking
 Get user's ride history
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -491,8 +526,8 @@ Get user's ride history
         "name": "John Driver",
         "phone": "+1234567890"
       },
-      "basePrice": 45.00,
-      "finalPrice": 48.50
+      "basePrice": 45.0,
+      "finalPrice": 48.5
     }
   ]
 }
@@ -503,6 +538,7 @@ Get user's ride history
 Get upcoming rides (limit = 3 by default)
 
 **Query Params**:
+
 - `limit` (optional): Number of rides to return
 
 #### GET `/rides/:id` 🔒
@@ -510,6 +546,7 @@ Get upcoming rides (limit = 3 by default)
 Get ride details
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -536,11 +573,13 @@ Get ride details
 Get all rides with filters
 
 **Query Params**:
+
 - `status`: Filter by status
 - `startDate`, `endDate`: Date range
 - `page`, `limit`: Pagination
 
 **Response** (200):
+
 ```json
 {
   "data": [...],
@@ -557,6 +596,7 @@ Get all rides with filters
 Assign driver to ride
 
 **Request**:
+
 ```json
 {
   "driverId": 5
@@ -570,6 +610,7 @@ Assign driver to ride
 Update ride status
 
 **Request**:
+
 ```json
 {
   "status": "CONFIRMED"
@@ -587,6 +628,7 @@ Update ride status
 Get assigned rides
 
 **Response** (200):
+
 ```json
 {
   "data": [
@@ -611,6 +653,7 @@ Get assigned rides
 Update ride status (DRIVER_EN_ROUTE, PICKUP_ARRIVED, IN_PROGRESS, COMPLETED)
 
 **Request**:
+
 ```json
 {
   "status": "IN_PROGRESS",
@@ -631,6 +674,7 @@ Get availability schedule
 Set availability
 
 **Request**:
+
 ```json
 {
   "startTime": "2024-01-20T08:00:00Z",
@@ -650,6 +694,7 @@ Set availability
 Register new vehicle
 
 **Request**:
+
 ```json
 {
   "make": "Toyota",
@@ -700,6 +745,7 @@ Delete vehicle
 Upload document
 
 **Request** (multipart/form-data):
+
 ```json
 {
   "title": "Driver License - John Doe",
@@ -721,6 +767,7 @@ Upload document
 Get all documents with filters
 
 **Query Params**:
+
 - `status`: VALID, EXPIRING_SOON, EXPIRED
 - `priority`: LOW, MEDIUM, HIGH, CRITICAL
 - `entityType`: VEHICLE, DRIVER, COMPANY
@@ -746,6 +793,7 @@ Renew document
 Get all active service categories (public)
 
 **Response** (200):
+
 ```json
 {
   "success": true,
@@ -755,8 +803,8 @@ Get all active service categories (public)
       "name": "Medical Transportation",
       "value": "MEDICAL_TRANSPORT",
       "description": "Non-emergency medical transport",
-      "basePrice": 15.00,
-      "pricePerMile": 1.50,
+      "basePrice": 15.0,
+      "pricePerMile": 1.5,
       "serviceType": "MEDICAL"
     }
   ]
@@ -774,14 +822,15 @@ Get all active service categories (public)
 Generate invoice for ride
 
 **Response** (201):
+
 ```json
 {
   "id": 10,
   "invoiceNumber": "INV-2024-00010",
   "rideId": 42,
-  "amount": 45.00,
-  "tax": 3.50,
-  "totalAmount": 48.50,
+  "amount": 45.0,
+  "tax": 3.5,
+  "totalAmount": 48.5,
   "pdfUrl": "https://cloudinary.com/invoices/INV-2024-00010.pdf",
   "status": "PENDING"
 }
@@ -802,6 +851,7 @@ Get invoice for specific ride
 ### Core Models
 
 #### User
+
 ```prisma
 model User {
   id                       Int
@@ -812,7 +862,7 @@ model User {
   phone                    String?
   isVerified               Boolean @default(false)
   provider                 AuthProvider @default(LOCAL)
-  
+
   // Relations
   customerRides     Ride[] @relation("CustomerRides")
   driverRides       Ride[] @relation("DriverRides")
@@ -823,6 +873,7 @@ model User {
 ```
 
 #### Ride
+
 ```prisma
 model Ride {
   id                Int
@@ -838,7 +889,7 @@ model Ride {
   passengerName     String?
   basePrice         Float
   finalPrice        Float?
-  
+
   // Relations
   customer          User? @relation("CustomerRides")
   driver            User? @relation("DriverRides")
@@ -849,6 +900,7 @@ model Ride {
 ```
 
 #### Vehicle
+
 ```prisma
 model Vehicle {
   id                     Int
@@ -867,6 +919,7 @@ model Vehicle {
 ```
 
 #### DocumentTracking
+
 ```prisma
 model DocumentTracking {
   id             Int
@@ -880,7 +933,7 @@ model DocumentTracking {
   entityType     EntityType
   entityId       Int?
   fileUrl        String
-  
+
   // Relations
   category       DocumentCategory
   renewals       DocumentRenewal[]
@@ -933,9 +986,10 @@ enum DocumentStatus {
 ### JWT Strategy
 
 **Token Payload**:
+
 ```json
 {
-  "sub": 123,           // User ID
+  "sub": 123, // User ID
   "email": "user@example.com",
   "role": "CUSTOMER",
   "iat": 1234567890,
@@ -944,6 +998,7 @@ enum DocumentStatus {
 ```
 
 **Token Lifetimes**:
+
 - Access Token: 7 days
 - Refresh Token: 30 days
 
@@ -1009,6 +1064,7 @@ assignDriver() { }
 ### Document Expiry Tracking
 
 **Automated Process**:
+
 ```
 Daily Cron Job:
   1. Query documents expiring within 30 days
@@ -1020,6 +1076,7 @@ Daily Cron Job:
 ```
 
 **Renewal Workflow**:
+
 1. Admin uploads new document
 2. System creates DocumentRenewal record
 3. Updates parent document expiry date
@@ -1033,7 +1090,14 @@ Daily Cron Job:
 ### Example: CreateRideDto
 
 ```typescript
-import { IsNotEmpty, IsString, IsInt, IsDate, IsOptional, IsEnum } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsInt,
+  IsDate,
+  IsOptional,
+  IsEnum,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ServiceType } from '@prisma/client';
 
@@ -1098,13 +1162,15 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const response = ctx.getResponse();
     const request = ctx.getRequest();
 
-    const status = exception instanceof HttpException
-      ? exception.getStatus()
-      : HttpStatus.INTERNAL_SERVER_ERROR;
+    const status =
+      exception instanceof HttpException
+        ? exception.getStatus()
+        : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const message = exception instanceof HttpException
-      ? exception.message
-      : 'Internal server error';
+    const message =
+      exception instanceof HttpException
+        ? exception.message
+        : 'Internal server error';
 
     response.status(status).json({
       statusCode: status,
@@ -1152,7 +1218,35 @@ npm run prisma:seed
 
 ### Environment Variables
 
-Create `.env` file (see main README for all variables)
+Create a `.env` file from the provided `.env.example` and fill in the required values:
+
+```bash
+cp .env.example .env
+# then edit `.env` and provide real values
+```
+
+Required / commonly used variables:
+
+- DATABASE_URL — PostgreSQL connection string (required)
+- JWT_SECRET, JWT_REFRESH_SECRET — JWT signing secrets (required)
+- JWT_EXPIRES_IN, JWT_REFRESH_EXPIRES_IN — token lifetimes (defaults shown in `.env.example`)
+- GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, GOOGLE_CALLBACK_URL — Google OAuth (if using Google sign-in)
+- APP_URL, FRONTEND_URL, BACKEND_URL — base URLs for app and API
+- NODE_ENV — environment mode (development|production)
+- BCRYPT_SALT_ROUNDS — password hashing rounds (default: 12)
+- EMAIL_SMTP_HOST, EMAIL_SMTP_PORT, EMAIL_SMTP_USER, EMAIL_SMTP_PASS, EMAIL_FROM_ADDRESS — SMTP settings (or use `RESEND_API_KEY` instead)
+- RESEND_API_KEY — optional: API key for Resend email provider
+- SESSION_SECRET — session signing secret
+- CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET — Cloudinary storage credentials
+- GOOGLE_MAPS_API_KEY — optional: for maps/autocomplete features
+
+Security & best practices:
+
+- Never commit real secrets to source control. Use `.env.example` as a template and add `.env` to your `.gitignore`.
+- For production, inject secrets via your host (environment variables, secret manager, or CI/CD secrets). Use least privilege and rotate secrets regularly.
+- If you discover leaked credentials, revoke/regenerate them immediately and update your secrets store.
+
+For quick setup, see the sample file: `.env.example` (placed in the project root of the backend).
 
 ### Development
 
@@ -1207,6 +1301,7 @@ http://localhost:1000/api/docs
 ```
 
 Swagger UI provides:
+
 - All endpoint documentation
 - Request/response schemas
 - Try-it-out functionality
@@ -1244,7 +1339,7 @@ Swagger UI provides:
 ✅ **Rate Limiting**: Throttler on auth endpoints  
 ✅ **Password Hashing**: bcrypt with 12 rounds  
 ✅ **JWT Expiry**: Short-lived tokens  
-✅ **Environment Secrets**: Never committed to git  
+✅ **Environment Secrets**: Never committed to git
 
 ---
 
