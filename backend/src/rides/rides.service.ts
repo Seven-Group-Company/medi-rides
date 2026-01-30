@@ -167,25 +167,6 @@ export class RidesService {
         throw new NotFoundException('Service category not found');
       }
 
-      // Check for ANY booking on this date (global check)
-      const conflictingRide = await this.prisma.ride.findFirst({
-        where: {
-          scheduledAt: {
-            gte: new Date(scheduledAt.toISOString().split('T')[0] + 'T00:00:00'),
-            lte: new Date(scheduledAt.toISOString().split('T')[0] + 'T23:59:59')
-          },
-          status: {
-            in: [RideStatus.PENDING, RideStatus.ASSIGNED, RideStatus.CONFIRMED]
-          }
-        }
-      });
-
-      if (conflictingRide) {
-        throw new ConflictException(
-          'This date is fully booked. We provide one ride per day. Please choose a different date.'
-        );
-      }
-
       // Map service type from frontend to Prisma enum
       let serviceType: ServiceType;
       switch (createGuestRideDto.serviceType) {
