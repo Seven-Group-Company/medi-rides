@@ -10,7 +10,7 @@ import { useCallback, useEffect } from 'react';
 export default function LocationStep({ 
   formData, 
   updateFormData, 
-  errors, 
+  errors = {},
   onNext,
   onPrev 
 }: BookingStepProps & { onPrev: () => void }) {
@@ -38,7 +38,7 @@ export default function LocationStep({
     } catch (error) {
       console.error('Route calc error:', error);
     }
-  }, [updateFormData]);
+  }, [formData.pickup, formData.dropoff, updateFormData]);
 
   useEffect(() => {
     if (formData.pickup && formData.dropoff) {
@@ -46,22 +46,26 @@ export default function LocationStep({
     }
   }, [formData.pickup, formData.dropoff, calculateRoute]);
 
-  const handleLocationSelect = (type: 'pickup' | 'dropoff', place: any) => {
-    updateFormData({
-      [type]: {
-        address: place.formatted_address,
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng()
-      }
-    });
-  };
-
-  const validateAndProceed = () => {
-    if (!formData.pickup || !formData.dropoff) {
+  const handleLocationSelect = useCallback((type: 'pickup' | 'dropoff', place: any) => {
+    console.log(`[LocationStep] handleLocationSelect called for ${type}`, place);
+    
+    if (!place?.geometry?.location) {
+      console.error('[LocationStep] Invalid place data:', place);
       return;
     }
-    onNext();
-  };
+    
+    const locationData = {
+      address: place.formatted_address,
+      lat: place.geometry.location.lat(),
+      lng: place.geometry.location.lng()
+    };
+    
+    console.log(`[LocationStep] Updating formData.${type} with:`, locationData);
+    
+    updateFormData({
+      [type]: locationData
+    });
+  }, [updateFormData]);
 
   return (
     <motion.div
@@ -86,6 +90,11 @@ export default function LocationStep({
               placeholder="Pickup address"
               onPlaceSelected={(place) => handleLocationSelect('pickup', place)}
               value={formData.pickup?.address || ''}
+              onChange={(value: string) => {
+                if (!value && formData.pickup) {
+                  updateFormData({ pickup: null });
+                }
+              }}
               className={errors.pickup ? 'border-red-500' : ''}
               error={!!errors.pickup}
             />
@@ -103,6 +112,11 @@ export default function LocationStep({
               placeholder="Destination"
               onPlaceSelected={(place) => handleLocationSelect('dropoff', place)}
               value={formData.dropoff?.address || ''}
+              onChange={(value: string) => {
+                if (!value && formData.dropoff) {
+                  updateFormData({ dropoff: null });
+                }
+              }}
               className={errors.dropoff ? 'border-red-500' : ''}
               error={!!errors.dropoff}
             />
@@ -158,7 +172,7 @@ export default function LocationStep({
           
           <motion.button
             whileTap={{ scale: 0.98 }}
-            onClick={validateAndProceed}
+            onClick={onNext}
             disabled={!formData.pickup || !formData.dropoff}
             className="flex-1 bg-blue-600 text-white py-2.5 rounded-lg font-medium text-sm shadow hover:shadow-md disabled:bg-gray-300 disabled:cursor-not-allowed transition-all duration-200 flex items-center justify-center"
           >

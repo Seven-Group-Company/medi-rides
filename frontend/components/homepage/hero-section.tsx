@@ -14,6 +14,7 @@ const HeroSection = () => {
   const phoneConfig = {
     displayNumber: '+1 (907) 414-7664',
     telLink: 'tel:+19074147664',
+    email: 'compassionatemedirides@gmail.com',
     hours: '24/7'
   };
 
@@ -206,6 +207,9 @@ const HeroSection = () => {
                 >
                   {phoneConfig.displayNumber}
                 </a>
+                <p className="block text-sm text-white/80 hover:text-white transition-colors mb-4">
+                  {phoneConfig.email}
+                </p>
                 <div className="flex justify-center gap-3">
                   <motion.button
                     whileHover={{ scale: 1.05 }}

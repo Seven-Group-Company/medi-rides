@@ -19,9 +19,9 @@ export const useBooking = () => {
   const [formData, setFormData] = useState<BookingFormData>({
     pickup: null,
     dropoff: null,
-    serviceType: '',
-    serviceCategoryId: 0,
-    serviceName: '',
+    serviceType: 'GENERAL',
+    serviceCategoryId: 9,
+    serviceName: 'General Transportation',
     serviceIcon: '',
     date: '',
     time: '',
@@ -256,12 +256,7 @@ export const useBooking = () => {
         if (!formData.dropoff) newErrors.dropoff = 'Drop-off location is required';
         break;
       
-      case 2: // Service type step
-        if (!formData.serviceCategoryId) newErrors.serviceType = 'Please select a service type';
-        if (!formData.chargeOption) newErrors.chargeOption = 'Please select a payment method';
-        break;
-      
-      case 3: // Date/time step
+      case 2: // Date/time step
         if (!formData.date) newErrors.date = 'Date is required';
         if (!formData.time) newErrors.time = 'Time is required';
         
@@ -271,6 +266,11 @@ export const useBooking = () => {
             newErrors.date = 'Date and time must be in the future';
           }
         }
+        break;
+
+      case 3: // Review step - validate payment
+        if (!formData.chargeOption) newErrors.chargeOption = 'Please select a payment method';
+        // Service type validation removed as step is gone, but we might want to default it
         break;
     }
 
@@ -289,7 +289,7 @@ export const useBooking = () => {
   }, []);
 
   const submitBooking = useCallback(async (): Promise<any> => {
-    if (!validateStep(4)) return;
+    if (!validateStep(3)) return;
 
     setIsSubmitting(true);
     try {
@@ -322,9 +322,9 @@ export const useBooking = () => {
     setFormData({
       pickup: null,
       dropoff: null,
-      serviceType: '',
-      serviceCategoryId: 0,
-      serviceName: '',
+      serviceType: 'GENERAL',
+      serviceCategoryId: 9,
+      serviceName: 'General Transportation',
       serviceIcon: '',
       date: '',
       time: '',

@@ -14,8 +14,8 @@ const PAYMENT_TYPES = [
   },
   {
     id: 'waiver',
-    label: 'Waiver/Voucher',
-    description: 'ALI, APDD, IDD',
+    label: 'Waiver(Voucher)/Taxi Rates',
+    description: 'ALI, APDD, IDD, TAXI',
     icon: Shield,
     color: 'bg-green-100 border-green-200 text-green-700',
   },

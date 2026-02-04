@@ -39,7 +39,7 @@ const Navigation = () => {
     { name: 'Services', href: '/services', icon: Calendar, auth: false },
     { name: 'Contact', href: '/contact', icon: Phone, auth: false },
     { name: 'Dashboard', href: '/customer-dashboard', icon: Settings, auth: true, role: 'CUSTOMER' },
-    { name: 'Admin Panel', href: '/admin/dashboard', icon: Shield, auth: true, role: 'ADMIN' },
+    { name: 'Admin Panel', href: '/dashboard', icon: Shield, auth: true, role: 'ADMIN' },
     { name: 'Driver Portal', href: '/driver-dashboard', icon: Car, auth: true, role: 'DRIVER' },
   ];
 
@@ -76,7 +76,7 @@ const Navigation = () => {
                 <img src="/logos/medirides.png" alt="Medi Rides" className='w-12 h-8 object-cover' />
               </div>
               <span className="text-xl font-semibold text-[#0A2342]">
-                Compassionate Medi Rides
+                Compassionate Medi Rides and Taxi
               </span>
             </motion.div>
           </Link>

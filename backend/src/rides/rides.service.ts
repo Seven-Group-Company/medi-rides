@@ -164,7 +164,7 @@ export class RidesService {
       });
 
       if (!serviceCategory) {
-        throw new NotFoundException('Service category not found');gi
+        throw new NotFoundException('Service category not found');
       }
 
       // Map service type from frontend to Prisma enum

@@ -3,11 +3,8 @@
 import { motion } from 'framer-motion';
 import { Calendar, Clock, ChevronLeft, ChevronRight, Loader, Check } from 'lucide-react';
 import { GuestBookingService } from '@/services/guest-booking.service';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { BookingStepProps } from '@/types/guest-booking-types';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
 
 export default function ScheduleStep({
   formData,
@@ -17,7 +14,6 @@ export default function ScheduleStep({
   isSubmitting,
   errors,
 }: BookingStepProps) {
-  const [existingBookings, setExistingBookings] = useState<any[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [bookedDates, setBookedDates] = useState<string[]>([]);

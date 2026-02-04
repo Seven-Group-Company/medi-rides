@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Location } from '@/types/booking.types';
 import { Loader2, MapPin } from 'lucide-react';
+import { loadGoogleMaps } from '@/utils/google-maps-loader';
 
 interface RouteMapProps {
   pickup: Location;
@@ -27,55 +28,28 @@ export default function RouteMap({ pickup, dropoff, height = '300px' }: RouteMap
   useEffect(() => {
     if (!pickup || !dropoff) return;
 
-    // Check if Google Maps is already loaded
-    if (window.google) {
-      setMapsLoaded(true);
-      initializeMap();
-      return;
-    }
+    const init = async () => {
+      try {
+        setLoading(true);
+        await loadGoogleMaps();
+        setMapsLoaded(true);
+        initializeMap();
+      } catch (err) {
+        console.error('Map loading failed:', err);
+        setError('Failed to load maps');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    // Load Google Maps API if not already loaded
-    loadGoogleMaps();
+    init();
   }, [pickup, dropoff]);
 
-  const loadGoogleMaps = () => {
-    if (document.querySelector('script[src*="maps.googleapis.com"]')) {
-      // Wait for existing script to load
-      const checkMaps = setInterval(() => {
-        if (window.google) {
-          clearInterval(checkMaps);
-          setMapsLoaded(true);
-          initializeMap();
-        }
-      }, 100);
-      return;
-    }
-
-    setLoading(true);
-    
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}&libraries=geometry,places`;
-    script.async = true;
-    script.defer = true;
-    
-    script.onload = () => {
-      setMapsLoaded(true);
-      setLoading(false);
-      initializeMap();
-    };
-
-    script.onerror = () => {
-      console.error('Failed to load Google Maps API');
-      setError('Failed to load maps');
-      setLoading(false);
-    };
-
-    document.head.appendChild(script);
-  };
 
   const initializeMap = () => {
     if (!window.google || !mapRef.current) {
-      console.error('Google Maps API not available or map container not ready');
+      // If ref is not ready, try again in a bit
+      setTimeout(initializeMap, 100);
       return;
     }
 

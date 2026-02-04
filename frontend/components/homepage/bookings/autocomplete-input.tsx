@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { MapPin, Loader2 } from 'lucide-react';
-import { loadGoogleMaps } from '@/utils/google-maps-loader';
+import { loadGoogleMaps } from '@/utils/loadGoogleMaps';
 
 interface AutocompleteInputProps {
   placeholder: string;
@@ -13,106 +13,75 @@ interface AutocompleteInputProps {
   error?: boolean;
 }
 
+declare global {
+  interface Window {
+    google: any;
+    initGoogleMaps: () => void;
+  }
+}
+
 export default function AutocompleteInput({ 
   placeholder, 
   onPlaceSelected, 
   className = '',
-  value = '',
+  value,
   onChange,
-  error = false
+  error
 }: AutocompleteInputProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
+  const autocompleteRef = useRef<google.maps.places.Autocomplete>(null);
+  const [mapsLoaded, setMapsLoaded] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [inputValue, setInputValue] = useState(value);
-  const isInitializedRef = useRef(false);
+  const [inputValue, setInputValue] = useState(value || '');
 
-  // Update input value when external value prop changes
+  // Sync internal state with external value prop
   useEffect(() => {
-    setInputValue(value);
+    if (value !== undefined) {
+      setInputValue(value);
+    }
   }, [value]);
 
   useEffect(() => {
-    const initAutocomplete = async () => {
-      if (!inputRef.current || isInitializedRef.current) return;
-
-      try {
-        setLoading(true);
-        
-        // Load Google Maps if not already loaded
-        if (!window.google) {
-          await loadGoogleMaps();
-        }
-
-        if (!window.google || !inputRef.current) {
-          throw new Error('Google Maps not available');
-        }
-
-        // Initialize autocomplete
-        autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
-          fields: ['formatted_address', 'geometry', 'name'],
-          types: ['geocode']
-        });
-
-        const handlePlaceChanged = () => {
-          const place = autocompleteRef.current?.getPlace();
-          if (place && place.geometry && place.formatted_address) {
-            onPlaceSelected(place);
-            setInputValue(place.formatted_address);
-            if (onChange) {
-              onChange(place.formatted_address);
-            }
-          }
-        };
-
-        autocompleteRef.current.addListener('place_changed', handlePlaceChanged);
-
-        // Prevent form submission on enter
-        inputRef.current.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-          }
-        });
-
-        isInitializedRef.current = true;
-
-      } catch (error) {
-        console.error('Error initializing autocomplete:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initAutocomplete();
-
-    // Cleanup
-    return () => {
-      if (autocompleteRef.current && isInitializedRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-    };
+    loadGoogleMaps(process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY!)
+      .then(() => {
+        setMapsLoaded(true);
+        initializeAutocomplete();
+      })
+      .catch(() => {
+        console.error("Failed to load Google Maps");
+      });
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    if (onChange) {
-      onChange(value);
+  const initializeAutocomplete = () => {
+    if (!window.google || !inputRef.current) {
+      console.error('Google Maps API not available or input not ready');
+      return;
+    }
+
+    try {
+      autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
+        fields: ['formatted_address', 'geometry', 'name'],
+        types: ['geocode']
+      });
+
+      autocompleteRef.current.addListener('place_changed', () => {
+        const place = autocompleteRef.current?.getPlace();
+        if (place && place.geometry && place.formatted_address) {
+          onPlaceSelected(place);
+        }
+      });
+
+      // Prevent form submission when pressing enter in the autocomplete
+      inputRef.current.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+        }
+      });
+
+    } catch (error) {
+      console.error('Error initializing Google Places Autocomplete:', error);
     }
   };
-
-  const handleInputFocus = () => {
-    // Clear the input on focus to allow re-selection
-    if (inputRef.current && inputValue) {
-      // Optional: Allow users to clear and re-select
-      
-      // Uncomment the next line if you want the input cleared on focus
-      // setInputValue('');
-    }
-  };
-
-  const borderColor = error ? 'border-red-500' : 'border-gray-200 hover:border-blue-400';
-  const focusRing = error ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500';
 
   return (
     <div className="relative">
@@ -121,13 +90,15 @@ export default function AutocompleteInput({
         ref={inputRef}
         type="text"
         value={inputValue}
-        onChange={handleInputChange}
-        onFocus={handleInputFocus}
+        onChange={(e) => {
+          setInputValue(e.target.value);
+          onChange?.(e.target.value);
+        }}
         placeholder={loading ? "Loading maps..." : placeholder}
         disabled={loading}
-        className={`pl-10 w-full p-3 border-2 ${borderColor} rounded-lg ${focusRing} transition-colors ${
-          className
-        } ${loading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+        className={`pl-10 w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+          error ? 'border-red-500' : 'border-gray-200'
+        } ${className} ${loading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
       />
       {loading && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

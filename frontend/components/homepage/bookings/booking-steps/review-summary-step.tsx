@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { 
   CheckCircle, 
   User, 
-  Phone, 
   MapPin, 
   Calendar, 
   Clock, 

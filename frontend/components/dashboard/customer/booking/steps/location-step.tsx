@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Navigation, Clock } from 'lucide-react';
+import { Navigation, Clock } from 'lucide-react';
 import { BookingStepProps } from '@/types/booking.types';
 import AutocompleteInput from '@/components/dashboard/customer/booking/autocomplete-input';
 import RouteMap from '@/components/dashboard/customer/booking/route-map';

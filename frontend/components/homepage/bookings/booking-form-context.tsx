@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useCallback } from 'react';
 import { FormData } from '@/types/guest-booking-types';
 
 interface BookingFormContextType {
@@ -37,8 +37,8 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
     passengerPhone: '',
     pickup: null,
     dropoff: null,
-    serviceType: '',
-    serviceCategoryId: 0,
+    serviceType: 'Non-Emergency Medical Transportation',
+    serviceCategoryId: 1,
     date: new Date().toISOString().split('T')[0],
     time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
     notes: '',
@@ -48,30 +48,37 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
     paymentType: 'private',
   });
 
-  const updateFormData = (data: Partial<FormData>) => {
-    setFormData(prev => ({ ...prev, ...data }));
-    // Clear errors for updated fields
-    const newErrors = { ...errors };
-    Object.keys(data).forEach(key => {
-      if (newErrors[key]) {
-        delete newErrors[key];
-      }
+  const updateFormData = useCallback((data: Partial<FormData>) => {
+    console.log('[BookingFormContext] updateFormData called with:', data);
+    setFormData(prev => {
+      const newData = { ...prev, ...data };
+      console.log('[BookingFormContext] New formData state:', newData);
+      return newData;
     });
-    setErrors(newErrors);
-  };
+    // Clear errors for updated fields
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      Object.keys(data).forEach(key => {
+        if (newErrors[key]) {
+          delete newErrors[key];
+        }
+      });
+      return newErrors;
+    });
+  }, []);
 
-  // FIXED: Changed from 5 to 6 to accommodate all 6 steps (Details, Location, Service, Payment, Schedule, Review)
-  const nextStep = () => setCurrentStep(prev => Math.min(prev + 1, 6));
-  const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 1));
+  // Updated to 5 steps (Details, Location, Payment, Schedule, Review) - Service Selection removed
+  const nextStep = useCallback(() => setCurrentStep(prev => Math.min(prev + 1, 5)), []);
+  const prevStep = useCallback(() => setCurrentStep(prev => Math.max(prev - 1, 1)), []);
 
-  const resetForm = () => {
+  const resetForm = useCallback(() => {
     setFormData({
       passengerName: '',
       passengerPhone: '',
       pickup: null,
       dropoff: null,
-      serviceType: '',
-      serviceCategoryId: 0,
+      serviceType: 'Non-Emergency Medical Transportation',
+      serviceCategoryId: 1,
       date: new Date().toISOString().split('T')[0],
       time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
       notes: '',
@@ -82,7 +89,7 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
     });
     setCurrentStep(1);
     setErrors({});
-  };
+  }, []);
 
   return (
     <BookingFormContext.Provider

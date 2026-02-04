@@ -57,7 +57,7 @@ export default function PersonalDetailsStep({ formData, updateFormData, errors, 
           }`}>
             <Phone className="w-4 h-4 text-gray-400 flex-shrink-0" />
             <input
-              type="tel"
+              type="number"
               placeholder="Mobile *"
               value={formData.passengerPhone}
               onChange={(e) => updateFormData({ passengerPhone: e.target.value })}

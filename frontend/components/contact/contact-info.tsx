@@ -20,13 +20,6 @@ const ContactInfo = () => {
             delay: 0.2
         },
         {
-            icon: <MapPin className="w-6 h-6 text-blue-600" />,
-            title: "Office",
-            content: "Wasilla, Alaska",
-            subContent: "Medical District, CA 90210",
-            delay: 0.3
-        },
-        {
             icon: <Clock className="w-6 h-6 text-blue-600" />,
             title: "Working Hours",
             content: "Mon-Sat: 6:00 AM - 10:00 PM",

@@ -5,7 +5,6 @@ import { Calendar, Car, Check, MapPin, ChevronRight, Shield, AlertCircle } from 
 import { useBooking } from '@/hooks/useBooking';
 import ProgressIndicator from '@/components/dashboard/customer/booking/progress-indicator';
 import LocationStep from '@/components/dashboard/customer/booking/steps/location-step';
-import ServiceTypeStep from '@/components/dashboard/customer/booking/steps/service-type-step';
 import DateTimeStep from '@/components/dashboard/customer/booking/steps/datetime-step';
 import ReviewStep from '@/components/dashboard/customer/booking/steps/review-step';
 import SuccessModal from '@/components/dashboard/customer/booking/success-modal';
@@ -13,9 +12,8 @@ import { useState } from 'react';
 
 const steps = [
   { id: 1, title: 'Location', icon: MapPin },
-  { id: 2, title: 'Service', icon: Car },
-  { id: 3, title: 'Schedule', icon: Calendar },
-  { id: 4, title: 'Confirm', icon: Check },
+  { id: 2, title: 'Schedule', icon: Calendar },
+  { id: 3, title: 'Confirm', icon: Check },
 ];
 
 export default function BookRidePage() {
@@ -80,18 +78,6 @@ export default function BookRidePage() {
         );
       case 2:
         return (
-          <ServiceTypeStep
-            formData={formData}
-            updateFormData={updateFormData}
-            errors={errors}
-            onNext={nextStep}
-            onBack={prevStep}
-            serviceCategories={serviceCategories}
-            isLoadingCategories={isLoadingCategories}
-          />
-        );
-      case 3:
-        return (
           <DateTimeStep
             formData={formData}
             updateFormData={updateFormData}
@@ -101,7 +87,7 @@ export default function BookRidePage() {
             bookedDates={bookedDates}
           />
         );
-      case 4:
+      case 3:
         return (
           <ReviewStep
             formData={formData}
@@ -234,7 +220,6 @@ export default function BookRidePage() {
               id: bookingResult.id,
               pickup: formData.pickup!.address,
               dropoff: formData.dropoff!.address,
-              serviceType: formData.serviceType,
               date: formData.date,
               time: formData.time,
               distanceKm: formData.distanceKm,
