@@ -38,7 +38,6 @@ const Navigation = () => {
     { name: 'Home', href: '/', icon: null, auth: false },
     { name: 'Services', href: '/services', icon: Calendar, auth: false },
     { name: 'Contact', href: '/contact', icon: Phone, auth: false },
-    { name: 'Profile', href: '/contact', icon: Phone, auth: false },
     { name: 'Dashboard', href: '/customer-dashboard', icon: Settings, auth: true, role: 'CUSTOMER' },
     { name: 'Admin Panel', href: '/dashboard', icon: Shield, auth: true, role: 'ADMIN' },
     { name: 'Driver Portal', href: '/driver-dashboard', icon: Car, auth: true, role: 'DRIVER' },
