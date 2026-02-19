@@ -98,14 +98,6 @@ export default function ReviewSummaryStep({
           <div className="grid grid-cols-3 gap-2">
             <div className="bg-white p-2 rounded">
               <div className="flex items-center text-xs text-gray-600 mb-1">
-                <Car className="w-3 h-3 mr-1" />
-                Service
-              </div>
-              <p className="font-medium text-sm truncate">{formData.serviceType}</p>
-            </div>
-
-            <div className="bg-white p-2 rounded">
-              <div className="flex items-center text-xs text-gray-600 mb-1">
                 <Calendar className="w-3 h-3 mr-1" />
                 Date
               </div>

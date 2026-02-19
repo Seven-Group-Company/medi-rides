@@ -70,9 +70,6 @@ export default function RideDetails({
               <p className="text-sm text-gray-500 capitalize">{ride.status.replace('_', ' ')}</p>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-2xl font-bold text-gray-900">${ride.finalPrice || ride.basePrice}</p>
-          </div>
         </div>
 
         {/* Passenger Info */}
@@ -122,11 +119,7 @@ export default function RideDetails({
         </div>
 
         {/* Service Details */}
-        <div className="grid grid-cols-2 gap-4 text-sm">
-          <div>
-            <p className="font-medium text-gray-900">Service Type</p>
-            <p className="text-gray-600 capitalize">{ride.serviceType.toLowerCase()}</p>
-          </div>
+        <div className="grid gap-4 text-sm">
           <div>
             <p className="font-medium text-gray-900">Distance</p>
             <p className="text-gray-600">{ride.distance ? `${ride.distance} mi` : 'N/A'}</p>

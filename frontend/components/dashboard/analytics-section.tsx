@@ -24,12 +24,6 @@ interface WeeklyData {
   avgRideValue: number;
 }
 
-interface ServiceBreakdown {
-  serviceType: string;
-  rides: number;
-  revenue: number;
-  avgRideValue: number;
-}
 
 interface AnalyticsSummary {
   summary: {
@@ -42,14 +36,12 @@ interface AnalyticsSummary {
     activeRides: number;
     avgRideValue: number;
   };
-  topServices: ServiceBreakdown[];
   weeklyData?: WeeklyData[];
 }
 
 export default function AnalyticsSection({ userRole }: AnalyticsSectionProps) {
   const [analyticsData, setAnalyticsData] = useState<AnalyticsSummary | null>(null);
   const [weeklyData, setWeeklyData] = useState<WeeklyData[]>([]);
-  const [serviceBreakdown, setServiceBreakdown] = useState<ServiceBreakdown[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [timeRange, setTimeRange] = useState<'week' | 'month' | 'quarter' | 'year'>('week');
@@ -65,7 +57,7 @@ export default function AnalyticsSection({ userRole }: AnalyticsSectionProps) {
       }
 
       // Fetch comprehensive analytics summary
-      const [summaryResponse, weeklyResponse, servicesResponse] = await Promise.all([
+      const [summaryResponse, weeklyResponse] = await Promise.all([
         fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/summary`, {
           headers: {
             'Authorization': `Bearer ${token}`,
@@ -76,32 +68,16 @@ export default function AnalyticsSection({ userRole }: AnalyticsSectionProps) {
             'Authorization': `Bearer ${token}`,
           },
         }),
-        fetch(`${process.env.NEXT_PUBLIC_API_URL}/analytics/service-breakdown?period=${timeRange}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }),
       ]);
-
-      if (!summaryResponse.ok || !weeklyResponse.ok || !servicesResponse.ok) {
-        throw new Error('Failed to fetch analytics data');
-      }
 
       const summaryData = await summaryResponse.json();
       const weeklyData = await weeklyResponse.json();
-      const servicesData = await servicesResponse.json();
 
       setAnalyticsData(summaryData.data);
       setWeeklyData(weeklyData.data);
-      setServiceBreakdown(servicesData.data);
     } catch (err: any) {
       console.error('Error fetching analytics:', err);
       setError(err.message || 'Failed to load analytics data');
-      
-      // Fallback to mock data for demonstration
-      setWeeklyData(getMockWeeklyData());
-      setServiceBreakdown(getMockServiceBreakdown());
-      setAnalyticsData(getMockAnalyticsSummary());
     } finally {
       setLoading(false);
     }
@@ -159,9 +135,8 @@ export default function AnalyticsSection({ userRole }: AnalyticsSectionProps) {
     );
   }
 
-  const { summary, topServices } = analyticsData || getMockAnalyticsSummary();
+  const { summary } = analyticsData || getMockAnalyticsSummary();
   const displayWeeklyData = weeklyData.length > 0 ? weeklyData.slice(-7) : getMockWeeklyData();
-  const displayServiceBreakdown = serviceBreakdown.length > 0 ? serviceBreakdown : topServices;
 
   const maxRides = Math.max(...displayWeeklyData.map(d => d.rides));
   const maxRevenue = Math.max(...displayWeeklyData.map(d => d.revenue));
@@ -296,7 +271,7 @@ export default function AnalyticsSection({ userRole }: AnalyticsSectionProps) {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 gap-8">
         {/* Weekly Performance */}
         <div>
           <h3 className="text-lg font-medium text-gray-900 mb-4">Weekly Performance (Last 7 Weeks)</h3>
@@ -349,84 +324,6 @@ export default function AnalyticsSection({ userRole }: AnalyticsSectionProps) {
             </div>
           </div>
         </div>
-
-        {/* Service Breakdown */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-medium text-gray-900">Service Breakdown</h3>
-            <span className="text-sm text-gray-600">{timeRange.charAt(0).toUpperCase() + timeRange.slice(1)}</span>
-          </div>
-          
-          <div className="space-y-4">
-            {displayServiceBreakdown.map((service, index) => (
-              <motion.div
-                key={service.serviceType}
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition-colors duration-200 border border-gray-200"
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-medium text-gray-900">
-                    {service.serviceType.replace('_', ' ')}
-                  </h4>
-                  <div className="text-right">
-                    <span className="text-sm font-medium text-blue-600">
-                      ${service.revenue.toLocaleString()}
-                    </span>
-                    <p className="text-xs text-gray-500">
-                      {service.rides} rides • ${service.avgRideValue.toFixed(2)} avg
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between text-sm text-gray-600">
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-green-500 to-green-600 h-2 rounded-full"
-                      style={{ 
-                        width: `${(service.revenue / Math.max(...displayServiceBreakdown.map(s => s.revenue)) * 100)}%` 
-                      }}
-                    />
-                  </div>
-                  <span className="ml-2 whitespace-nowrap">
-                    {((service.revenue / displayServiceBreakdown.reduce((sum, s) => sum + s.revenue, 0)) * 100).toFixed(1)}%
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Quick Stats */}
-          <div className="mt-6 pt-6 border-t border-gray-200">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    <Car className="w-5 h-5 text-blue-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{summary.thisWeekRides}</p>
-                    <p className="text-sm text-gray-600">Rides this week</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
-                <div className="flex items-center space-x-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">
-                      ${summary.thisWeekRevenue.toLocaleString()}
-                    </p>
-                    <p className="text-sm text-gray-600">Revenue this week</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -443,14 +340,7 @@ function getMockWeeklyData(): WeeklyData[] {
   }));
 }
 
-function getMockServiceBreakdown(): ServiceBreakdown[] {
-  return [
-    { serviceType: 'MEDICAL', rides: 45, revenue: 1680, avgRideValue: 37.33 },
-    { serviceType: 'GENERAL', rides: 32, revenue: 1200, avgRideValue: 37.5 },
-    { serviceType: 'WHEELCHAIR', rides: 28, revenue: 1340, avgRideValue: 47.86 },
-    { serviceType: 'AIRPORT', rides: 22, revenue: 980, avgRideValue: 44.55 },
-  ];
-}
+
 
 function getMockAnalyticsSummary(): AnalyticsSummary {
   return {
@@ -464,10 +354,5 @@ function getMockAnalyticsSummary(): AnalyticsSummary {
       activeRides: 12,
       avgRideValue: 37.41,
     },
-    topServices: [
-      { serviceType: 'MEDICAL', rides: 680, revenue: 25400, avgRideValue: 37.35 },
-      { serviceType: 'GENERAL', rides: 520, revenue: 19500, avgRideValue: 37.5 },
-      { serviceType: 'WHEELCHAIR', rides: 250, revenue: 9350, avgRideValue: 37.4 },
-    ],
   };
 }

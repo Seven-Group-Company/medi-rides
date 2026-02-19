@@ -15,19 +15,17 @@ export default function LocationStep({
 }: BookingStepProps) {
   
   const calculateRoute = useCallback(async () => {
-    if (!window.google || !formData.pickup || !formData.dropoff) return;
+    if (!formData.pickup || !formData.dropoff) return;
 
     try {
-      const service = new google.maps.DistanceMatrixService();
-      const response = await service.getDistanceMatrix({
-        origins: [new google.maps.LatLng(formData.pickup.lat, formData.pickup.lng)],
-        destinations: [new google.maps.LatLng(formData.dropoff.lat, formData.dropoff.lng)],
-        travelMode: google.maps.TravelMode.DRIVING,
-      });
+      const response = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${formData.pickup.lng},${formData.pickup.lat};${formData.dropoff.lng},${formData.dropoff.lat}`
+      );
+      const data = await response.json();
 
-      if (response.rows[0].elements[0].status === 'OK') {
-        const distance = response.rows[0].elements[0].distance.value / 1000;
-        const duration = response.rows[0].elements[0].duration.value / 60;
+      if (data.code === 'Ok' && data.routes.length > 0) {
+        const distance = data.routes[0].distance / 1000;
+        const duration = data.routes[0].duration / 60;
 
         updateFormData({
           distanceKm: parseFloat(distance.toFixed(1)),

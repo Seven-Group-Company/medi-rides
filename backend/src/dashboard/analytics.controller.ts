@@ -46,19 +46,6 @@ export class AnalyticsController {
     };
   }
 
-  @Get('service-breakdown')
-  @ApiOperation({ summary: 'Get service breakdown analytics' })
-  @ApiQuery({ name: 'period', required: false, type: String, description: 'Period: week, month, quarter, year' })
-  @ApiResponse({ status: 200, description: 'Service breakdown retrieved successfully' })
-  async getServiceBreakdown(@Query('period') period: string = 'month') {
-    const data = await this.analyticsService.getServiceBreakdown(period);
-
-    return {
-      success: true,
-      data,
-    };
-  }
-
   @Get('revenue')
   @ApiOperation({ summary: 'Get revenue analytics' })
   @ApiQuery({ name: 'period', required: false, type: String, description: 'Period: week, month, quarter, year' })

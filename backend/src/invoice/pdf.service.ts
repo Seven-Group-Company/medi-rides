@@ -6,12 +6,10 @@ import * as moment from 'moment';
 export class PDFService {
   private readonly BUSINESS_INFO = {
     name: 'Compassionate Medi Rides',
-    address: 'Wasilla, Alaska',
     phone: '+1 (907) 414-7664',
     email: 'rcompassionate@gmail.com',
     website: '', // Add if available
     tagline: 'Safe, Reliable Medical & Non-Medical Transportation',
-    services: ['Medical Transport', 'Non-Emergency Transportation', 'Wheelchair Accessible', '24/7 Service']
   };
 
   async generateInvoice(invoice: any): Promise<Buffer> {
@@ -79,7 +77,6 @@ export class PDFService {
       .fillColor('#64748B')
       .fontSize(10)
       .font('Helvetica')
-      .text(this.BUSINESS_INFO.address, 50, 80)
       .text(`Phone: ${this.BUSINESS_INFO.phone}`, 50, 95)
       .text(`Email: ${this.BUSINESS_INFO.email}`, 50, 110);
 
@@ -90,17 +87,6 @@ export class PDFService {
       .fontSize(10)
       .font('Helvetica-Bold')
       .text(this.BUSINESS_INFO.tagline, rightX, 80, { width: 200 });
-
-    // Services badges
-    const servicesY = 100;
-    this.BUSINESS_INFO.services.forEach((service, index) => {
-      const y = servicesY + (index * 15);
-      doc
-        .fillColor('#0A2342')
-        .fontSize(8)
-        .font('Helvetica')
-        .text(`✓ ${service}`, rightX, y, { width: 200 });
-    });
 
     // Separator line
     doc
@@ -230,7 +216,6 @@ export class PDFService {
       .fillColor('#64748B')
       .fontSize(10)
       .font('Helvetica')
-      .text(this.BUSINESS_INFO.address, 350, businessY + 40)
       .text(`Phone: ${this.BUSINESS_INFO.phone}`, 350, businessY + 55)
       .text(`Email: ${this.BUSINESS_INFO.email}`, 350, businessY + 70);
   }
@@ -257,7 +242,6 @@ export class PDFService {
     const details = [
       { label: 'Ride ID', value: `#${ride.id}` },
       { label: 'Service Date & Time', value: `${rideDate} at ${rideTime}` },
-      { label: 'Service Type', value: ride.serviceType || 'Transportation Service' },
       { label: 'Payment Type', value: this.formatPaymentType(ride.paymentType) },
     ];
 
@@ -340,7 +324,6 @@ export class PDFService {
       .fillColor('#1E293B')
       .fontSize(10)
       .font('Helvetica-Bold')
-      .text('Transportation Service', 50, itemY + 10);
 
     doc
       .font('Helvetica')

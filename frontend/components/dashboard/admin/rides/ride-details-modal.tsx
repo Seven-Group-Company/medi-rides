@@ -99,10 +99,6 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
                 {getStatusIcon(ride.status)}
                 <span className="text-sm font-medium">{ride.status.replace(/_/g, ' ')}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                {getServiceTypeIcon(ride.serviceType)}
-                <span>{ride.serviceType}</span>
-              </div>
               {ride.isGuest && (
                 <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-600 rounded">
                   Guest Ride
@@ -422,12 +418,7 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
               </h3>
               <div className="space-y-4">
                 <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-gray-600">Base Price</p>
-                    <p className="text-xl font-bold text-gray-900">${ride.basePrice.toFixed(2)}</p>
-                  </div>
-                  
-                  {ride.finalPrice && ride.finalPrice !== ride.basePrice && (
+                  {ride.finalPrice && ride.finalPrice && (
                     <div>
                       <p className="text-sm text-gray-600">Final Price</p>
                       <p className="text-2xl font-bold text-green-700">${ride.finalPrice.toFixed(2)}</p>
@@ -513,60 +504,6 @@ const RideDetailsModal = ({ isOpen, onClose, ride, rejectRide }: RideDetailsModa
               </div>
             </div>
           )}
-
-          {/* Service Details */}
-          <div className="bg-gray-50 rounded-xl p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Service Details</h3>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-100 rounded-lg">
-                    {getServiceTypeIcon(ride.serviceType)}
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Service Type</p>
-                    <p className="font-semibold">{ride.serviceType}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-green-100 rounded-lg">
-                    <Ruler className="w-5 h-5 text-green-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Distance</p>
-                    <p className="font-semibold">{ride.distance ? `${ride.distance} mi` : 'N/A'}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-purple-100 rounded-lg">
-                    <Clock className="w-5 h-5 text-purple-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Duration</p>
-                    <p className="font-semibold">{ride.duration ? `${ride.duration} min` : 'N/A'}</p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="bg-white rounded-lg p-4 border border-gray-200">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-red-100 rounded-lg">
-                    <DollarSign className="w-5 h-5 text-red-600" />
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600">Total Price</p>
-                    <p className="font-semibold">${ride.finalPrice ? ride.finalPrice.toFixed(2) : ride.basePrice.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

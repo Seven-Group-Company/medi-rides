@@ -1,11 +1,11 @@
 import { 
   IsString, 
-  IsEnum, 
   IsDateString, 
   IsOptional, 
   IsNumber, 
   Min, 
-  IsNotEmpty 
+  IsNotEmpty, 
+  IsEnum
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -20,15 +20,6 @@ export class CreateRideDto {
   @IsNotEmpty()
   dropoff: string;
 
-  @ApiProperty({ description: 'Type of service' })
-  @IsString()
-  @IsNotEmpty()
-  serviceType: string;
-
-  @ApiProperty({ description: 'Service category ID' })
-  @IsNumber()
-  serviceCategoryId: number;
-
   @ApiProperty({ description: 'Ride date in YYYY-MM-DD format' })
   @IsDateString()
   date: string;
@@ -42,11 +33,6 @@ export class CreateRideDto {
   @IsNumber()
   @Min(0)
   estimatedPrice?: number;
-
-  @ApiProperty({ 
-  description: 'Type of service',
-  enum: ['medical-transport', 'wheelchair-service', 'errands', 'airport-shuttle', 'other']
-})
 
   @ApiProperty({ description: 'Additional notes', required: false })
   @IsOptional()

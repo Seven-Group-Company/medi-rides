@@ -31,7 +31,7 @@ export default function RideCard({
   const StatusIcon = getStatusIcon(ride.status);
   const nextAction = getNextStatusAction?.(ride.status);
   const [showQuickAction, setShowQuickAction] = useState(false);
-  const [estimatedArrival, setEstimatedArrival] = useState<string>('15');
+  const [estimatedArrival] = useState<string>('15');
 
   const handleQuickAction = async () => {
     if (!nextAction) return;
@@ -88,10 +88,6 @@ export default function RideCard({
                 </span>
               )}
             </div>
-          </div>
-          <div className="text-right">
-            <p className="font-bold text-gray-900">${ride.finalPrice || ride.basePrice}</p>
-            <p className="text-xs text-gray-500 capitalize">{ride.serviceType.toLowerCase()}</p>
           </div>
         </div>
 

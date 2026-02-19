@@ -127,35 +127,10 @@ export default function RideManagement({
       throw new Error('Failed to generate invoice');
     }
 
-    const data = await response.json();
-    
-    // Open the generated invoice in new tab
-    if (data.data?.pdfUrl) {
-      const fullUrl = data.data.pdfUrl.startsWith('http')
-        ? data.data.pdfUrl
-        : `${process.env.NEXT_PUBLIC_API_URL}${data.data.pdfUrl}`;
-      
-      window.open(fullUrl, '_blank');
-      alert('Invoice generated successfully!');
-    } else {
-      // Try to get download URL if pdfUrl not directly available
-      const downloadResponse = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/invoices/${data.data.id}/download-url`,
-        {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        }
-      );
-      
-      if (downloadResponse.ok) {
-        const downloadData = await downloadResponse.json();
-        window.open(downloadData.data.downloadUrl, '_blank');
-        alert('Invoice generated successfully!');
-      } else {
-        throw new Error('Could not retrieve invoice URL');
-      }
-    }
+    //refresh page to show new invoice in details modal
+    setShowInvoiceModal(false);
+    window.location.reload();
+
   } catch (error) {
     console.error('Error generating invoice:', error);
     alert('Failed to generate invoice. Please try again.');
@@ -756,7 +731,7 @@ export default function RideManagement({
         </div>
       )}
 
-      {showInvoiceModal && selectedRide && (
+  {showInvoiceModal && selectedRide && (
   <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
     <motion.div
       initial={{ opacity: 0, scale: 0.9 }}
@@ -775,15 +750,7 @@ export default function RideManagement({
         
         <div className="bg-gray-50 p-4 rounded-lg">
           <p className="text-sm text-gray-600">Amount:</p>
-          <p className="text-xl font-bold text-gray-900">${selectedRide.finalPrice || selectedRide.basePrice}</p>
-        </div>
-        
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <p className="text-sm text-gray-600">Service:</p>
-          <p className="font-medium">{selectedRide.serviceType}</p>
-          <p className="text-sm text-gray-600 mt-1">
-            {selectedRide.pickupAddress} → {selectedRide.dropoffAddress}
-          </p>
+          <p className="text-xl font-bold text-gray-900">${selectedRide.finalPrice}</p>
         </div>
       </div>
 

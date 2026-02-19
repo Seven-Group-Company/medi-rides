@@ -24,7 +24,6 @@ export interface RideRequest {
   // Ride details
   pickupAddress: string;
   dropoffAddress: string;
-  serviceType: 'MEDICAL' | 'GENERAL';
   status: 'PENDING' | 'ASSIGNED' | 'CONFIRMED' | 'DRIVER_EN_ROUTE' | 'PICKUP_ARRIVED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED' | 'NO_SHOW';
   
   // Scheduling
@@ -39,7 +38,6 @@ export interface RideRequest {
   additionalNotes?: string;
 
   // Pricing
-  basePrice: number;
   distance?: number;
   duration?: number;
   finalPrice?: number;

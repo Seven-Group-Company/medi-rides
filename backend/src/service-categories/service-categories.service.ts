@@ -106,19 +106,10 @@ export class ServiceCategoriesService {
     try {
       const category = await this.prisma.serviceCategory.findUnique({
         where: { id },
-        include: {
-          rides: {
-            take: 1, // Just check if there are any rides
-          },
-        },
       });
 
       if (!category) {
         throw new NotFoundException('Service category not found');
-      }
-
-      if (category.rides.length > 0) {
-        throw new BadRequestException('Cannot delete service category with associated rides');
       }
 
       await this.prisma.serviceCategory.delete({

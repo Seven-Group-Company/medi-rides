@@ -1,12 +1,13 @@
-'use client';
+"use client";
 
+import dynamic from 'next/dynamic';
 import FleetAccessibilityShowcase from "@/components/homepage/fleet-section/fleet-accessibility-showcase";
 import WebsiteFooter from "@/components/homepage/footer/website-footer";
-import HeroSection from "@/components/homepage/hero-section";
+const HeroSection = dynamic(() => import('@/components/homepage/hero-section'), { ssr: false });
 import MedicalTransportOverview from "@/components/homepage/medical-transport/medical-transport-overview";
 import Navigation from "@/components/homepage/navigation";
 import NonMedicalTransportOverview from "@/components/homepage/non-medical-transport/non-medical-transport-overview";
-import ServiceAreaMapSection from "@/components/homepage/service-area/service-area-map-section";
+const ServiceAreaMapSection = dynamic(() => import('@/components/homepage/service-area/service-area-map-section'), { ssr: false });
 import CTABanner from "@/components/homepage/services/cta-banner";
 import ServicesPage from "@/components/homepage/services/services-page";
 import WhyChooseUsSection from "@/components/homepage/why-choose-us/why-choose-us-section";

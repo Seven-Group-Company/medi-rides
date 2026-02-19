@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole, ServiceType, VehicleType } from '@prisma/client';
+import { PrismaClient, UserRole, VehicleType } from '@prisma/client';
 import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -8,38 +8,16 @@ async function main() {
 
   // Create Service Areas
   console.log('Creating service areas...');
-  const serviceAreas = await prisma.serviceArea.createMany({
-    data: [
-      {
-        name: 'Wasilla Metro',
-        description: 'Wasilla metropolitan area and immediate surroundings',
-        basePrice: 25.00,
-        pricePerMile: 2.50,
-      },
-      {
-        name: 'Mat-Su Valley',
-        description: 'Matanuska-Susitna Valley region',
-        basePrice: 35.00,
-        pricePerMile: 3.00,
-      },
-      {
-        name: 'Anchorage Area',
-        description: 'Anchorage and surrounding communities',
-        basePrice: 45.00,
-        pricePerMile: 3.50,
-      },
-    ],
-    skipDuplicates: true,
-  });
+
 
   // Create Admin User
   console.log('Creating admin user...');
   const adminPassword = await bcrypt.hash('Admin123!', 12);
   const admin = await prisma.user.upsert({
-    where: { email: 'admin@compassionatemedirides.com' },
+    where: { email: 'admin@rcompassionate.com' },
     update: {},
     create: {
-      email: 'admin@compassionatemedirides.com',
+      email: 'admin@rcompassionate.com',
       password: adminPassword,
       name: 'System Administrator',
       role: UserRole.ADMIN,
@@ -64,37 +42,7 @@ async function main() {
     },
   });
 
-  //create Service Categories
-  console.log('Creating service categories...');
-  const serviceCategory1 = await prisma.serviceCategory.upsert({
-    where: { value: 'medical-appointment' },
-    update: {},
-    create: {
-      name: 'Medical Appointment',
-      value: 'medical-appointment',
-      description: 'Doctor visits, hospital appointments',
-      icon: 'Stethoscope',
-      isActive: true,
-      basePrice: 25.00,
-      pricePerMile: 2.50,
-      serviceType: ServiceType.MEDICAL,
-    },
-  });
 
-  const serviceCategory2 = await prisma.serviceCategory.upsert({
-    where: { value: 'general-transport' },
-    update: {},
-    create: {
-      name: 'General Transport',
-      value: 'general-transport',
-      description: 'Non-medical rides and errands',
-      icon: 'Car',
-      isActive: true,
-      basePrice: 15.00,
-      pricePerMile: 1.50,
-      serviceType: ServiceType.GENERAL,
-    },
-  });
 
   // Create Sample Drivers
   console.log('Creating sample drivers...');
@@ -229,8 +177,6 @@ async function main() {
         driverId: driver1.id,
         pickupAddress: '123 Main Street, Wasilla, AK 99654',
         dropoffAddress: 'Mat-Su Regional Medical Center, Palmer, AK 99645',
-        serviceType: ServiceType.MEDICAL,
-        serviceCategoryId: serviceCategory1.id,
         status: 'COMPLETED',
         scheduledAt: new Date('2024-01-15T09:00:00Z'),
         actualPickupAt: new Date('2024-01-15T08:45:00Z'),
@@ -238,7 +184,6 @@ async function main() {
         passengerName: 'John Patient',
         passengerPhone: '+1 (907) 555-2001',
         specialNeeds: 'Wheelchair accessible vehicle required',
-        basePrice: 35.00,
         distance: 12.5,
         duration: 35,
         finalPrice: 42.50,
@@ -248,14 +193,11 @@ async function main() {
         driverId: driver2.id,
         pickupAddress: '123 Main Street, Wasilla, AK 99654',
         dropoffAddress: 'Providence Alaska Medical Center, Anchorage, AK 99508',
-        serviceType: ServiceType.MEDICAL,
-        serviceCategoryId: serviceCategory1.id,
         status: 'ASSIGNED',
         scheduledAt: new Date('2024-01-20T10:30:00Z'),
         passengerName: 'John Patient',
         passengerPhone: '+1 (907) 555-2001',
         specialNeeds: 'Oxygen tank support',
-        basePrice: 65.00,
         distance: 43.2,
         duration: 55,
         finalPrice: 78.50,

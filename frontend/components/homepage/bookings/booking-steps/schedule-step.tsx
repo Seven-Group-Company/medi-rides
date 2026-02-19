@@ -31,13 +31,11 @@ export default function ScheduleStep({
 
   useEffect(() => {
     const fetchExistingBookings = async () => {
-      if (!formData.serviceCategoryId) return;
 
       setIsLoadingBookings(true);
       try {
         const bookings = await GuestBookingService.getExistingBookings(
           formData.passengerPhone || 'guest',
-          formData.serviceCategoryId
         );
         
         const dates = bookings.map(booking => booking.date);
@@ -55,7 +53,7 @@ export default function ScheduleStep({
     };
 
     fetchExistingBookings();
-  }, [formData.serviceCategoryId, formData.passengerPhone]);
+  }, [formData.passengerPhone]);
 
   const handleDateChange = (value: string) => {
     if (bookedDates.includes(value)) {

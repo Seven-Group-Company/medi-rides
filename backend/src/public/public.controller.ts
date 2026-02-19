@@ -55,28 +55,12 @@ async checkAvailability(
 })
 async getExistingBookings(
   @Query('phone') phone: string,
-  @Query('serviceCategoryId') serviceCategoryId: number
 ) {
-  const bookings = await this.ridesService.getExistingBookings(phone, serviceCategoryId);
+  const bookings = await this.ridesService.getExistingBookings(phone);
   
   return {
     success: true,
     data: bookings
   };
 }
-
-  @Get('service-categories')
-  @ApiOperation({ summary: 'Get all active service categories' })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Service categories retrieved successfully' 
-  })
-  async getServiceCategories() {
-    const categories = await this.ridesService.getServiceCategories();
-    
-    return {
-      success: true,
-      data: categories
-    };
-  }
 }

@@ -24,11 +24,9 @@ interface DashboardData {
     dropoff: string;
     scheduledAt: string;
     status: string;
-    serviceType: string;
     passengerName: string;
     driverName?: string;
     vehicle?: string;
-    estimatedPrice?: number;
     finalPrice?: number;
   }>;
 }
@@ -186,7 +184,6 @@ export default function DashboardPage() {
     <DashboardHome
       userRole={userData.role}
       stats={dashboardData.stats}
-      recentRides={dashboardData.recentRides}
     />
   );
 }

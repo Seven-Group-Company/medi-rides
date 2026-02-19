@@ -6,10 +6,6 @@ export interface Location {
 export interface BookingFormData {
   pickup: any | null;
   dropoff: any | null;
-  serviceType: string;
-  serviceCategoryId: number | null;
-  serviceName: string;
-  serviceIcon: string;
   date: string;
   time: string;
   notes: string;
@@ -23,8 +19,6 @@ export interface BookingFormData {
 export interface CreateRideDto {
   pickup: string;
   dropoff: string;
-  serviceType: string;
-  serviceCategoryId: number;
   date: string;
   time: string;
   notes?: string;

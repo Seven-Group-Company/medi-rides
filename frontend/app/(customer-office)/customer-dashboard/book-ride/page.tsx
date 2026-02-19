@@ -1,7 +1,7 @@
 'use client';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { Calendar, Car, Check, MapPin, ChevronRight, Shield, AlertCircle } from 'lucide-react';
+import { Calendar, Car, Check, MapPin, Shield, AlertCircle } from 'lucide-react';
 import { useBooking } from '@/hooks/useBooking';
 import ProgressIndicator from '@/components/dashboard/customer/booking/progress-indicator';
 import LocationStep from '@/components/dashboard/customer/booking/steps/location-step';
@@ -30,8 +30,6 @@ export default function BookRidePage() {
     prevStep,
     submitBooking,
     resetBooking,
-    serviceCategories,
-    isLoadingCategories,
   } = useBooking();
 
   const [bookedDates, setBookedDates] = useState<string[]>([]);
@@ -110,7 +108,6 @@ export default function BookRidePage() {
             onBack={prevStep}
             onSubmit={handleSubmit}
             isSubmitting={isSubmitting}
-            serviceCategories={serviceCategories}
           />
         );
       default:

@@ -3,7 +3,6 @@
 import { motion } from 'framer-motion';
 import { MapPin, Car, Calendar, Clock, Navigation, Wallet, FileText, AlertCircle } from 'lucide-react';
 import { BookingStepProps } from '@/types/booking.types';
-import { useMemo } from 'react';
 
 export default function ReviewStep({
   formData,
@@ -12,7 +11,6 @@ export default function ReviewStep({
   onBack,
   isSubmitting,
   onSubmit,
-  serviceCategories = []
 }: BookingStepProps & { onSubmit: () => void; serviceCategories?: any[] }) {
 
   const formatDate = (dateString: string) => {
@@ -24,21 +22,6 @@ export default function ReviewStep({
     });
   };
 
-  const getChargeOptionName = (optionId: string) => {
-    const options: Record<string, string> = {
-      'private': 'Private Pay',
-      'ALI': 'ALI Waiver',
-      'APDD': 'APDD Waiver',
-      'IDD': 'IDD Waiver',
-      'ISW': 'ISW Waiver',
-    };
-    return options[optionId] || 'Private Pay';
-  };
-
-  const serviceCategoryName = useMemo(() => {
-    const category = serviceCategories.find(cat => cat.id === formData.serviceCategoryId);
-    return category?.name || formData.serviceName;
-  }, [formData.serviceCategoryId, formData.serviceName, serviceCategories]);
 
   return (
     <motion.div
@@ -101,13 +84,6 @@ export default function ReviewStep({
           </h3>
 
           <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <Car className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Service Type</p>
-                <p className="text-sm text-gray-600">{serviceCategoryName}</p>
-              </div>
-            </div>
 
             <div className="flex items-start space-x-3">
               <Calendar className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
@@ -118,15 +94,56 @@ export default function ReviewStep({
                 </p>
               </div>
             </div>
-
-            <div className="flex items-start space-x-3">
-              <Wallet className="w-5 h-5 text-purple-600 mt-0.5 flex-shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-gray-900">Payment Method</p>
-                <p className="text-sm text-gray-600">{formData.chargeOption === 'ALI' ? 'Waiver/Voucher' : 'Private'}</p>
-              </div>
-            </div>
           </div>
+        </div>
+
+        {/* Payment Method Selection - Full width in grid or separate */}
+        <div className="bg-gray-50 rounded-xl p-6 border border-gray-200 lg:col-span-2">
+          <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
+            <Wallet className="w-5 h-5 mr-2 text-blue-600" />
+            Payment Method
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { id: 'private', label: 'Private Pay', desc: 'Pay with card/cash' },
+              { id: 'waiver', label: 'Waiver(Voucher)/Taxi Rates', desc: 'ALI, APDD, IDD, TAXI' },
+            ].map((option) => (
+              <label 
+                key={option.id}
+                className={`
+                  relative flex flex-col p-4 cursor-pointer rounded-xl border-2 transition-all
+                  ${formData.chargeOption === option.id 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-blue-200 hover:bg-white'
+                  }
+                `}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value={option.id}
+                  checked={formData.chargeOption === option.id}
+                  onChange={() => updateFormData({ chargeOption: option.id })}
+                  className="sr-only"
+                />
+                <span className={`font-semibold ${formData.chargeOption === option.id ? 'text-blue-700' : 'text-gray-900'}`}>
+                  {option.label}
+                </span>
+                <span className={`text-xs mt-1 ${formData.chargeOption === option.id ? 'text-blue-600' : 'text-gray-500'}`}>
+                  {option.desc}
+                </span>
+                {formData.chargeOption === option.id && (
+                  <div className="absolute top-3 right-3 w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center">
+                    <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
+                  </div>
+                )}
+              </label>
+            ))}
+          </div>
+          {errors.chargeOption && (
+            <p className="text-sm text-red-600 mt-2">{errors.chargeOption}</p>
+          )}
         </div>
       </div>
 

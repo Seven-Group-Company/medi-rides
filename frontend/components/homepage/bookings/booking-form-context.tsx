@@ -37,14 +37,11 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
     passengerPhone: '',
     pickup: null,
     dropoff: null,
-    serviceType: 'Non-Emergency Medical Transportation',
-    serviceCategoryId: 1,
     date: new Date().toISOString().split('T')[0],
     time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
     notes: '',
     distanceMiles: 0,
     estimatedTime: 0,
-    estimatedPrice: 0,
     paymentType: 'private',
   });
 
@@ -77,15 +74,12 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
       passengerPhone: '',
       pickup: null,
       dropoff: null,
-      serviceType: 'Non-Emergency Medical Transportation',
-      serviceCategoryId: 1,
       date: new Date().toISOString().split('T')[0],
       time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
       notes: '',
       distanceMiles: 0,
       estimatedTime: 0,
       paymentType: 'private',
-      estimatedPrice: 0
     });
     setCurrentStep(1);
     setErrors({});

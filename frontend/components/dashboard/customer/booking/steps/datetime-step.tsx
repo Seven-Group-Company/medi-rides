@@ -16,7 +16,6 @@ export default function DateTimeStep({
   
   const [selectedDate, setSelectedDate] = useState<string | null>(formData.date || null);
   const [bookedDatesSet, setBookedDatesSet] = useState<Set<string>>(new Set());
-  const [isCheckingAvailability, setIsCheckingAvailability] = useState(false);
 
   useEffect(() => {
     if (bookedDates) {

@@ -4,7 +4,6 @@ export interface Ride {
   driverId: number;
   pickupAddress: string;
   dropoffAddress: string;
-  serviceType: 'MEDICAL' | 'GENERAL';
   status: 'PENDING' | 'ASSIGNED' | 'CONFIRMED' | 'DRIVER_EN_ROUTE' | 'PICKUP_ARRIVED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
   scheduledAt: string;
   actualPickupAt?: string;
@@ -13,7 +12,6 @@ export interface Ride {
   passengerPhone: string;
   specialNeeds?: string;
   additionalNotes?: string;
-  basePrice: number;
   finalPrice?: number;
   isGuest: boolean;
   distance?: number;

@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { MapPin, Car, Calendar, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface ProgressIndicatorProps {
   currentStep: number;

@@ -30,18 +30,6 @@ export class CreateGuestRideDto {
   @IsNotEmpty()
   dropoff: string;
 
-  @ApiProperty({ 
-    description: 'Type of service',
-    example: 'Medical Appointment'
-  })
-  @IsString()
-  @IsNotEmpty()
-  serviceType: string;
-
-  @ApiProperty({ description: 'Service category ID' })
-  @IsNumber()
-  serviceCategoryId: number;
-
   @ApiProperty({ description: 'Ride date in YYYY-MM-DD format' })
   @IsDateString()
   date: string;
@@ -70,13 +58,4 @@ export class CreateGuestRideDto {
   @ApiProperty({ description: 'Payment type', enum: ['private', 'waiver'] })
   @IsEnum(['private', 'waiver'])
   paymentType: 'private' | 'waiver';
-
-  @ApiProperty({ 
-    description: 'Estimated price calculated by frontend', 
-    required: false 
-  })
-  @IsOptional()
-  @IsNumber()
-  @Min(0)
-  estimatedPrice?: number;
 }

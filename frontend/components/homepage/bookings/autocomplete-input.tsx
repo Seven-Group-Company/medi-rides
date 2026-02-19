@@ -1,8 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { MapPin, Loader2 } from 'lucide-react';
-import { loadGoogleMaps } from '@/utils/google-maps-loader';
+import { useEffect, useRef, useState, useCallback } from 'react';
+import { MapPin, Loader2, Search } from 'lucide-react';
 
 interface AutocompleteInputProps {
   placeholder: string;
@@ -19,119 +18,115 @@ export default function AutocompleteInput({
   className = '',
   value = '',
   onChange,
-  error = false
+  error
 }: AutocompleteInputProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
-  const autocompleteRef = useRef<google.maps.places.Autocomplete | null>(null);
-  const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState(value);
-  const isInitializedRef = useRef(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
-  // Update input value when external value prop changes
   useEffect(() => {
     setInputValue(value);
   }, [value]);
 
-  useEffect(() => {
-    const initAutocomplete = async () => {
-      if (!inputRef.current || isInitializedRef.current) return;
+  const searchAddress = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
 
-      try {
-        setLoading(true);
-        
-        // Load Google Maps if not already loaded
-        if (!window.google) {
-          await loadGoogleMaps();
-        }
-
-        if (!window.google || !inputRef.current) {
-          throw new Error('Google Maps not available');
-        }
-
-        // Initialize autocomplete
-        autocompleteRef.current = new google.maps.places.Autocomplete(inputRef.current, {
-          fields: ['formatted_address', 'geometry', 'name'],
-          types: ['geocode']
-        });
-
-        const handlePlaceChanged = () => {
-          const place = autocompleteRef.current?.getPlace();
-          if (place && place.geometry && place.formatted_address) {
-            onPlaceSelected(place);
-            setInputValue(place.formatted_address);
-            if (onChange) {
-              onChange(place.formatted_address);
-            }
-          }
-        };
-
-        autocompleteRef.current.addListener('place_changed', handlePlaceChanged);
-
-        // Prevent form submission on enter
-        inputRef.current.addEventListener('keydown', (e) => {
-          if (e.key === 'Enter') {
-            e.preventDefault();
-          }
-        });
-
-        isInitializedRef.current = true;
-
-      } catch (error) {
-        console.error('Error initializing autocomplete:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    initAutocomplete();
-
-    // Cleanup
-    return () => {
-      if (autocompleteRef.current && isInitializedRef.current) {
-        google.maps.event.clearInstanceListeners(autocompleteRef.current);
-      }
-    };
+    setLoading(true);
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+      );
+      const data = await response.json();
+      setSuggestions(data);
+    } catch (error) {
+      console.error('Error fetching address suggestions:', error);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    setInputValue(value);
-    if (onChange) {
-      onChange(value);
-    }
-  };
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (inputValue && inputValue !== value) {
+        searchAddress(inputValue);
+      }
+    }, 500);
 
-  const handleInputFocus = () => {
-    // Clear the input on focus to allow re-selection
-    if (inputRef.current && inputValue) {
-      // Optional: Allow users to clear and re-select
-      
-      // Uncomment the next line if you want the input cleared on focus
-      // setInputValue('');
-    }
-  };
+    return () => clearTimeout(timer);
+  }, [inputValue, searchAddress, value]);
 
-  const borderColor = error ? 'border-red-500' : 'border-gray-200 hover:border-blue-400';
-  const focusRing = error ? 'focus:ring-red-500 focus:border-red-500' : 'focus:ring-blue-500 focus:border-blue-500';
+  // Close suggestions when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelect = (suggestion: any) => {
+    const formattedPlace = {
+      formatted_address: suggestion.display_name,
+      geometry: {
+        location: {
+          lat: () => parseFloat(suggestion.lat),
+          lng: () => parseFloat(suggestion.lon)
+        }
+      },
+      name: suggestion.display_name.split(',')[0]
+    };
+
+    setInputValue(suggestion.display_name);
+    setShowSuggestions(false);
+    onPlaceSelected(formattedPlace);
+    onChange?.(suggestion.display_name);
+  };
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
       <input
-        ref={inputRef}
         type="text"
         value={inputValue}
-        onChange={handleInputChange}
-        onFocus={handleInputFocus}
-        placeholder={loading ? "Loading maps..." : placeholder}
-        disabled={loading}
-        className={`pl-10 w-full p-3 border-2 ${borderColor} rounded-lg ${focusRing} transition-colors ${
-          className
-        } ${loading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+        onChange={(e) => {
+          setInputValue(e.target.value);
+          setShowSuggestions(true);
+          onChange?.(e.target.value);
+        }}
+        onFocus={() => setShowSuggestions(true)}
+        placeholder={placeholder}
+        className={`pl-10 w-full p-3 border-2 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors ${
+          error ? 'border-red-500' : 'border-gray-200'
+        } ${className}`}
       />
+      
       {loading && (
         <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
           <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+        </div>
+      )}
+
+      {showSuggestions && suggestions.length > 0 && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+          {suggestions.map((suggestion, index) => (
+            <button
+              key={index}
+              className="w-full text-left p-3 hover:bg-gray-50 flex items-start gap-3 transition-colors border-b last:border-0 border-gray-100"
+              onClick={() => handleSelect(suggestion)}
+            >
+              <Search className="w-4 h-4 mt-1 text-gray-400 flex-shrink-0" />
+              <span className="text-sm text-gray-700">{suggestion.display_name}</span>
+            </button>
+          ))}
         </div>
       )}
     </div>

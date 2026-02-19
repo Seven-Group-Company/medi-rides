@@ -170,7 +170,6 @@ export class InvoiceService {
         customer: true,
         driver: true,
         payment: true,
-        serviceCategory: true,
       },
     });
 
@@ -204,7 +203,7 @@ export class InvoiceService {
     }
 
     // Calculate amount
-    const amount = ride.finalPrice || ride.basePrice || 0;
+    const amount = ride.finalPrice || 0;
     const dueDate = moment().add(30, 'days').toDate();
 
     const createInvoiceDto: CreateInvoiceDto = {
@@ -242,7 +241,6 @@ export class InvoiceService {
                 phone: true,
               },
             },
-            serviceCategory: true,
           },
         },
       },

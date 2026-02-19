@@ -1,6 +1,5 @@
 'use client';
 
-import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
@@ -9,7 +8,6 @@ import {
   UsersIcon,
   TruckIcon,
   CogIcon,
-  ChartBarIcon,
   Users,
   X,
 } from 'lucide-react';
@@ -25,7 +23,7 @@ const navigation = [
   { name: 'Drivers', href: '/dashboard/manage-riders', icon: UsersIcon },
   { name: 'Vehicles', href: '/dashboard/manage-vehicles', icon: TruckIcon },
   { name: 'Documentations', href: '/dashboard/doc-trackings', icon: Users },
-  { name: 'Services', href: '/dashboard/service-management', icon: ChartBarIcon },
+  // { name: 'Services', href: '/dashboard/service-management', icon: ChartBarIcon },
   { name: 'Settings', href: '/dashboard/profile', icon: CogIcon },
 ];
 

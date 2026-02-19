@@ -7,7 +7,6 @@ interface BookingSummary {
   id: string;
   pickup: string;
   dropoff: string;
-  serviceType?: string;
   date: string;
   time: string;
   distanceKm?: number;
@@ -93,17 +92,6 @@ export default function SuccessModal({ bookingSummary, onClose }: SuccessModalPr
                 <p className="text-sm text-gray-600">{bookingSummary.dropoff}</p>
               </div>
             </div>
-
-            {/* Service Type - only show if provided */}
-            {bookingSummary.serviceType && (
-              <div className="flex items-start space-x-3">
-                <Car className="w-5 h-5 text-purple-600 mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Service</p>
-                  <p className="text-sm text-gray-600">{bookingSummary.serviceType}</p>
-                </div>
-              </div>
-            )}
 
             {/* Date & Time */}
             <div className="flex items-start space-x-3">

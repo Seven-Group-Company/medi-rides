@@ -1,9 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Location } from '@/types/booking.types';
-import { Loader2, MapPin } from 'lucide-react';
-import { loadGoogleMaps } from '@/utils/google-maps-loader';
+import { Loader2 } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Polyline, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import { getLeafletIcon } from '@/utils/leaflet-config';
+import 'leaflet/dist/leaflet.css';
 
 interface RouteMapProps {
   pickup: Location;
@@ -11,133 +14,53 @@ interface RouteMapProps {
   height?: string;
 }
 
+// Helper to fit bounds
+function ChangeView({ bounds }: { bounds: L.LatLngBoundsExpression }) {
+  const map = useMap();
+  useEffect(() => {
+    if (bounds) {
+      map.fitBounds(bounds, { padding: [30, 30] });
+    }
+  }, [bounds, map]);
+  return null;
+}
+
 export default function RouteMap({ pickup, dropoff, height = '250px' }: RouteMapProps) {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstanceRef = useRef<google.maps.Map | null>(null);
-  const directionsRendererRef = useRef<google.maps.DirectionsRenderer | null>(null);
+  const [route, setRoute] = useState<[number, number][]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const initializeMap = useCallback(async () => {
-    if (!pickup || !dropoff || !mapRef.current) {
-      return;
-    }
+  const calculateRoute = useCallback(async () => {
+    if (!pickup || !dropoff) return;
 
     try {
       setLoading(true);
       setError(null);
 
-      // Load Google Maps if needed
-      if (!window.google) {
-        await loadGoogleMaps();
+      const response = await fetch(
+        `https://router.project-osrm.org/route/v1/driving/${pickup.lng},${pickup.lat};${dropoff.lng},${dropoff.lat}?overview=full&geometries=geojson`
+      );
+      const data = await response.json();
+
+      if (data.code === 'Ok' && data.routes.length > 0) {
+        const coordinates = data.routes[0].geometry.coordinates.map(
+          (coord: [number, number]) => [coord[1], coord[0]] as [number, number]
+        );
+        setRoute(coordinates);
+      } else {
+        throw new Error('No route found');
       }
-
-      if (!window.google || !mapRef.current) {
-        throw new Error('Map initialization failed');
-      }
-
-      // Initialize map
-      mapInstanceRef.current = new google.maps.Map(mapRef.current, {
-        zoom: 12,
-        center: { lat: pickup.lat, lng: pickup.lng },
-        styles: [
-          {
-            featureType: 'all',
-            elementType: 'geometry',
-            stylers: [{ color: '#f5f5f5' }]
-          },
-          {
-            featureType: 'water',
-            elementType: 'geometry',
-            stylers: [{ color: '#e0f2fe' }]
-          },
-          {
-            featureType: 'road',
-            elementType: 'geometry',
-            stylers: [{ color: '#e2e8f0' }]
-          }
-        ],
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: false,
-        zoomControl: false
-      });
-
-      // Add markers
-      new google.maps.Marker({
-        position: { lat: pickup.lat, lng: pickup.lng },
-        map: mapInstanceRef.current,
-        title: 'Pickup Location',
-        icon: {
-          url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDlDNSAxNC4yNSAxMiAyMiAxMiAyMkMxMiAyMiAxOSAxNC4yNSAxOSA5QzE5IDUuMTMgMTUuODcgMiAxMiAyWk0xMiAxMS41QzEwLjYyIDExLjUgOS41IDEwLjM4IDkuNSA5QzkuNSA3LjYyIDEwLjYyIDYuNSAxMiA2LjVDMTMuMzggNi41IDE0LjUgNy42MiAxNC41IDlDMTQuNSAxMC4zOCAxMy4zOCAxMS41IDEyIDExLjVaIiBmaWxsPSIjM0Y4M0Y2Ii8+Cjwvc3ZnPg==',
-          scaledSize: new google.maps.Size(32, 32),
-          anchor: new google.maps.Point(16, 32)
-        }
-      });
-
-      new google.maps.Marker({
-        position: { lat: dropoff.lat, lng: dropoff.lng },
-        map: mapInstanceRef.current,
-        title: 'Drop-off Location',
-        icon: {
-          url: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJDOC4xMyAyIDUgNS4xMyA1IDlDNSAxNC4yNSAxMiAyMiAxMiAyMkMxMiAyMiAxOSAxNC4yNSAxOSA5QzE5IDUuMTMgMTUuODcgMiAxMiAyWk0xMiAxMS41QzEwLjYyIDExLjUgOS41IDEwLjM4IDkuNSA5QzkuNSA3LjYyIDEwLjYyIDYuNSAxMiA2LjVDMTMuMzggNi41IDE0LjUgNy42MiAxNC41IDlDMTQuNSAxMC4zOCAxMy4zOCAxMS41IDEyIDExLjVaIiBmaWxsPSIjMTBBODc0Ii8+Cjwvc3ZnPg==',
-          scaledSize: new google.maps.Size(32, 32),
-          anchor: new google.maps.Point(16, 32)
-        }
-      });
-
-      // Initialize directions renderer
-      directionsRendererRef.current = new google.maps.DirectionsRenderer({
-        map: mapInstanceRef.current,
-        suppressMarkers: true,
-        polylineOptions: {
-          strokeColor: '#3b82f6',
-          strokeWeight: 5,
-          strokeOpacity: 0.8
-        }
-      });
-
-      // Calculate route
-      const directionsService = new google.maps.DirectionsService();
-      const result = await directionsService.route({
-        origin: { lat: pickup.lat, lng: pickup.lng },
-        destination: { lat: dropoff.lat, lng: dropoff.lng },
-        travelMode: google.maps.TravelMode.DRIVING
-      });
-
-      directionsRendererRef.current.setDirections(result);
-
-      // Fit bounds
-      const bounds = new google.maps.LatLngBounds();
-      bounds.extend(new google.maps.LatLng(pickup.lat, pickup.lng));
-      bounds.extend(new google.maps.LatLng(dropoff.lat, dropoff.lng));
-      result.routes[0].legs[0].steps.forEach(step => {
-        bounds.extend(step.start_location);
-        bounds.extend(step.end_location);
-      });
-      mapInstanceRef.current.fitBounds(bounds, 50);
-
-      setLoading(false);
-    } catch (error) {
-      console.error('Error initializing map:', error);
+    } catch (err) {
+      console.error('Error calculating route:', err);
       setError('Could not load map');
+    } finally {
       setLoading(false);
     }
   }, [pickup, dropoff]);
 
   useEffect(() => {
-    initializeMap();
-
-    // Cleanup
-    return () => {
-      if (directionsRendererRef.current) {
-        directionsRendererRef.current.setMap(null);
-      }
-      if (mapInstanceRef.current) {
-        mapInstanceRef.current = null;
-      }
-    };
-  }, [initializeMap]);
+    calculateRoute();
+  }, [calculateRoute]);
 
   if (loading) {
     return (
@@ -150,28 +73,30 @@ export default function RouteMap({ pickup, dropoff, height = '250px' }: RouteMap
     );
   }
 
-  if (error) {
-    return (
-      <div className="bg-gray-50 rounded-lg border border-gray-200 flex items-center justify-center" style={{ height }}>
-        <div className="text-center p-4">
-          <MapPin className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          <p className="text-gray-600">{error}</p>
-          <div className="mt-2 text-xs text-gray-500">
-            <p>Pickup: {pickup.address}</p>
-            <p>Dropoff: {dropoff.address}</p>
-          </div>
-        </div>
-      </div>
-    );
+  const bounds = L.latLngBounds([pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]);
+  if (route.length > 0) {
+    route.forEach(coord => bounds.extend(coord));
   }
 
   return (
-    <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
-      <div 
-        ref={mapRef} 
-        style={{ height }}
-        className="w-full"
-      />
+    <div className="bg-gray-50 rounded-lg overflow-hidden border border-gray-200" style={{ height }}>
+      <MapContainer
+        center={[pickup.lat, pickup.lng]}
+        zoom={13}
+        style={{ height: '100%', width: '100%' }}
+        zoomControl={false}
+      >
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+        <Marker position={[pickup.lat, pickup.lng]} icon={getLeafletIcon('pickup')} />
+        <Marker position={[dropoff.lat, dropoff.lng]} icon={getLeafletIcon('dropoff')} />
+        {route.length > 0 && (
+          <Polyline positions={route} color="#3b82f6" weight={5} opacity={0.8} />
+        )}
+        <ChangeView bounds={bounds} />
+      </MapContainer>
     </div>
   );
 }

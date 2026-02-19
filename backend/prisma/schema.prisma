@@ -99,7 +99,6 @@ model ServiceCategory {
   serviceType  ServiceType @default(GENERAL)
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  rides        Ride[]
 
   @@map("service_categories")
 }
@@ -118,9 +117,6 @@ model Ride {
   duration          Int?
   dropoffLatitude   Float?
   dropoffLongitude  Float?
-  serviceCategoryId Int
-  serviceCategory   ServiceCategory @relation(fields: [serviceCategoryId], references: [id])
-  serviceType       ServiceType
   status            RideStatus      @default(PENDING)
   scheduledAt       DateTime
   actualPickupAt    DateTime?
@@ -131,7 +127,6 @@ model Ride {
   paymentType       methodType      @default(private)
   specialNeeds      String?
   additionalNotes   String?
-  basePrice         Float
   finalPrice        Float?
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt

@@ -108,50 +108,6 @@ export class AnalyticsService {
     return monthlyData;
   }
 
-  async getServiceBreakdown(period: string = 'month') {
-    let startDate: Date;
-    const now = new Date();
-    
-    switch (period) {
-      case 'week':
-        startDate = startOfWeek(now, { weekStartsOn: 1 });
-        break;
-      case 'quarter':
-        startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
-        break;
-      case 'year':
-        startDate = new Date(now.getFullYear() - 1, now.getMonth(), now.getDate());
-        break;
-      case 'month':
-      default:
-        startDate = startOfMonth(now);
-        break;
-    }
-    
-    const serviceData = await this.prisma.ride.groupBy({
-      by: ['serviceType'],
-      where: {
-        scheduledAt: {
-          gte: startDate,
-          lte: now,
-        },
-      },
-      _count: {
-        id: true,
-      },
-      _sum: {
-        finalPrice: true,
-      },
-    });
-    
-    return serviceData.map(service => ({
-      serviceType: service.serviceType,
-      rides: service._count.id,
-      revenue: service._sum.finalPrice || 0,
-      avgRideValue: service._count.id > 0 ? (service._sum.finalPrice || 0) / service._count.id : 0,
-    }));
-  }
-
   async getRevenueAnalytics(period: string = 'month') {
     let startDate: Date;
     const now = new Date();
@@ -201,31 +157,12 @@ export class AnalyticsService {
       return acc;
     }, {} as Record<string, number>);
     
-    // Get revenue by service type
-    const revenueByService = await this.prisma.ride.groupBy({
-      by: ['serviceType'],
-      where: {
-        scheduledAt: {
-          gte: startDate,
-          lte: now,
-        },
-        status: 'COMPLETED',
-        finalPrice: { not: null },
-      },
-      _sum: {
-        finalPrice: true,
-      },
-    });
     
     return {
       period,
       startDate,
       endDate: now,
       dailyRevenue,
-      revenueByService: revenueByService.map(service => ({
-        serviceType: service.serviceType,
-        revenue: service._sum.finalPrice || 0,
-      })),
       totalRevenue: Object.values(dailyRevenue).reduce((sum, revenue) => sum + revenue, 0),
     };
   }
@@ -244,7 +181,6 @@ export class AnalyticsService {
       thisMonthRevenue,
       activeRides,
       topServices,
-      recentRides,
     ] = await Promise.all([
       // Total rides
       this.prisma.ride.count(),
@@ -319,27 +255,6 @@ export class AnalyticsService {
         },
       }),
       
-      // Top 5 services by revenue
-      this.prisma.ride.groupBy({
-        by: ['serviceType'],
-        where: {
-          status: 'COMPLETED',
-          finalPrice: { not: null },
-        },
-        _count: {
-          id: true,
-        },
-        _sum: {
-          finalPrice: true,
-        },
-        orderBy: {
-          _sum: {
-            finalPrice: 'desc',
-          },
-        },
-        take: 5,
-      }),
-      
       // Recent rides (last 5)
       this.prisma.ride.findMany({
         where: {
@@ -373,22 +288,6 @@ export class AnalyticsService {
         activeRides,
         avgRideValue: totalRides > 0 ? (totalRevenue._sum.finalPrice || 0) / totalRides : 0,
       },
-      topServices: topServices.map(service => ({
-        serviceType: service.serviceType,
-        rides: service._count.id,
-        revenue: service._sum.finalPrice || 0,
-        avgRideValue: service._count.id > 0 ? (service._sum.finalPrice || 0) / service._count.id : 0,
-      })),
-      recentRides: recentRides.map(ride => ({
-        id: ride.id,
-        pickup: ride.pickupAddress,
-        dropoff: ride.dropoffAddress,
-        scheduledAt: ride.scheduledAt,
-        status: ride.status,
-        serviceType: ride.serviceType,
-        passengerName: ride.passengerName || ride.customer?.name,
-        finalPrice: ride.finalPrice,
-      })),
     };
   }
 }

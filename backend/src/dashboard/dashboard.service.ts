@@ -131,7 +131,6 @@ export class DashboardService {
       dropoff: ride.dropoffAddress,
       scheduledAt: ride.scheduledAt.toISOString(),
       status: ride.status,
-      serviceType: ride.serviceType,
       passengerName: ride.passengerName || ride.customer?.name || 'Guest',
       driverName: ride.driver?.name,
       finalPrice: ride.finalPrice,

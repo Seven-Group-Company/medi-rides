@@ -58,14 +58,6 @@ export class RidesController {
     status: 200, 
     description: 'Service categories retrieved successfully' 
   })
-  async getServiceCategories() {
-    const categories = await this.ridesService.getServiceCategories();
-    
-    return {
-      success: true,
-      data: categories
-    };
-  }
 
     @Get('upcoming')
   @UseGuards(JwtAuthGuard)
