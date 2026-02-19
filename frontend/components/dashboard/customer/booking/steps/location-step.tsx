@@ -4,7 +4,18 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Navigation, Clock } from 'lucide-react';
 import { BookingStepProps } from '@/types/booking.types';
 import AutocompleteInput from '@/components/dashboard/customer/booking/autocomplete-input';
-import RouteMap from '@/components/dashboard/customer/booking/route-map';
+import dynamic from 'next/dynamic';
+const RouteMap = dynamic(() => import('@/components/dashboard/customer/booking/route-map'), { 
+  ssr: false,
+  loading: () => (
+    <div className="bg-gray-100 rounded-lg border-2 border-gray-200 flex items-center justify-center h-[250px]">
+      <div className="text-center">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+        <p className="text-gray-600">Loading map...</p>
+      </div>
+    </div>
+  )
+});
 import { useCallback, useEffect } from 'react';
 
 export default function LocationStep({ 

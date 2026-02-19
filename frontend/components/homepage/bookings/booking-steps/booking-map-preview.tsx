@@ -73,6 +73,8 @@ export default function RouteMap({ pickup, dropoff, height = '250px' }: RouteMap
     );
   }
 
+  if (typeof window === 'undefined') return null;
+
   const bounds = L.latLngBounds([pickup.lat, pickup.lng], [dropoff.lat, dropoff.lng]);
   if (route.length > 0) {
     route.forEach(coord => bounds.extend(coord));

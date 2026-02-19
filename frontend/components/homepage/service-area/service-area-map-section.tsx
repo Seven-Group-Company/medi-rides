@@ -1,7 +1,7 @@
 'use client';
 
 import { MapContainer, TileLayer, Marker, Circle, Popup } from 'react-leaflet';
-import { getLeafletIcon, DEFAULT_VIEW } from '@/utils/leaflet-config';
+import { getLeafletIcon } from '@/utils/leaflet-config';
 import 'leaflet/dist/leaflet.css';
 
 const ServiceAreaMapSection = () => {
