@@ -40,7 +40,7 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
     date: new Date().toISOString().split('T')[0],
     time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
     notes: '',
-    distanceMiles: 0,
+    distanceKm: 0,
     estimatedTime: 0,
     paymentType: 'private',
   });
@@ -77,7 +77,7 @@ export const BookingFormProvider: React.FC<BookingFormProviderProps> = ({ childr
       date: new Date().toISOString().split('T')[0],
       time: new Date(Date.now() + 30 * 60 * 1000).toTimeString().slice(0, 5),
       notes: '',
-      distanceMiles: 0,
+      distanceKm: 0,
       estimatedTime: 0,
       paymentType: 'private',
     });

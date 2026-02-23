@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { 
   CheckCircle, 
   User, 
-  Phone, 
   MapPin, 
   Calendar, 
   Clock, 
@@ -116,7 +115,7 @@ export default function ReviewSummaryStep({
           <div className="grid grid-cols-2 gap-2">
             <div className="bg-white p-2 rounded">
               <p className="text-xs text-gray-600">Distance</p>
-              <p className="font-medium text-sm">{formData.distanceMiles} mi</p>
+              <p className="font-medium text-sm">{formData.distanceKm} km</p>
             </div>
             <div className="bg-white p-2 rounded">
               <p className="text-xs text-gray-600">Est. Time</p>

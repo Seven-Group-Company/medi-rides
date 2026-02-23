@@ -83,16 +83,6 @@ const WebsiteFooter = () => {
 
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center">
-                  <MapPin className="w-4 h-4 text-[#0077B6]" />
-                </div>
-                <div>
-                  <p className="text-[#1E293B] font-medium">Wasilla</p>
-                  <p className="text-sm text-[#64748B]">Alaska </p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-white rounded-lg border border-[#E2E8F0] flex items-center justify-center">
                   <Clock className="w-4 h-4 text-[#0077B6]" />
                 </div>
                 <div>

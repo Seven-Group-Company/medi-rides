@@ -34,8 +34,6 @@ export interface BookingStepProps {
   formData: BookingFormData;
   updateFormData: (data: Partial<BookingFormData>) => void;
   errors: Record<string, string>;
-  serviceCategories?: any[];
-  isLoadingCategories?: boolean;
   onNext?: () => void;
   onBack: () => void;
   isSubmitting?: boolean;

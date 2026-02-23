@@ -12,7 +12,7 @@ export interface FormData {
   date: string;
   time: string;
   notes: string;
-  distanceMiles?: number;
+  distanceKm?: number;
   estimatedTime?: number;
   paymentType: 'private' | 'waiver';
 }

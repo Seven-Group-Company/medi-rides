@@ -26,11 +26,12 @@ export default function LocationStep({
 }: BookingStepProps) {
   
   const calculateRoute = useCallback(async () => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1000';
     if (!formData.pickup || !formData.dropoff) return;
 
     try {
       const response = await fetch(
-        `https://router.project-osrm.org/route/v1/driving/${formData.pickup.lng},${formData.pickup.lat};${formData.dropoff.lng},${formData.dropoff.lat}`
+        `${API_URL}/public/maps/route?pickup=${formData.pickup.lng},${formData.pickup.lat}&dropoff=${formData.dropoff.lng},${formData.dropoff.lat}`
       );
       const data = await response.json();
 
@@ -55,11 +56,18 @@ export default function LocationStep({
   }, [formData.pickup, formData.dropoff, calculateRoute]);
 
   const handleLocationSelect = (type: 'pickup' | 'dropoff', place: any) => {
+    const lat = typeof place.geometry.location.lat === 'function' 
+      ? place.geometry.location.lat() 
+      : place.geometry.location.lat;
+    const lng = typeof place.geometry.location.lng === 'function' 
+      ? place.geometry.location.lng() 
+      : place.geometry.location.lng;
+    
     updateFormData({
       [type]: {
         address: place.formatted_address,
-        lat: place.geometry.location.lat(),
-        lng: place.geometry.location.lng()
+        lat,
+        lng
       }
     });
   };
@@ -154,7 +162,7 @@ export default function LocationStep({
           whileTap={{ scale: 0.98 }}
           className="bg-blue-600 text-white py-3 px-8 rounded-xl font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200"
         >
-          Continue to Service Type
+          Continue to Schedule
         </motion.button>
       </div>
     </motion.div>

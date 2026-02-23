@@ -5,9 +5,6 @@ import { Calendar, Clock, ChevronLeft, ChevronRight, Loader, Check } from 'lucid
 import { GuestBookingService } from '@/services/guest-booking.service';
 import { useState, useEffect, useRef } from 'react';
 import { BookingStepProps } from '@/types/guest-booking-types';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import interactionPlugin from '@fullcalendar/interaction';
 
 export default function ScheduleStep({
   formData,
@@ -17,7 +14,6 @@ export default function ScheduleStep({
   isSubmitting,
   errors,
 }: BookingStepProps) {
-  const [existingBookings, setExistingBookings] = useState<any[]>([]);
   const [isLoadingBookings, setIsLoadingBookings] = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [bookedDates, setBookedDates] = useState<string[]>([]);
@@ -129,7 +125,7 @@ export default function ScheduleStep({
           <div className="space-y-2">
             <label className="text-xs font-medium text-gray-700 flex items-center">
               <Clock className="w-3 h-3 mr-1" />
-              Time *
+             Appointment Time *
             </label>
             <input
               type="time"

@@ -31,6 +31,7 @@ export default function AutocompleteInput({
   }, [value]);
 
   const searchAddress = useCallback(async (query: string) => {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1000';
     if (query.length < 3) {
       setSuggestions([]);
       return;
@@ -39,7 +40,7 @@ export default function AutocompleteInput({
     setLoading(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5&addressdetails=1`
+        `${API_URL}/public/maps/search?q=${encodeURIComponent(query)}`
       );
       const data = await response.json();
       setSuggestions(data);
@@ -78,8 +79,8 @@ export default function AutocompleteInput({
       formatted_address: suggestion.display_name,
       geometry: {
         location: {
-          lat: () => parseFloat(suggestion.lat),
-          lng: () => parseFloat(suggestion.lon)
+          lat: parseFloat(suggestion.lat),
+          lng: parseFloat(suggestion.lon)
         }
       },
       name: suggestion.display_name.split(',')[0]

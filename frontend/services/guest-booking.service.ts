@@ -8,6 +8,7 @@ export interface CreateGuestRideDto {
   notes?: string;
   distanceKm?: number;
   estimatedTime?: number;
+  paymentType: 'private' | 'waiver';
 }
 
 export interface GuestRideResponse {

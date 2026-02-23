@@ -5,7 +5,6 @@ import { getLeafletIcon } from '@/utils/leaflet-config';
 import 'leaflet/dist/leaflet.css';
 
 const ServiceAreaMapSection = () => {
-  // Wasilla, Alaska coordinates
   const wasilla: [number, number] = [61.5816, -149.4394];
 
   // Nearby community markers

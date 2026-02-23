@@ -80,7 +80,6 @@ export const useBooking = () => {
 
       case 3: // Review step - validate payment
         if (!formData.chargeOption) newErrors.chargeOption = 'Please select a payment method';
-        // Service type validation removed as step is gone, but we might want to default it
         break;
     }
 

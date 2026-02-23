@@ -99,6 +99,12 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
     try {
       setIsSubmitting(true);
       
+      console.log('📋 Form state before submission:', {
+        distanceKm: formData.distanceKm,
+        estimatedTime: formData.estimatedTime,
+        pickup: formData.pickup.address,
+        dropoff: formData.dropoff.address,
+      });
 
       const bookingData = {
         passengerName: formData.passengerName,
@@ -108,12 +114,12 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
         date: formData.date,
         time: formData.time,
         notes: `${formData.notes || ''}`.trim() || undefined,
-        distanceKm: formData.distanceMiles ? formData.distanceMiles * 1.60934 : 0,
+        distanceKm: formData.distanceKm || 0,
         paymentType: formData.paymentType,
         estimatedTime: formData.estimatedTime || 0,
       };
 
-      console.log('Submitting booking:', bookingData);
+      console.log('📤 Submitting booking:', bookingData);
       
       const response = await GuestBookingService.createGuestRide(bookingData);
       
@@ -121,15 +127,16 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
       setBookingSummary({
         id: response.id.toString(),
         bookingId: `B-${response.id.toString().padStart(6, '0')}`,
-        pickup: formData.pickup.address,
-        dropoff: formData.dropoff.address,
+        pickup: formData.pickup!.address,
+        dropoff: formData.dropoff!.address,
         date: formData.date,
         time: formData.time,
         passengerName: formData.passengerName,
         passengerPhone: formData.passengerPhone,
-        distanceMiles: formData.distanceMiles,
-        estimatedTime: formData.estimatedTime,
         paymentType: formData.paymentType,
+        notes: formData.notes,
+        distanceKm: formData.distanceKm,
+        estimatedTime: formData.estimatedTime,
         status: response.status,
         scheduledAt: response.scheduledAt
       });
@@ -138,7 +145,7 @@ function BoltBookingModalContent({ isOpen, onClose, onBookingSuccess }: BoltBook
       if (onBookingSuccess) onBookingSuccess(response);
       
     } catch (error: any) {
-      console.error('Booking failed:', error);
+      console.error('❌ Booking failed:', error);
       setErrors({ form: error.message || 'Booking failed' });
     } finally {
       setIsSubmitting(false);
