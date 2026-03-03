@@ -16,25 +16,25 @@ const FleetAccessibilityShowcase = () => {
       icon: Accessibility,
       title: "Wheelchair Ramp Entry",
       description: "Low-floor ramps with anti-slip surfaces for safe boarding",
-      image: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/fleet/2152019721.jpg"
     },
     {
       icon: Car,
       title: "Fully Accessible Vans",
       description: "Spacious interiors with dedicated wheelchair securement areas",
-      image: "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/fleet/2149908127.jpg"
     },
     {
       icon: Users,
       title: "Secure Interior Seating",
       description: "Medical-grade seating with integrated safety restraints",
-      image: "https://images.unsplash.com/photo-1581093458791-8a6b6d47d0b9?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/fleet/25274.jpg"
     },
     {
       icon: Settings,
       title: "Safety & Mobility Equipment",
       description: "Advanced securement systems and mobility assistance tools",
-      image: "https://images.unsplash.com/photo-1581833971358-2c8b550f87b3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80"
+      image: "/fleet/37337.jpg"
     }
   ];
 
